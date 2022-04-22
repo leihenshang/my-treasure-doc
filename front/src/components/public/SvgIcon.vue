@@ -8,7 +8,13 @@
 export default {
   name: 'SvgIcon',
   props:{
-    iconName:{type:String}
+    iconName:{type:String},
+    color:{type:String}
   }
 }
 </script>
+<style scoped lang="scss">
+.icon{
+  cursor:pointer;
+}
+</style>

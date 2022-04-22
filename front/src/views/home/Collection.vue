@@ -60,13 +60,13 @@
 
 <script lang="ts">
 import SvgIcon from '../../components/public/SvgIcon.vue';
-import {h, defineComponent, computed, ref} from 'vue';
+import {h, defineComponent, computed, ref,Component} from 'vue';
 import {NButton, useMessage, DataTableColumns} from 'naive-ui';
 
 type Song = {
-  no: number
-  title: string
-  length: string
+  name: string
+  belong: string
+  time:string
 }
 type search = {
   data1?: string
@@ -82,30 +82,24 @@ type Group = {
 const createColumns = ({play}: { play: (row: Song) => void }): DataTableColumns<Song> => {
   return [
     {
-      title: 'No',
-      key: 'no'
-    },
-    {
-      title: 'Title',
-      key: 'title'
-    },
-    {
-      title: 'Length',
-      key: 'length'
-    },
-    {
-      title: 'Action',
+      title: '名称',
+      key: 'name'
+    }, {
+      title: '归属',
+      key: 'belong'
+    }, {
+      title: '收藏时间',
+      key: 'time'
+    }, {
+      title: '操作',
       key: 'actions',
       render(row) {
         return h(
-            NButton,
+            SvgIcon,
             {
-              strong: true,
-              tertiary: true,
-              size: 'small',
+              iconName:'collected',
               onClick: () => play(row)
             },
-            {default: () => 'Play'}
         );
       }
     }
@@ -113,9 +107,9 @@ const createColumns = ({play}: { play: (row: Song) => void }): DataTableColumns<
 };
 
 const data: Song[] = [
-  {no: 3, title: 'Wonderwall', length: '4:18'},
-  {no: 4, title: 'Don\'t Look Back in Anger', length: '4:48'},
-  {no: 12, title: 'Champagne Supernova', length: '7:27'}
+  {name: 'Wonderwall', belong: 'Wonderwall',time:'2021-01-29 14:32'},
+  {name: 'Don\'t Look Back in Anger', belong: 'Don\'t Look Back in Anger',time:'2021-01-29 14:32'},
+  {name: 'Champagne Supernova', belong: 'Champagne Supernova',time:'2021-01-29 14:32'}
 ];
 
 export default {
@@ -175,7 +169,7 @@ export default {
       searchData,
       columns: createColumns({
         play(row: Song) {
-          message.info(`Play ${row.title}`);
+          message.info(`Play ${row.name}`);
         }
       }),
       pagination: false as const
