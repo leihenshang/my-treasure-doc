@@ -36,7 +36,7 @@ var (
 	TRANS    ut.Translator
 )
 
-func init() {
+func GlobalInit() {
 	fmt.Println("执行了一次global init")
 	initConf()
 	fmt.Println("初始化配置完成")
