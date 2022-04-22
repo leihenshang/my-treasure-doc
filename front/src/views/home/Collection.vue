@@ -59,9 +59,10 @@
 </template>
 
 <script lang="ts">
-import SvgIcon from '../../components/public/SvgIcon.vue';
 import {h, defineComponent, computed, ref,Component} from 'vue';
 import {NButton, useMessage, DataTableColumns} from 'naive-ui';
+import SvgIcon from '../../components/public/SvgIcon.vue';
+import CollectionHandle from '../../components/collection/CollectionHandle.vue'
 
 type Song = {
   name: string
@@ -95,10 +96,11 @@ const createColumns = ({play}: { play: (row: Song) => void }): DataTableColumns<
       key: 'actions',
       render(row) {
         return h(
-            SvgIcon,
+            CollectionHandle,
             {
-              iconName:'collected',
-              onClick: () => play(row)
+              // iconName:'collected',
+              // onClick: () => play(row),
+              'onUpdate:addGroup':()=>play(row)
             },
         );
       }
@@ -114,7 +116,7 @@ const data: Song[] = [
 
 export default {
   name: 'Collection',
-  components: {SvgIcon},
+  components: {SvgIcon,CollectionHandle},
   setup() {
     const groupList: Group[] = [{title: '全部', type: 'all', count: 100, id: '1'}
       , {title: 'javaScript', type: '', count: 50, id: '2'}, {title: '好看的花花们', type: '', count: 50, id: '3'},];

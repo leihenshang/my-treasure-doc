@@ -22,4 +22,7 @@ export default {
   fill: currentColor;
   overflow: hidden;
 }
+body{
+  color: #262626;
+}
 </style>
