@@ -3,7 +3,7 @@
     <div class="left">
       <div class="title">
         <span>收藏列表</span>
-        <SvgIcon icon-name="add"></SvgIcon>
+        <SvgIcon icon-name="add" @click="changeGroup('add')"></SvgIcon>
       </div>
       <ul class="list">
         <li v-for="item in groupList" :key="item.id"
@@ -17,8 +17,8 @@
               </div>
               <template #empty>
                 <ul class="handle-pop-select-options">
-                  <li @click="changeHandleType('update',item)">编辑</li>
-                  <li @click="changeHandleType('delete',item)">删除</li>
+                  <li @click="changeGroup('update',item)">编辑</li>
+                  <li @click="changeGroup('delete',item)">删除</li>
                 </ul>
               </template>
             </n-popselect>
@@ -45,7 +45,7 @@
   <n-modal v-model:show="showModal" preset="dialog" title="Dialog" :show-icon="false" class="modal-dialog"
            :mask-closable=false style="position: fixed; left: 50%;transform: translateX(-50%);top: 100px">
     <template #header>
-      <div>编辑分组</div>
+      <div>{{ groupHandleType === 'add'?'新增分组':'编辑分组' }}</div>
     </template>
     <div class="dialog-content">
       <label>分组名称</label>
@@ -128,19 +128,24 @@ export default {
     const selectedCollectionId = ref('1');
     const showModal = ref(false);
     const newGroupName = ref('');
-    const updateGroup = ref({})
+    const updateGroup = ref({});
+    const groupHandleType = ref('');
 //选中收藏的某个分类，并保存分类的id
     const viewCollectionList = (collectionId: string) => {
       selectedCollectionId.value = collectionId;
     };
 //左侧收藏分类的编辑删除操作
-    const changeHandleType = (type: string, group: Group) => {
+    const changeGroup = (type: string, group?: Group) => {
+      groupHandleType.value = type
       if (type === 'update') {
-        updateGroup.value = group
-        newGroupName.value = group.title;
+        updateGroup.value = group || {};
+        newGroupName.value = group?.title || '';
         showModal.value = true;
-      }else {
+      } else if (type === 'delete')  {
         //调用删除接口后，再次调用分组接口刷新页面的分组信息
+      }else if (type === 'add')  {
+        newGroupName.value = ''
+        showModal.value = true;
       }
     };
     //更新分组名字
@@ -157,9 +162,10 @@ export default {
 //渲染右侧表格
     const message = useMessage();
     return {
+      groupHandleType,
       groupList,
       viewCollectionList,
-      changeHandleType,
+      changeGroup,
       updateGroupName,
       showModal,
       newGroupName,
