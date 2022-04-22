@@ -14,6 +14,9 @@ import (
 
 func main() {
 
+	//全局初始化
+	global.GlobalInit()
+
 	//同步写入日志
 	defer global.ZAP.Sync()
 	defer global.ZAPSUGAR.Sync()

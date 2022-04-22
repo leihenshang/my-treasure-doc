@@ -1,6 +1,6 @@
-# API-DOC-GO
+# 宝藏文档(treasure-doc)
 ## 概览
-api-doc-go 是一个记录笔记、文档、写作、灵感的有趣工具！
+treasure-doc 是一个记录笔记、文档、写作、灵感的有趣工具！
 它使用markdown来写作。
 
 
