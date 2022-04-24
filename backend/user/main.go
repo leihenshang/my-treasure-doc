@@ -57,6 +57,6 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	global.ZAPSUGAR.Info("服务运行成功 ", "address", addr)
+	global.ZAPSUGAR.Info("service is started!", "address", addr)
 	global.ZAPSUGAR.Error(s.ListenAndServe().Error())
 }

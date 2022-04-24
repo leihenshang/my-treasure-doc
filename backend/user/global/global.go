@@ -37,7 +37,7 @@ var (
 )
 
 func GlobalInit() {
-	fmt.Println("执行了一次global init")
+	fmt.Println("start global init")
 	initConf()
 	fmt.Println("初始化配置完成")
 	initLog()
@@ -62,7 +62,7 @@ func GlobalInit() {
 func initConf() {
 	//读取配置
 	configFile := config.ConfigFile
-	fmt.Println("读取配置文件", path.Join(".", configFile))
+	fmt.Println("load config file:", path.Join(".", configFile))
 
 	VIPER = viper.New()
 	VIPER.SetConfigFile(configFile)
