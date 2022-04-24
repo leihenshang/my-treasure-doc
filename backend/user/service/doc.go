@@ -22,7 +22,7 @@ func DocCreate(r doc.CreateDocRequest, userId uint64) (d *model.Doc, err error) 
 		IsTop:   r.IsTop,
 	}
 
-	if existed, checkErr := checkDocTitleRepeat(insertData.Title, userId); checkErr != nil {
+	if existed, checkErr := checkDocTitleIsDuplicates(insertData.Title, userId); checkErr != nil {
 		global.ZAPSUGAR.Error(r, userId, "检查文档标题失败")
 		return nil, errors.New("检查文档标题失败")
 	} else {
@@ -39,8 +39,8 @@ func DocCreate(r doc.CreateDocRequest, userId uint64) (d *model.Doc, err error) 
 	return
 }
 
-//checkDocTitleRepeat 查询数据库检查文档标题是否重复
-func checkDocTitleRepeat(title string, userId uint64) (doc *model.Doc, err error) {
+//checkDocTitleIsDuplicates 检查文档标题是否重复
+func checkDocTitleIsDuplicates(title string, userId uint64) (doc *model.Doc, err error) {
 	q := global.DB.Model(&model.Doc{}).Where("title = ? AND user_id = ?", title, userId)
 	if err = q.First(&doc).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
