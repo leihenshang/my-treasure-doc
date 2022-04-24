@@ -1,0 +1,2 @@
+CREATE DATABASE `my_treasure_doc` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
+
