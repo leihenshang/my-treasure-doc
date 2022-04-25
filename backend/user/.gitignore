@@ -10,3 +10,6 @@ config.toml
 # ide
 .vscode
 .idea
+
+# 编译文件
+treasure_user

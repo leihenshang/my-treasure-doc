@@ -11,6 +11,20 @@
 - 日志处理
 - 缓存处理
 
+## 项目编译
+```bash
+//linux
+GOARCH=amd64 GOOS=linux CGO_ENABLED=0 go build -o treasure_user
+
+//windows
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build
+
+
+//mac
+CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build
+
+```
+
 ## 目录说明
 
 ```
