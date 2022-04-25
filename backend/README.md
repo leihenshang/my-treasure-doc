@@ -23,6 +23,9 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build
 //mac
 CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build
 
+//减少包大小 -ldflags -s 去掉符号信息 -w 去掉调试信息 
+go build -ldflags "-s -w" -o main-ldflags main.go 
+
 ```
 
 ## 目录说明
