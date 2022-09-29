@@ -2,27 +2,11 @@
   <div class="homePage-wrapper">
     <Header></Header>
     <n-layout has-sider class="menu-layout">
-      <n-layout-sider
-          class="menu-sider"
-          bordered
-          collapse-mode="width"
-          :collapsed-width="64"
-          :width="290"
-          :collapsed="collapsed"
-          @collapse="collapsed = true"
-          @expand="collapsed = false"
-      >
-        <n-menu
-            class="menu-menu"
-            :collapsed="collapsed"
-            :collapsed-width="64"
-            :collapsed-icon-size="22"
-            :options="menuOptions"
-            :indent="24"
-            :render-label="renderMenuLabel"
-            :default-value="route.path"
-            :render-icon="renderMenuIcon"
-        />
+      <n-layout-sider class="menu-sider" bordered collapse-mode="width" :collapsed-width="64" :width="290"
+        :collapsed="collapsed" @collapse="collapsed = true" @expand="collapsed = false">
+        <n-menu class="menu-menu" :collapsed="collapsed" :collapsed-width="64" :collapsed-icon-size="22"
+          :options="menuOptions" :indent="24" :render-label="renderMenuLabel" :default-value="route.path"
+          :render-icon="renderMenuIcon" />
       </n-layout-sider>
       <n-layout class="right">
         <router-view></router-view>
@@ -33,9 +17,9 @@
 
 <script lang="ts">
 import Header from '../../components/Header.vue';
-import {h, ref, Component } from 'vue';
-import type {MenuOption} from 'naive-ui';
-import {useRoute, RouterLink} from 'vue-router';
+import { h, ref, Component } from 'vue';
+import type { MenuOption } from 'naive-ui';
+import { useRoute, RouterLink } from 'vue-router';
 import SvgIcon from '../../components/public/SvgIcon.vue';
 
 const menuOptions = [
@@ -67,9 +51,9 @@ const menuOptions = [
       }
     ]
   }, {
-    label: '日常计划',
+    label: '计划',
     key: 'plan',
-    pathName: 'Plane',
+    pathName: 'Plan',
     iconName: 'plan',
   }, {
     label: '我的日记本',
@@ -81,7 +65,7 @@ const menuOptions = [
 
 export default {
   name: 'HomePage',
-  components: {Header},
+  components: { Header },
   setup() {
     const route = useRoute();
     return {
@@ -91,18 +75,18 @@ export default {
       renderMenuLabel(option: MenuOption) {
         if ('pathName' in option) {
           return h(RouterLink,
-              {
-                to: {
-                  name: option.pathName,
-                }
-              },
-              {default: () => option.label}
+            {
+              to: {
+                name: option.pathName,
+              }
+            },
+            { default: () => option.label }
           );
         }
         return option.label as string;
       },
       renderMenuIcon(option: MenuOption) {
-        return option.iconName && h(SvgIcon, {iconName:option.iconName});
+        return option.iconName && h(SvgIcon, { iconName: option.iconName });
       },
     };
   }
@@ -115,7 +99,7 @@ export default {
 .homePage-wrapper {
   height: 100%;
 
-  > .menu-layout {
+  >.menu-layout {
     height: calc(100% - #{$headerHeight});
 
     .menu-sider {
@@ -123,13 +107,15 @@ export default {
 
       .menu-menu ::v-deep(.n-menu-item.n-menu-item--selected) {
         .n-menu-item-content {
+
           .n-menu-item-content__icon,
           .n-menu-item-content-header {
             color: darken($mainColor, 0.5);
           }
         }
 
-        .n-menu-item > .n-menu-item-content:hover {
+        .n-menu-item>.n-menu-item-content:hover {
+
           .n-menu-item-content__icon,
           .n-menu-item-content-header {
             color: darken($mainColor, 0.5);

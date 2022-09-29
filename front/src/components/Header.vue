@@ -1,8 +1,8 @@
 <template>
   <header>
     <section class="left">
-      <img src="../assets/images/duck.png" class="favicon" alt="" width="32" height="33"/>
-      <h3>apiDoc</h3>
+      <img src="../assets/images/duck.png" class="favicon" alt="" width="32" height="32"/>
+      <h3>my-treasure</h3>
     </section>
     <section class="right">
       <div class="avatar-wrapper">
@@ -40,7 +40,7 @@ header {
     display: flex;
     width: calc(#{$menuWidth} - 32px);
     > h3{
-      font-size: 24px;
+      font-size: 20px;
       margin-left: 8px;
     }
   }
