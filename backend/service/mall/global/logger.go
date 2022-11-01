@@ -13,13 +13,13 @@ import (
 )
 
 func initLogger() {
-	writeSyncyer, err := getLogWriter()
+	writeSyncer, err := getLogWriter()
 	if err != nil {
 		panic(err)
 	}
 
 	encoder := getEncoder()
-	core := zapcore.NewCore(encoder, writeSyncyer, zapcore.InfoLevel)
+	core := zapcore.NewCore(encoder, writeSyncer, zapcore.InfoLevel)
 
 	var level zapcore.Level
 
