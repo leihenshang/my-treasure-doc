@@ -57,44 +57,10 @@ docker run  --rm \
 
 ### 生成模型
 
-`go install gorm.io/gen/tools/gentool@latest`
+进入 service/mall/cli 目录
 
-```bash
-gentool -h
+1. 首先将config.example.toml改换成config.toml完善Mysql配置
+2. 然后执行 `go run . -gen`
 
-Usage of gentool:
- -db string
-       input mysql or postgres or sqlite or sqlserver. consult[https://gorm.io/docs/connecting_to_the_database.html] (default "mysql")
- -dsn string
-       consult[https://gorm.io/docs/connecting_to_the_database.html]
- -fieldNullable
-       generate with pointer when field is nullable
- -fieldWithIndexTag
-       generate field with gorm index tag
- -fieldWithTypeTag
-       generate field with gorm column type tag
- -modelPkgName string
-       generated model code's package name
- -outFile string
-       query code file name, default: gen.go
- -outPath string
-       specify a directory for output (default "./dao/query")
- -tables string
-       enter the required data table or leave it blank
- -onlyModel
-       only generate models (without query file)
- -withUnitTest
-       generate unit test for query code
- -fieldSignable
-       detect integer field's unsigned type, adjust generated data type
+即可通过gin官方的gen工具生成模型到目录 `data/...` 下
 
-```
-
-example
-
-```bash
-
-gentool -dsn "user:pwd@tcp(localhost:3306)/database?charset=utf8mb4&parseTime=True&loc=Local" -tables "orders,doctor"
-
-
-```
