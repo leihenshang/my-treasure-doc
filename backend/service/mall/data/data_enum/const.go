@@ -1,4 +1,4 @@
-package common_defined
+package data_enum
 
 //1-可用,2-不可用,3-未激活
 const UserStatusAvailable = 1

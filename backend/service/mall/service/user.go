@@ -2,7 +2,7 @@ package service
 
 import (
 	"errors"
-	"fastduck/treasure-doc/service/mall/data/common-defined"
+	"fastduck/treasure-doc/service/mall/data/data_enum"
 	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/global"
 	"fastduck/treasure-doc/service/mall/request/user"
@@ -124,7 +124,7 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 	}
 
 	//检查账号状态
-	if u.UserStatus != common_defined.UserStatusAvailable {
+	if u.UserStatus != data_enum.UserStatusAvailable {
 		return u, errors.New("账号不可用或未激活")
 	}
 
