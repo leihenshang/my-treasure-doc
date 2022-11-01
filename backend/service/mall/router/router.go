@@ -3,6 +3,9 @@ package router
 import (
 	api "fastduck/treasure-doc/service/mall/api/doc"
 	apiDoc "fastduck/treasure-doc/service/mall/api/doc"
+	apiGoods "fastduck/treasure-doc/service/mall/api/mall/goods"
+	apiOrder "fastduck/treasure-doc/service/mall/api/mall/order"
+	apiPay "fastduck/treasure-doc/service/mall/api/mall/pay"
 	apiUser "fastduck/treasure-doc/service/mall/api/user"
 	"fastduck/treasure-doc/service/mall/middleware/auth"
 	"net/http"
@@ -58,21 +61,21 @@ func InitRoute(r *gin.Engine) {
 	{
 		//-----商品-------
 		//列表
-		mallGroupRoute.GET("/goods/list", nil)
+		mallGroupRoute.GET("/goods/list", apiGoods.List)
 		//详情
-		mallGroupRoute.GET("/goods/detail", nil)
+		mallGroupRoute.GET("/goods/detail", apiGoods.Detail)
 
 		//-----订单-----
 		//创建
-		mallGroupRoute.POST("/order/create", nil)
+		mallGroupRoute.POST("/order/create", apiOrder.Create)
 		//列表
-		mallGroupRoute.GET("/order/list", nil)
+		mallGroupRoute.GET("/order/list", apiOrder.List)
 		//详情
-		mallGroupRoute.GET("/order/detail", nil)
+		mallGroupRoute.GET("/order/detail", apiOrder.Detail)
 
 		//-----支付-----
 		//支付
-		mallGroupRoute.POST("/pay/create", nil)
+		mallGroupRoute.POST("/pay/create", apiPay.Create)
 	}
 
 }
