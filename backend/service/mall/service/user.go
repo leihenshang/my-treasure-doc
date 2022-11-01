@@ -2,10 +2,10 @@ package service
 
 import (
 	"errors"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/model"
-	"fastduck/treasure-doc/service/user/request/user"
-	"fastduck/treasure-doc/service/user/utils"
+	"fastduck/treasure-doc/service/mall/global"
+	"fastduck/treasure-doc/service/mall/model"
+	"fastduck/treasure-doc/service/mall/request/user"
+	"fastduck/treasure-doc/service/mall/utils"
 	"fmt"
 	"regexp"
 	"time"

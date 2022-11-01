@@ -2,9 +2,9 @@ package auth
 
 import (
 	"errors"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/model"
-	"fastduck/treasure-doc/service/user/service"
+	"fastduck/treasure-doc/service/mall/global"
+	"fastduck/treasure-doc/service/mall/model"
+	"fastduck/treasure-doc/service/mall/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
