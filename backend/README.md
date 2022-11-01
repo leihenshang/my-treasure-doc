@@ -53,3 +53,48 @@ docker run  --rm \
     -p 2021:2021  \
     golang:alpine \
     sh -c  "go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct && cd /app/user && go run main.go"
+```
+
+### 生成模型
+
+`go install gorm.io/gen/tools/gentool@latest`
+
+```bash
+gentool -h
+
+Usage of gentool:
+ -db string
+       input mysql or postgres or sqlite or sqlserver. consult[https://gorm.io/docs/connecting_to_the_database.html] (default "mysql")
+ -dsn string
+       consult[https://gorm.io/docs/connecting_to_the_database.html]
+ -fieldNullable
+       generate with pointer when field is nullable
+ -fieldWithIndexTag
+       generate field with gorm index tag
+ -fieldWithTypeTag
+       generate field with gorm column type tag
+ -modelPkgName string
+       generated model code's package name
+ -outFile string
+       query code file name, default: gen.go
+ -outPath string
+       specify a directory for output (default "./dao/query")
+ -tables string
+       enter the required data table or leave it blank
+ -onlyModel
+       only generate models (without query file)
+ -withUnitTest
+       generate unit test for query code
+ -fieldSignable
+       detect integer field's unsigned type, adjust generated data type
+
+```
+
+example
+
+```bash
+
+gentool -dsn "user:pwd@tcp(localhost:3306)/database?charset=utf8mb4&parseTime=True&loc=Local" -tables "orders,doctor"
+
+
+```
