@@ -26,7 +26,7 @@ func DocCreate(c *gin.Context) {
 		return
 	}
 
-	if d, ok := service.DocCreate(req, u.Id); ok != nil {
+	if d, ok := service.DocCreate(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -46,7 +46,7 @@ func DocDetail(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if d, ok := service.DocDetail(req, u.Id); ok != nil {
+	if d, ok := service.DocDetail(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -67,7 +67,7 @@ func DocList(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if d, ok := service.DocList(req, u.Id); ok != nil {
+	if d, ok := service.DocList(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -86,7 +86,7 @@ func DocUpdate(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if ok := service.DocUpdate(req, u.Id); ok != nil {
+	if ok := service.DocUpdate(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.Ok(c)
@@ -105,7 +105,7 @@ func DocDelete(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if ok := service.DocDelete(req, u.Id); ok != nil {
+	if ok := service.DocDelete(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.Ok(c)

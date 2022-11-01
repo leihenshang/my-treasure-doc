@@ -26,7 +26,7 @@ func TeamCreate(c *gin.Context) {
 		return
 	}
 
-	if d, ok := service.TeamCreate(req, u.Id); ok != nil {
+	if d, ok := service.TeamCreate(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -46,7 +46,7 @@ func TeamDetail(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if d, ok := service.TeamDetail(req, u.Id); ok != nil {
+	if d, ok := service.TeamDetail(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -67,7 +67,7 @@ func TeamList(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if d, ok := service.TeamList(req, u.Id); ok != nil {
+	if d, ok := service.TeamList(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -86,7 +86,7 @@ func TeamUpdate(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if ok := service.TeamUpdate(req, u.Id); ok != nil {
+	if ok := service.TeamUpdate(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.Ok(c)
@@ -105,7 +105,7 @@ func TeamDelete(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if ok := service.TeamDelete(req, u.Id); ok != nil {
+	if ok := service.TeamDelete(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.Ok(c)

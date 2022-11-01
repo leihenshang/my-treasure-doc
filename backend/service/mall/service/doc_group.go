@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 	"fastduck/treasure-doc/service/admin/response"
+	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/global"
-	"fastduck/treasure-doc/service/mall/model"
 	"fastduck/treasure-doc/service/mall/request"
 	"fastduck/treasure-doc/service/mall/request/doc"
 	"fmt"
@@ -17,8 +17,8 @@ func DocGroupCreate(r doc.CreateDocGroupRequest, userId uint64) (dg *model.DocGr
 	insertData := &model.DocGroup{
 		Title:  r.Title,
 		Icon:   r.Icon,
-		PId:    uint64(r.PId),
-		UserId: userId,
+		PID:    int64(r.PId),
+		UserID: int64(userId),
 	}
 
 	if existed, checkErr := checkDocGroupTitleRepeat(insertData.Title, userId); checkErr != nil {

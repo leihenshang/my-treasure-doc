@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 	"fastduck/treasure-doc/service/admin/response"
+	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/global"
-	"fastduck/treasure-doc/service/mall/model"
 	"fastduck/treasure-doc/service/mall/request"
 	"fastduck/treasure-doc/service/mall/request/doc"
 	"fmt"
@@ -15,11 +15,11 @@ import (
 //DocCreate 创建文档
 func DocCreate(r doc.CreateDocRequest, userId uint64) (d *model.Doc, err error) {
 	insertData := &model.Doc{
-		UserId:  userId,
+		UserID:  int64(userId),
 		Title:   r.Title,
 		Content: r.Content,
-		GroupId: r.GroupId,
-		IsTop:   r.IsTop,
+		GroupID: int32(r.GroupId),
+		IsTop:   int32(r.IsTop),
 	}
 
 	if existed, checkErr := checkDocTitleIsDuplicates(insertData.Title, userId); checkErr != nil {

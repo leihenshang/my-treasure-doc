@@ -26,7 +26,7 @@ func DocGroupCreate(c *gin.Context) {
 		return
 	}
 
-	if d, ok := service.DocGroupCreate(req, u.Id); ok != nil {
+	if d, ok := service.DocGroupCreate(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -46,7 +46,7 @@ func DocGroupList(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if d, ok := service.DocGroupList(req, u.Id); ok != nil {
+	if d, ok := service.DocGroupList(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -65,7 +65,7 @@ func DocGroupUpdate(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if ok := service.DocGroupUpdate(req, u.Id); ok != nil {
+	if ok := service.DocGroupUpdate(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.Ok(c)
@@ -84,7 +84,7 @@ func DocGroupDelete(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if ok := service.DocGroupDelete(req, u.Id); ok != nil {
+	if ok := service.DocGroupDelete(req, uint64(u.ID)); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.Ok(c)

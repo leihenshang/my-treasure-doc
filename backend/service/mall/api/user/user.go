@@ -49,7 +49,7 @@ func UserLogout(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if err := service.UserLogout(u.Id); err != nil {
+	if err := service.UserLogout(uint64(u.ID)); err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
@@ -70,7 +70,7 @@ func UserProfileUpdate(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if _, err := service.UserProfileUpdate(profile, u.Id); err != nil {
+	if _, err := service.UserProfileUpdate(profile, uint64(u.ID)); err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	} else {

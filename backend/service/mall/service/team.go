@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 	"fastduck/treasure-doc/service/admin/response"
+	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/global"
-	"fastduck/treasure-doc/service/mall/model"
 	"fastduck/treasure-doc/service/mall/request"
 	"fastduck/treasure-doc/service/mall/request/team"
 	"fmt"

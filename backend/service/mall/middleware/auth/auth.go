@@ -2,8 +2,8 @@ package auth
 
 import (
 	"errors"
+	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/global"
-	"fastduck/treasure-doc/service/mall/model"
 	"fastduck/treasure-doc/service/mall/service"
 	"net/http"
 

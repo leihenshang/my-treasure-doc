@@ -2,8 +2,9 @@ package service
 
 import (
 	"errors"
+	"fastduck/treasure-doc/service/mall/data/common-defined"
+	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/global"
-	"fastduck/treasure-doc/service/mall/model"
 	"fastduck/treasure-doc/service/mall/request/user"
 	"fastduck/treasure-doc/service/mall/utils"
 	"fmt"
@@ -123,7 +124,7 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 	}
 
 	//检查账号状态
-	if u.UserStatus != model.UserStatusAvaliable {
+	if u.UserStatus != common_defined.UserStatusAvailable {
 		return u, errors.New("账号不可用或未激活")
 	}
 
@@ -132,14 +133,14 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 	}
 
 	//下发token以及设置token过期时间
-	u.Token = utils.GenerateLoginToken(u.Id)
-	tokenExpire := model.CustomTime(time.Now().Add(time.Hour * 36))
-	u.TokenExpire = &tokenExpire
+	u.Token = utils.GenerateLoginToken(uint64(u.ID))
+	tokenExpire := time.Now().Add(time.Hour * 36)
+	u.TokenExpire = tokenExpire
 
 	//设置登录时间记录用户登录ip
-	u.LastLoginIp = clientIp
-	customTime := model.CustomTime(time.Now())
-	u.LastLoginTime = &customTime
+	u.LastLoginIP = clientIp
+	customTime := time.Now()
+	u.LastLoginTime = customTime
 	if err := global.DB.Select("LastLoginIp", "LastLoginTime", "Token", "TokenExpire").Save(&u).Error; err != nil {
 		return u, errors.New("登录失败: 更新登录状态发生错误")
 	}
@@ -157,7 +158,6 @@ func UserLogout(userId uint64) error {
 	}
 
 	user.Token = ""
-	user.TokenExpire = nil
 
 	if err := global.DB.Save(&user).Error; err != nil {
 		global.ZAP.Error("退出登陆，更新信息失败", zap.Any("dbErr", err))
