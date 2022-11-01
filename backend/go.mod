@@ -1,4 +1,4 @@
-module fastduck/apidoc
+module fastduck/tresuredoc
 
 go 1.16
 
