@@ -2,11 +2,11 @@ package service
 
 import (
 	"errors"
-	"fastduck/tresuredoc/service/admin/response"
-	"fastduck/tresuredoc/service/user/global"
-	"fastduck/tresuredoc/service/user/model"
-	"fastduck/tresuredoc/service/user/request"
-	"fastduck/tresuredoc/service/user/request/doc"
+	"fastduck/treasure-doc/service/admin/response"
+	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/service/user/model"
+	"fastduck/treasure-doc/service/user/request"
+	"fastduck/treasure-doc/service/user/request/doc"
 	"fmt"
 
 	"gorm.io/gorm"

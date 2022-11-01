@@ -1,4 +1,4 @@
-module fastduck/tresuredoc
+module fastduck/treasure-doc
 
 go 1.16
 

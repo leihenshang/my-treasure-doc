@@ -1,9 +1,9 @@
 package api
 
 import (
-	"fastduck/tresuredoc/service/admin/request"
-	"fastduck/tresuredoc/service/admin/response"
-	"fastduck/tresuredoc/service/admin/service"
+	"fastduck/treasure-doc/service/admin/request"
+	"fastduck/treasure-doc/service/admin/response"
+	"fastduck/treasure-doc/service/admin/service"
 
 	"github.com/gin-gonic/gin"
 )

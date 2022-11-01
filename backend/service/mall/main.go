@@ -2,8 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"fastduck/tresuredoc/service/user/global"
-	"fastduck/tresuredoc/service/user/router"
+	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/service/user/router"
 	"fmt"
 	"net/http"
 	"time"

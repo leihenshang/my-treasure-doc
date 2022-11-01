@@ -1,8 +1,8 @@
 package service
 
 import (
-	"fastduck/tresuredoc/service/admin/global"
-	"fastduck/tresuredoc/service/admin/model"
+	"fastduck/treasure-doc/service/admin/global"
+	"fastduck/treasure-doc/service/admin/model"
 )
 
 //ApiList api列表

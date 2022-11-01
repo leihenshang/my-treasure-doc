@@ -1,8 +1,8 @@
 package router
 
 import (
-	"fastduck/tresuredoc/service/user/api"
-	"fastduck/tresuredoc/service/user/middleware/auth"
+	"fastduck/treasure-doc/service/user/api"
+	"fastduck/treasure-doc/service/user/middleware/auth"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

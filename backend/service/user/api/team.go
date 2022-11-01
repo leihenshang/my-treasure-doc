@@ -1,12 +1,12 @@
 package api
 
 import (
-	"fastduck/tresuredoc/service/user/global"
-	"fastduck/tresuredoc/service/user/middleware/auth"
-	"fastduck/tresuredoc/service/user/request"
-	"fastduck/tresuredoc/service/user/request/team"
-	"fastduck/tresuredoc/service/user/response"
-	"fastduck/tresuredoc/service/user/service"
+	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/service/user/middleware/auth"
+	"fastduck/treasure-doc/service/user/request"
+	"fastduck/treasure-doc/service/user/request/team"
+	"fastduck/treasure-doc/service/user/response"
+	"fastduck/treasure-doc/service/user/service"
 
 	"github.com/gin-gonic/gin"
 )

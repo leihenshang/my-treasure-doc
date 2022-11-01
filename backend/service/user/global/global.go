@@ -1,7 +1,7 @@
 package global
 
 import (
-	"fastduck/tresuredoc/service/user/config"
+	"fastduck/treasure-doc/service/user/config"
 	"fmt"
 	"log"
 	"os"
