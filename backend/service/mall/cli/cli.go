@@ -18,7 +18,7 @@ func main() {
 		Mode:    gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface, // generate mode
 	})
 	// todo 记得改dsn密码和用户
-	gormdb, _ := gorm.Open(mysql.Open("user:pwd@tcp(www.321go.top:50681)/my_treasure_doc?charset=utf8mb4&parseTime=True&loc=Local"))
+	gormdb, _ := gorm.Open(mysql.Open("user:pwd@tcp(localhost:8080)/my_treasure_doc?charset=utf8mb4&parseTime=True&loc=Local"))
 	g.UseDB(gormdb) // reuse your gorm db
 
 	// Generate basic type-safe DAO API for struct `model.User` following conventions
