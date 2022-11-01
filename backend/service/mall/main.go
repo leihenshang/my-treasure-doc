@@ -47,7 +47,7 @@ func main() {
 	//初始化路由
 	router.InitRoute(r)
 
-	addr := fmt.Sprintf(":%d", global.CONFIG.App.Port)
+	addr := fmt.Sprintf("%s:%d", global.CONFIG.App.Host, global.CONFIG.App.Port)
 	//设置服务
 	s := &http.Server{
 		Addr:           addr,
@@ -57,6 +57,6 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	global.ZAPSUGAR.Info("service is started!", "address", addr)
+	global.ZAPSUGAR.Info("service is started!\n", "http://", addr)
 	global.ZAPSUGAR.Error(s.ListenAndServe().Error())
 }

@@ -19,7 +19,7 @@ func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authKey := c.GetHeader("X-Token")
 		if authKey == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, "参数错误")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, "身份认证参数错误")
 			return
 		}
 

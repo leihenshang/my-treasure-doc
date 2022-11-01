@@ -57,14 +57,18 @@ func InitRoute(r *gin.Engine) {
 		docGroupRoute.POST("/delete", apiDoc.DocGroupDelete)
 	}
 
-	mallGroupRoute := r.Group("mall").Use(auth.Auth())
+	mallGroupRouteNoAuth := r.Group("mall")
 	{
 		//-----商品-------
 		//列表
-		mallGroupRoute.GET("/goods/list", apiGoods.List)
+		mallGroupRouteNoAuth.GET("/goods/list", apiGoods.List)
 		//详情
-		mallGroupRoute.GET("/goods/detail", apiGoods.Detail)
+		mallGroupRouteNoAuth.GET("/goods/detail", apiGoods.Detail)
 
+	}
+
+	mallGroupRoute := r.Group("mall").Use(auth.Auth())
+	{
 		//-----订单-----
 		//创建
 		mallGroupRoute.POST("/order/create", apiOrder.Create)
