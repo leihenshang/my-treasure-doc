@@ -15,6 +15,7 @@ const TableNameGood = "goods"
 // Good mapped from table <goods>
 type Good struct {
 	ID        int32          `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	Img       string         `gorm:"column:img" json:"img"`
 	GoodsName string         `gorm:"column:goods_name;not null" json:"goods_name"`
 	Quantity  int32          `gorm:"column:quantity;not null" json:"quantity"`
 	CreatedAt time.Time      `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"created_at"`

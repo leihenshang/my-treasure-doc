@@ -28,7 +28,11 @@ func newOrderGood(db *gorm.DB, opts ...gen.DOOption) orderGood {
 	tableName := _orderGood.orderGoodDo.TableName()
 	_orderGood.ALL = field.NewAsterisk(tableName)
 	_orderGood.ID = field.NewInt32(tableName, "id")
+	_orderGood.OrderID = field.NewInt32(tableName, "order_id")
 	_orderGood.GoodID = field.NewInt32(tableName, "good_id")
+	_orderGood.SkuID = field.NewInt32(tableName, "sku_id")
+	_orderGood.Price = field.NewFloat64(tableName, "price")
+	_orderGood.Quantity = field.NewInt32(tableName, "quantity")
 	_orderGood.CreatedAt = field.NewTime(tableName, "created_at")
 	_orderGood.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_orderGood.DeletedAt = field.NewField(tableName, "deleted_at")
@@ -43,7 +47,11 @@ type orderGood struct {
 
 	ALL       field.Asterisk
 	ID        field.Int32
+	OrderID   field.Int32 // 订单id
 	GoodID    field.Int32
+	SkuID     field.Int32   // sku id
+	Price     field.Float64 // 单价
+	Quantity  field.Int32   // 数量
 	CreatedAt field.Time
 	UpdatedAt field.Time
 	DeletedAt field.Field
@@ -64,7 +72,11 @@ func (o orderGood) As(alias string) *orderGood {
 func (o *orderGood) updateTableName(table string) *orderGood {
 	o.ALL = field.NewAsterisk(table)
 	o.ID = field.NewInt32(table, "id")
+	o.OrderID = field.NewInt32(table, "order_id")
 	o.GoodID = field.NewInt32(table, "good_id")
+	o.SkuID = field.NewInt32(table, "sku_id")
+	o.Price = field.NewFloat64(table, "price")
+	o.Quantity = field.NewInt32(table, "quantity")
 	o.CreatedAt = field.NewTime(table, "created_at")
 	o.UpdatedAt = field.NewTime(table, "updated_at")
 	o.DeletedAt = field.NewField(table, "deleted_at")
@@ -84,9 +96,13 @@ func (o *orderGood) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (o *orderGood) fillFieldMap() {
-	o.fieldMap = make(map[string]field.Expr, 5)
+	o.fieldMap = make(map[string]field.Expr, 9)
 	o.fieldMap["id"] = o.ID
+	o.fieldMap["order_id"] = o.OrderID
 	o.fieldMap["good_id"] = o.GoodID
+	o.fieldMap["sku_id"] = o.SkuID
+	o.fieldMap["price"] = o.Price
+	o.fieldMap["quantity"] = o.Quantity
 	o.fieldMap["created_at"] = o.CreatedAt
 	o.fieldMap["updated_at"] = o.UpdatedAt
 	o.fieldMap["deleted_at"] = o.DeletedAt

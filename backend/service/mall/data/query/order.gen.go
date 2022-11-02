@@ -28,8 +28,11 @@ func newOrder(db *gorm.DB, opts ...gen.DOOption) order {
 	tableName := _order.orderDo.TableName()
 	_order.ALL = field.NewAsterisk(tableName)
 	_order.ID = field.NewInt32(tableName, "id")
+	_order.OrderNo = field.NewString(tableName, "order_no")
 	_order.GoodID = field.NewInt32(tableName, "good_id")
 	_order.SkuID = field.NewInt32(tableName, "sku_id")
+	_order.UserID = field.NewInt32(tableName, "user_id")
+	_order.Amount = field.NewFloat64(tableName, "amount")
 	_order.CreatedAt = field.NewTime(tableName, "created_at")
 	_order.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_order.DeletedAt = field.NewField(tableName, "deleted_at")
@@ -44,8 +47,11 @@ type order struct {
 
 	ALL       field.Asterisk
 	ID        field.Int32
+	OrderNo   field.String // 订单号
 	GoodID    field.Int32
-	SkuID     field.Int32 // sku id
+	SkuID     field.Int32   // sku id
+	UserID    field.Int32   // 用户id
+	Amount    field.Float64 // 金额
 	CreatedAt field.Time
 	UpdatedAt field.Time
 	DeletedAt field.Field
@@ -66,8 +72,11 @@ func (o order) As(alias string) *order {
 func (o *order) updateTableName(table string) *order {
 	o.ALL = field.NewAsterisk(table)
 	o.ID = field.NewInt32(table, "id")
+	o.OrderNo = field.NewString(table, "order_no")
 	o.GoodID = field.NewInt32(table, "good_id")
 	o.SkuID = field.NewInt32(table, "sku_id")
+	o.UserID = field.NewInt32(table, "user_id")
+	o.Amount = field.NewFloat64(table, "amount")
 	o.CreatedAt = field.NewTime(table, "created_at")
 	o.UpdatedAt = field.NewTime(table, "updated_at")
 	o.DeletedAt = field.NewField(table, "deleted_at")
@@ -87,10 +96,13 @@ func (o *order) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (o *order) fillFieldMap() {
-	o.fieldMap = make(map[string]field.Expr, 6)
+	o.fieldMap = make(map[string]field.Expr, 9)
 	o.fieldMap["id"] = o.ID
+	o.fieldMap["order_no"] = o.OrderNo
 	o.fieldMap["good_id"] = o.GoodID
 	o.fieldMap["sku_id"] = o.SkuID
+	o.fieldMap["user_id"] = o.UserID
+	o.fieldMap["amount"] = o.Amount
 	o.fieldMap["created_at"] = o.CreatedAt
 	o.fieldMap["updated_at"] = o.UpdatedAt
 	o.fieldMap["deleted_at"] = o.DeletedAt
