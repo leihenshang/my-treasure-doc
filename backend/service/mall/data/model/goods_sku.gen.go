@@ -15,6 +15,7 @@ const TableNameGoodsSku = "goods_sku"
 // GoodsSku mapped from table <goods_sku>
 type GoodsSku struct {
 	ID           int32          `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	Enabled      int32          `gorm:"column:enabled;not null;default:1" json:"enabled"`     // 1-可用，2-禁用
 	GoodsID      int32          `gorm:"column:goods_id;not null" json:"goods_id"`             // 商品id
 	GoodsSpecIds string         `gorm:"column:goods_spec_ids;not null" json:"goods_spec_ids"` // 规格id
 	Price        float64        `gorm:"column:price;not null;default:0.0000" json:"price"`    // 价格

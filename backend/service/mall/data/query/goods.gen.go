@@ -29,6 +29,7 @@ func newGood(db *gorm.DB, opts ...gen.DOOption) good {
 	_good.ALL = field.NewAsterisk(tableName)
 	_good.ID = field.NewInt32(tableName, "id")
 	_good.Img = field.NewString(tableName, "img")
+	_good.Enabled = field.NewInt32(tableName, "enabled")
 	_good.GoodsName = field.NewString(tableName, "goods_name")
 	_good.CreatedAt = field.NewTime(tableName, "created_at")
 	_good.UpdatedAt = field.NewTime(tableName, "updated_at")
@@ -45,6 +46,7 @@ type good struct {
 	ALL       field.Asterisk
 	ID        field.Int32
 	Img       field.String
+	Enabled   field.Int32 // 1-可用，2-禁用
 	GoodsName field.String
 	CreatedAt field.Time
 	UpdatedAt field.Time
@@ -67,6 +69,7 @@ func (g *good) updateTableName(table string) *good {
 	g.ALL = field.NewAsterisk(table)
 	g.ID = field.NewInt32(table, "id")
 	g.Img = field.NewString(table, "img")
+	g.Enabled = field.NewInt32(table, "enabled")
 	g.GoodsName = field.NewString(table, "goods_name")
 	g.CreatedAt = field.NewTime(table, "created_at")
 	g.UpdatedAt = field.NewTime(table, "updated_at")
@@ -87,9 +90,10 @@ func (g *good) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (g *good) fillFieldMap() {
-	g.fieldMap = make(map[string]field.Expr, 6)
+	g.fieldMap = make(map[string]field.Expr, 7)
 	g.fieldMap["id"] = g.ID
 	g.fieldMap["img"] = g.Img
+	g.fieldMap["enabled"] = g.Enabled
 	g.fieldMap["goods_name"] = g.GoodsName
 	g.fieldMap["created_at"] = g.CreatedAt
 	g.fieldMap["updated_at"] = g.UpdatedAt

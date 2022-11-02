@@ -28,6 +28,7 @@ func newGoodsSku(db *gorm.DB, opts ...gen.DOOption) goodsSku {
 	tableName := _goodsSku.goodsSkuDo.TableName()
 	_goodsSku.ALL = field.NewAsterisk(tableName)
 	_goodsSku.ID = field.NewInt32(tableName, "id")
+	_goodsSku.Enabled = field.NewInt32(tableName, "enabled")
 	_goodsSku.GoodsID = field.NewInt32(tableName, "goods_id")
 	_goodsSku.GoodsSpecIds = field.NewString(tableName, "goods_spec_ids")
 	_goodsSku.Price = field.NewFloat64(tableName, "price")
@@ -46,6 +47,7 @@ type goodsSku struct {
 
 	ALL          field.Asterisk
 	ID           field.Int32
+	Enabled      field.Int32   // 1-可用，2-禁用
 	GoodsID      field.Int32   // 商品id
 	GoodsSpecIds field.String  // 规格id
 	Price        field.Float64 // 价格
@@ -70,6 +72,7 @@ func (g goodsSku) As(alias string) *goodsSku {
 func (g *goodsSku) updateTableName(table string) *goodsSku {
 	g.ALL = field.NewAsterisk(table)
 	g.ID = field.NewInt32(table, "id")
+	g.Enabled = field.NewInt32(table, "enabled")
 	g.GoodsID = field.NewInt32(table, "goods_id")
 	g.GoodsSpecIds = field.NewString(table, "goods_spec_ids")
 	g.Price = field.NewFloat64(table, "price")
@@ -93,8 +96,9 @@ func (g *goodsSku) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (g *goodsSku) fillFieldMap() {
-	g.fieldMap = make(map[string]field.Expr, 8)
+	g.fieldMap = make(map[string]field.Expr, 9)
 	g.fieldMap["id"] = g.ID
+	g.fieldMap["enabled"] = g.Enabled
 	g.fieldMap["goods_id"] = g.GoodsID
 	g.fieldMap["goods_spec_ids"] = g.GoodsSpecIds
 	g.fieldMap["price"] = g.Price

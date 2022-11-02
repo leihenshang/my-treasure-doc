@@ -9,6 +9,25 @@ import (
 	"fmt"
 )
 
+type GetGoodsFilter struct {
+	GoodId  int32
+	Enabled int32
+}
+
+func GetGoods(ctx context.Context, f *GetGoodsFilter) (res *model.Good, err error) {
+	q := query.Good.WithContext(ctx)
+	if f.GoodId > 0 {
+		q = q.Where(query.Good.ID.Eq(f.GoodId))
+	}
+	if f.Enabled > 0 {
+		q = q.Where(query.Good.Enabled.Eq(f.Enabled))
+	}
+
+	res, err = q.First()
+
+	return
+}
+
 type GoodsListFilter struct {
 	GoodsName string
 	reqCommon.DataSort
