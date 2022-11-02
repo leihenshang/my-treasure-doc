@@ -1,6 +1,6 @@
 package order
 
-import "fastduck/treasure-doc/service/mall/request/common"
+import "fastduck/treasure-doc/service/mall/data/request/common"
 
 type FilterOrderList struct {
 	common.Pagination

@@ -1,7 +1,7 @@
 package goods
 
 import (
-	"fastduck/treasure-doc/service/mall/request/common"
+	"fastduck/treasure-doc/service/mall/data/request/common"
 )
 
 type FilterGoodsList struct {

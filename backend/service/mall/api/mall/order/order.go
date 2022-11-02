@@ -1,10 +1,10 @@
 package order
 
 import (
+	reqOrder "fastduck/treasure-doc/service/mall/data/request/order"
+	"fastduck/treasure-doc/service/mall/data/response"
 	"fastduck/treasure-doc/service/mall/global"
 	srvOrder "fastduck/treasure-doc/service/mall/internal/service/order"
-	reqOrder "fastduck/treasure-doc/service/mall/request/order"
-	"fastduck/treasure-doc/service/mall/response"
 
 	"github.com/gin-gonic/gin"
 )

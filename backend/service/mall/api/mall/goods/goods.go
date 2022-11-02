@@ -1,10 +1,10 @@
 package goods
 
 import (
+	reqGoods "fastduck/treasure-doc/service/mall/data/request/goods"
+	"fastduck/treasure-doc/service/mall/data/response"
 	"fastduck/treasure-doc/service/mall/global"
 	srvGoods "fastduck/treasure-doc/service/mall/internal/service/goods"
-	reqGoods "fastduck/treasure-doc/service/mall/request/goods"
-	"fastduck/treasure-doc/service/mall/response"
 
 	"github.com/gin-gonic/gin"
 )

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/data/query"
-	goodsReq "fastduck/treasure-doc/service/mall/request/goods"
+	goodsReq "fastduck/treasure-doc/service/mall/data/request/goods"
 )
 
 func GoodsList(ctx context.Context, f goodsReq.FilterGoodsList) (res []*model.Good, total int64, err error) {
