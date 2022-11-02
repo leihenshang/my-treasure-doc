@@ -7,26 +7,24 @@ import (
 	"fastduck/treasure-doc/service/mall/data/query"
 	goodsReq "fastduck/treasure-doc/service/mall/data/request/goods"
 	goodsResp "fastduck/treasure-doc/service/mall/data/response/goods"
+	"fastduck/treasure-doc/service/mall/global"
+	goodsDao "fastduck/treasure-doc/service/mall/internal/dao/goods"
 )
 
 func GoodsList(ctx context.Context, f goodsReq.FilterGoodsList) (res *goodsResp.GoodsList, err error) {
 	res = new(goodsResp.GoodsList)
-	q := query.Good.WithContext(ctx)
-	if f.GoodsName != "" {
-		q = q.Where(query.Good.GoodsName.Like("%" + f.GoodsName + "%"))
+	filter := &goodsDao.GoodsListFilter{
+		GoodsName: f.GoodsName,
+		DataSort:  f.DataSort,
 	}
-	if f.SortField != "" {
-		goodsCol, ok := query.Good.GetFieldByName(f.SortField)
-		if ok {
-			if f.IsDesc {
-				q = q.Order(goodsCol.Desc())
-			} else {
-				q = q.Order(goodsCol)
-			}
-		}
-	}
+	pagination := &f.Pagination
 
-	result, total, err := q.FindByPage(int(f.Offset), int(f.Limit))
+	result, total, qErr := goodsDao.GoodsList(ctx, filter, pagination)
+	if qErr != nil {
+		global.ZAPSUGAR.Errorf("GoodsList|goodsDao.GoodsList failed to get goods list.filter:%+v,pagination:%+v,err:%+v", filter, pagination, qErr)
+		err = errors.New("获取商品列表失败")
+		return
+	}
 
 	for _, v := range result {
 		res.List = append(res.List, &goodsResp.GoodsEntity{
