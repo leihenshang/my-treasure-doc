@@ -70,7 +70,12 @@ func GlobalInit(srv srvType) {
 }
 
 func initQuery() {
-	query.SetDefault(DB.Debug())
+	if CONFIG.App.IsRelease() {
+		query.SetDefault(DB)
+	} else {
+		query.SetDefault(DB.Debug())
+	}
+
 }
 
 func initConf() {

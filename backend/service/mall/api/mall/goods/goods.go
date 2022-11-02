@@ -18,12 +18,12 @@ func List(c *gin.Context) {
 		return
 	}
 
-	if d, t, ok := srvGoods.GoodsList(c, req); ok != nil {
+	if res, ok := srvGoods.GoodsList(c, req); ok != nil {
 		global.ZAPSUGAR.Infof("goods|srvGoods.GoodsList err:%+v", ok)
 		response.FailWithMessage(ok.Error(), c)
 	} else {
-		resp.List = d
-		resp.Total = t
+		resp.List = res.List
+		resp.Total = res.Total
 		response.OkWithData(resp, c)
 	}
 }
