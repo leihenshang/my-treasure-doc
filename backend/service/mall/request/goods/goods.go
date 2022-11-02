@@ -11,5 +11,5 @@ type FilterGoodsList struct {
 }
 
 type FilterGoodsDetail struct {
-	GoodsId string `json:"goodsId"`
+	GoodsId int32 `json:"goodsId" form:"goodsId"`
 }
