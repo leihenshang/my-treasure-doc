@@ -26,7 +26,6 @@ func List(c *gin.Context) {
 		resp.Total = t
 		response.OkWithData(resp, c)
 	}
-
 }
 
 func Detail(c *gin.Context) {
