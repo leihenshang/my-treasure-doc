@@ -4,9 +4,7 @@ import (
 	"database/sql"
 	"fastduck/treasure-doc/service/mall/global"
 	"flag"
-	"fmt"
 
-	"github.com/gin-gonic/gin"
 	"gorm.io/gen"
 )
 
@@ -48,15 +46,10 @@ func main() {
 }
 
 func genGormFile() {
-	//设置运行模式
-	if global.CONFIG.App.IsRelease() {
-		fmt.Println("设置模式为", gin.ReleaseMode)
-		gin.SetMode(gin.ReleaseMode)
-	}
-
 	g := gen.NewGenerator(gen.Config{
 		OutPath: *genOrmPath,
 		Mode:    gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface, // generate mode
+
 	})
 
 	g.UseDB(global.DB) // reuse your gorm db
