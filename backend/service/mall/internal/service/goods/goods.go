@@ -8,9 +8,9 @@ import (
 )
 
 func GoodsList(ctx context.Context, f goodsReq.FilterGoodsList) (res []*model.Good, total int64, err error) {
-	q := query.Good
+	q := query.Good.WithContext(ctx)
 	if f.GoodsName != "" {
-		q.Where(query.Good.GoodsName.Like(f.GoodsName))
+		q = q.Where(query.Good.GoodsName.Like("%" + f.GoodsName + "%"))
 	}
 
 	res, total, err = q.FindByPage(int(f.Offset), int(f.Limit))
