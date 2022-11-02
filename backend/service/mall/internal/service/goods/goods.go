@@ -33,7 +33,6 @@ func GoodsList(ctx context.Context, f goodsReq.FilterGoodsList) (res *goodsResp.
 			ID:        v.ID,
 			Img:       v.Img,
 			GoodsName: v.GoodsName,
-			Quantity:  v.Quantity,
 			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
 			UpdatedAt: v.UpdatedAt.Format("2006-01-02 15:04:05"),
 			DeletedAt: v.DeletedAt.Time.Format("2006-01-02 15:04:05"),
