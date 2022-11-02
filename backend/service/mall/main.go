@@ -15,7 +15,7 @@ import (
 func main() {
 
 	//全局初始化
-	global.GlobalInit()
+	global.GlobalInit("api")
 
 	//同步写入日志
 	defer global.ZAP.Sync()

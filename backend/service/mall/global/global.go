@@ -24,6 +24,8 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	"fastduck/treasure-doc/service/mall/data/query"
 )
 
 var (
@@ -36,7 +38,10 @@ var (
 	TRANS    ut.Translator
 )
 
-func GlobalInit() {
+// 环境标签
+type srvType string
+
+func GlobalInit(srv srvType) {
 	fmt.Println("start global init")
 	initConf()
 	fmt.Println("初始化配置完成")
@@ -51,12 +56,21 @@ func GlobalInit() {
 	initMysql()
 	fmt.Println("初始化mysql完成")
 
+	if srv != "cli" {
+		initQuery()
+		fmt.Println("初始化query完成")
+	}
+
 	//初始化验证器
 	if err := InitTrans("zh"); err != nil {
 		log.Fatalf("init trans failed, err:%v\n", err)
 		return
 	}
 	fmt.Println("初始化validator完成")
+}
+
+func initQuery() {
+	query.SetDefault(DB.Debug())
 }
 
 func initConf() {
@@ -88,9 +102,9 @@ func initMysql() {
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
-			SlowThreshold: time.Second,   // Slow SQL threshold
-			LogLevel:      logger.Silent, // Log level
-			Colorful:      true,          // Disable color
+			SlowThreshold: time.Second, // Slow SQL threshold
+			LogLevel:      logger.Info, // Log level
+			Colorful:      true,        // Disable color
 		},
 	)
 
