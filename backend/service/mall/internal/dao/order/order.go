@@ -29,6 +29,7 @@ func GetOrder(ctx context.Context, f *GetOrderFilter) (res *model.Order, err err
 
 type OrderListFilter struct {
 	UserId int32
+	Status int32
 	reqCommon.DataSort
 }
 
@@ -46,6 +47,9 @@ func OrderList(ctx context.Context, f *OrderListFilter, p *reqCommon.Pagination)
 
 	if f.UserId > 0 {
 		q = q.Where(query.Order.UserID.Eq(f.UserId))
+	}
+	if f.Status > 0 {
+		q = q.Where(query.Order.Status.Eq(f.Status))
 	}
 
 	if f.SortField != "" {

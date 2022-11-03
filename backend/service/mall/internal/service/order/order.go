@@ -25,6 +25,7 @@ func OrderList(ctx context.Context, f orderReq.FilterOrderList) (res *orderResp.
 	filter := &orderDao.OrderListFilter{
 		UserId:   f.UserId,
 		DataSort: f.DataSort,
+		Status:   f.Status,
 	}
 	pagination := &f.Pagination
 
