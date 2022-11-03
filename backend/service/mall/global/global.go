@@ -43,30 +43,32 @@ type srvType string
 
 func GlobalInit(srv srvType) {
 	fmt.Println("start global init")
+	fmt.Println("初始化配置")
 	initConf()
-	fmt.Println("初始化配置完成")
-	initLog()
-	fmt.Println("初始化日志完成")
+	fmt.Println("初始化日志")
+	initLogger()
 
 	if CONFIG.Redis.Enable {
+		fmt.Println("初始化redis")
 		initRedis()
-		fmt.Println("初始化redis完成")
 	}
 
+	fmt.Println("初始化mysql")
 	initMysql()
-	fmt.Println("初始化mysql完成")
 
 	if srv != "cli" {
+		fmt.Println("初始化query")
 		initQuery()
-		fmt.Println("初始化query完成")
 	}
 
+	fmt.Println("初始化validator")
 	//初始化验证器
 	if err := InitTrans("zh"); err != nil {
 		log.Fatalf("init trans failed, err:%v\n", err)
 		return
 	}
-	fmt.Println("初始化validator完成")
+
+	fmt.Println("global init successfully!")
 }
 
 func initQuery() {
@@ -122,10 +124,6 @@ func initMysql() {
 		panic("初始化mysql失败")
 	}
 
-}
-
-func initLog() {
-	initLogger()
 }
 
 func initRedis() {

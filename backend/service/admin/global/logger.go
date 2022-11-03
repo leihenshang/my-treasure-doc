@@ -77,18 +77,18 @@ func getEncoderConf() (config zapcore.EncoderConfig) {
 		EncodeCaller:   zapcore.FullCallerEncoder,
 	}
 	config.EncodeLevel = zapcore.LowercaseLevelEncoder
-	// switch {
-	// case global.CONFIG.Zap.EncodeLevel == "LowercaseLevelEncoder": // 小写编码器(默认)
+	switch {
+	// case global.CONFIG.ZAP.EncodeLevel == "LowercaseLevelEncoder": // 小写编码器(默认)
 	// 	config.EncodeLevel = zapcore.LowercaseLevelEncoder
-	// case global.CONFIG.Zap.EncodeLevel == "LowercaseColorLevelEncoder": // 小写编码器带颜色
+	// case global.CONFIG.ZAP.EncodeLevel == "LowercaseColorLevelEncoder": // 小写编码器带颜色
 	// 	config.EncodeLevel = zapcore.LowercaseColorLevelEncoder
-	// case global.CONFIG.Zap.EncodeLevel == "CapitalLevelEncoder": // 大写编码器
+	// case global.CONFIG.ZAP.EncodeLevel == "CapitalLevelEncoder": // 大写编码器
 	// 	config.EncodeLevel = zapcore.CapitalLevelEncoder
-	// case global.CONFIG.Zap.EncodeLevel == "CapitalColorLevelEncoder": // 大写编码器带颜色
+	// case global.CONFIG.ZAP.EncodeLevel == "CapitalColorLevelEncoder": // 大写编码器带颜色
 	// 	config.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	// default:
-	// 	config.EncodeLevel = zapcore.LowercaseLevelEncoder
-	// }
+	default:
+		config.EncodeLevel = zapcore.LowercaseColorLevelEncoder
+	}
 	return config
 }
 

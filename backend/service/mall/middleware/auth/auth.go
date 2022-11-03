@@ -25,12 +25,12 @@ func Auth() gin.HandlerFunc {
 
 		u, err := service.GetUserByToken(authKey)
 		if err != nil {
-			global.ZAPSUGAR.Error(err)
+			global.ZAPSUGAR.Errorf("[auth|service.GetUserByToken] an error occurred.err:%+v, authKey:%+v ", err, authKey)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "查询用户信息失败")
 			return
 		}
 		if u == nil {
-			global.ZAPSUGAR.Error("获取用户信息失败")
+			global.ZAPSUGAR.Errorf("[auth|service.GetUserByToken] an error occurred.err:%+v, authKey:%+v ", "没有找到用户信息")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "没有找到用户信息")
 			return
 		}
@@ -50,12 +50,12 @@ func userAccessParamsCheck(c *gin.Context) {
 //GetUserInfoByCtx 从上下文获取用户信息
 func GetUserInfoByCtx(c *gin.Context) (u *model.User, err error) {
 	if v, exists := c.Get(UserInfoKey); !exists {
-		return nil, errors.New("从上下文中获取用户信息失败")
+		return nil, errors.New("从上下文中获取用户信息键失败")
 	} else {
 		if u, ok := v.(*model.User); ok {
 			return u, nil
 		}
 	}
 
-	return nil, errors.New("从上下文解析用户信息失败")
+	return nil, errors.New("从用户键值解析用户信息失败")
 }

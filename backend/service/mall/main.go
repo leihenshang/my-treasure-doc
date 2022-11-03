@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	ginzap "github.com/gin-contrib/zap"
+	// ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 )
 
@@ -42,7 +42,7 @@ func main() {
 	// r.Use(ginzap.Ginzap(global.ZAP, time.RFC3339, true))
 
 	//把gin致命错误写入日志
-	r.Use(ginzap.RecoveryWithZap(global.ZAP, true))
+	// r.Use(ginzap.RecoveryWithZap(global.ZAP, true))
 
 	//初始化路由
 	router.InitRoute(r)
