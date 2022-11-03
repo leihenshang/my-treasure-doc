@@ -116,18 +116,18 @@ func OrderDetail(ctx context.Context, f orderReq.FilterOrderDetail) (res *orderR
 	return
 }
 
-func OrderCreate(ctx context.Context, f orderReq.ParamsOrderCreate) (res *orderResp.OrderCreate, err error) {
+func OrderCreate(ctx context.Context, params orderReq.ParamsOrderCreate) (res *orderResp.OrderCreate, err error) {
 	res = new(orderResp.OrderCreate)
-	if f.Quantity <= 0 {
+	if params.Quantity <= 0 {
 		err = errors.New("数量不能小于1")
 		return
 	}
-	if f.SkuId <= 0 {
+	if params.SkuId <= 0 {
 		err = errors.New("skuId 不能小于1")
 		return
 	}
 
-	if f.UserId <= 0 {
+	if params.UserId <= 0 {
 		err = errors.New("userId 不能小于1")
 		return
 	}
@@ -136,7 +136,7 @@ func OrderCreate(ctx context.Context, f orderReq.ParamsOrderCreate) (res *orderR
 	//扣减库存
 	//生成订单
 	skuF := &goodsDao.GetSkuFilter{
-		SkuId:   f.SkuId,
+		SkuId:   params.SkuId,
 		Enabled: 1,
 	}
 	sku, skuErr := goodsDao.GetSku(ctx, skuF)
@@ -147,15 +147,15 @@ func OrderCreate(ctx context.Context, f orderReq.ParamsOrderCreate) (res *orderR
 	}
 	if sku == nil {
 		global.ZapSugar.Error("OrderCreate failed to get sku info. err:sku not existed")
-		err = errors.New(fmt.Sprintf("sku不存在,skuId:%d", f.SkuId))
+		err = errors.New(fmt.Sprintf("sku不存在,skuId:%d", params.SkuId))
 		return
 	}
 
-	remnant := sku.Stock - f.Quantity
+	remnant := sku.Stock - params.Quantity
 
 	if remnant <= 0 {
 		global.ZapSugar.Errorf("OrderCreate skuId:%d stock shortage", sku.ID)
-		err = errors.New(fmt.Sprintf("库存不足,skuId:%d", f.SkuId))
+		err = errors.New(fmt.Sprintf("库存不足,skuId:%d", params.SkuId))
 		return
 	}
 
@@ -182,8 +182,8 @@ func OrderCreate(ctx context.Context, f orderReq.ParamsOrderCreate) (res *orderR
 
 	insertOrder := &model.Order{
 		OrderNo: orderNo,
-		UserID:  f.UserId,
-		Amount:  sku.Price * float64(f.Quantity),
+		UserID:  params.UserId,
+		Amount:  sku.Price * float64(params.Quantity),
 		Status:  1,
 	}
 
@@ -200,7 +200,7 @@ func OrderCreate(ctx context.Context, f orderReq.ParamsOrderCreate) (res *orderR
 		GoodID:   sku.GoodsID,
 		SkuID:    sku.ID,
 		Price:    sku.Price,
-		Quantity: f.Quantity,
+		Quantity: params.Quantity,
 	}
 	orderDetailErr := tx.WithContext(ctx).OrderDetail.Create(insertOrderDetail)
 	if orderDetailErr != nil {
