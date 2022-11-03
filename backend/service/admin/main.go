@@ -13,6 +13,9 @@ import (
 )
 
 func main() {
+	// 为什么要显示初始化？
+	// 有一个场景是单元测试，如果引入了相关的包，就会去执行init()函数，如果里边读取配置文件路径不对或者其他的问题，就很麻烦。
+	global.GlobalInit()
 
 	//同步写入日志
 	defer global.ZAP.Sync()

@@ -16,18 +16,18 @@ import (
 )
 
 var (
-	Q          = new(Query)
-	Doc        *doc
-	DocGroup   *docGroup
-	GlobalConf *globalConf
-	Good       *good
-	GoodsSku   *goodsSku
-	GoodsSpec  *goodsSpec
-	Order      *order
-	OrderGood  *orderGood
-	Team       *team
-	TeamUser   *teamUser
-	User       *user
+	Q           = new(Query)
+	Doc         *doc
+	DocGroup    *docGroup
+	GlobalConf  *globalConf
+	Good        *good
+	GoodsSku    *goodsSku
+	GoodsSpec   *goodsSpec
+	Order       *order
+	OrderDetail *orderDetail
+	Team        *team
+	TeamUser    *teamUser
+	User        *user
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -39,7 +39,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	GoodsSku = &Q.GoodsSku
 	GoodsSpec = &Q.GoodsSpec
 	Order = &Q.Order
-	OrderGood = &Q.OrderGood
+	OrderDetail = &Q.OrderDetail
 	Team = &Q.Team
 	TeamUser = &Q.TeamUser
 	User = &Q.User
@@ -47,53 +47,53 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:         db,
-		Doc:        newDoc(db, opts...),
-		DocGroup:   newDocGroup(db, opts...),
-		GlobalConf: newGlobalConf(db, opts...),
-		Good:       newGood(db, opts...),
-		GoodsSku:   newGoodsSku(db, opts...),
-		GoodsSpec:  newGoodsSpec(db, opts...),
-		Order:      newOrder(db, opts...),
-		OrderGood:  newOrderGood(db, opts...),
-		Team:       newTeam(db, opts...),
-		TeamUser:   newTeamUser(db, opts...),
-		User:       newUser(db, opts...),
+		db:          db,
+		Doc:         newDoc(db, opts...),
+		DocGroup:    newDocGroup(db, opts...),
+		GlobalConf:  newGlobalConf(db, opts...),
+		Good:        newGood(db, opts...),
+		GoodsSku:    newGoodsSku(db, opts...),
+		GoodsSpec:   newGoodsSpec(db, opts...),
+		Order:       newOrder(db, opts...),
+		OrderDetail: newOrderDetail(db, opts...),
+		Team:        newTeam(db, opts...),
+		TeamUser:    newTeamUser(db, opts...),
+		User:        newUser(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Doc        doc
-	DocGroup   docGroup
-	GlobalConf globalConf
-	Good       good
-	GoodsSku   goodsSku
-	GoodsSpec  goodsSpec
-	Order      order
-	OrderGood  orderGood
-	Team       team
-	TeamUser   teamUser
-	User       user
+	Doc         doc
+	DocGroup    docGroup
+	GlobalConf  globalConf
+	Good        good
+	GoodsSku    goodsSku
+	GoodsSpec   goodsSpec
+	Order       order
+	OrderDetail orderDetail
+	Team        team
+	TeamUser    teamUser
+	User        user
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:         db,
-		Doc:        q.Doc.clone(db),
-		DocGroup:   q.DocGroup.clone(db),
-		GlobalConf: q.GlobalConf.clone(db),
-		Good:       q.Good.clone(db),
-		GoodsSku:   q.GoodsSku.clone(db),
-		GoodsSpec:  q.GoodsSpec.clone(db),
-		Order:      q.Order.clone(db),
-		OrderGood:  q.OrderGood.clone(db),
-		Team:       q.Team.clone(db),
-		TeamUser:   q.TeamUser.clone(db),
-		User:       q.User.clone(db),
+		db:          db,
+		Doc:         q.Doc.clone(db),
+		DocGroup:    q.DocGroup.clone(db),
+		GlobalConf:  q.GlobalConf.clone(db),
+		Good:        q.Good.clone(db),
+		GoodsSku:    q.GoodsSku.clone(db),
+		GoodsSpec:   q.GoodsSpec.clone(db),
+		Order:       q.Order.clone(db),
+		OrderDetail: q.OrderDetail.clone(db),
+		Team:        q.Team.clone(db),
+		TeamUser:    q.TeamUser.clone(db),
+		User:        q.User.clone(db),
 	}
 }
 
@@ -107,48 +107,48 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:         db,
-		Doc:        q.Doc.replaceDB(db),
-		DocGroup:   q.DocGroup.replaceDB(db),
-		GlobalConf: q.GlobalConf.replaceDB(db),
-		Good:       q.Good.replaceDB(db),
-		GoodsSku:   q.GoodsSku.replaceDB(db),
-		GoodsSpec:  q.GoodsSpec.replaceDB(db),
-		Order:      q.Order.replaceDB(db),
-		OrderGood:  q.OrderGood.replaceDB(db),
-		Team:       q.Team.replaceDB(db),
-		TeamUser:   q.TeamUser.replaceDB(db),
-		User:       q.User.replaceDB(db),
+		db:          db,
+		Doc:         q.Doc.replaceDB(db),
+		DocGroup:    q.DocGroup.replaceDB(db),
+		GlobalConf:  q.GlobalConf.replaceDB(db),
+		Good:        q.Good.replaceDB(db),
+		GoodsSku:    q.GoodsSku.replaceDB(db),
+		GoodsSpec:   q.GoodsSpec.replaceDB(db),
+		Order:       q.Order.replaceDB(db),
+		OrderDetail: q.OrderDetail.replaceDB(db),
+		Team:        q.Team.replaceDB(db),
+		TeamUser:    q.TeamUser.replaceDB(db),
+		User:        q.User.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Doc        IDocDo
-	DocGroup   IDocGroupDo
-	GlobalConf IGlobalConfDo
-	Good       IGoodDo
-	GoodsSku   IGoodsSkuDo
-	GoodsSpec  IGoodsSpecDo
-	Order      IOrderDo
-	OrderGood  IOrderGoodDo
-	Team       ITeamDo
-	TeamUser   ITeamUserDo
-	User       IUserDo
+	Doc         IDocDo
+	DocGroup    IDocGroupDo
+	GlobalConf  IGlobalConfDo
+	Good        IGoodDo
+	GoodsSku    IGoodsSkuDo
+	GoodsSpec   IGoodsSpecDo
+	Order       IOrderDo
+	OrderDetail IOrderDetailDo
+	Team        ITeamDo
+	TeamUser    ITeamUserDo
+	User        IUserDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Doc:        q.Doc.WithContext(ctx),
-		DocGroup:   q.DocGroup.WithContext(ctx),
-		GlobalConf: q.GlobalConf.WithContext(ctx),
-		Good:       q.Good.WithContext(ctx),
-		GoodsSku:   q.GoodsSku.WithContext(ctx),
-		GoodsSpec:  q.GoodsSpec.WithContext(ctx),
-		Order:      q.Order.WithContext(ctx),
-		OrderGood:  q.OrderGood.WithContext(ctx),
-		Team:       q.Team.WithContext(ctx),
-		TeamUser:   q.TeamUser.WithContext(ctx),
-		User:       q.User.WithContext(ctx),
+		Doc:         q.Doc.WithContext(ctx),
+		DocGroup:    q.DocGroup.WithContext(ctx),
+		GlobalConf:  q.GlobalConf.WithContext(ctx),
+		Good:        q.Good.WithContext(ctx),
+		GoodsSku:    q.GoodsSku.WithContext(ctx),
+		GoodsSpec:   q.GoodsSpec.WithContext(ctx),
+		Order:       q.Order.WithContext(ctx),
+		OrderDetail: q.OrderDetail.WithContext(ctx),
+		Team:        q.Team.WithContext(ctx),
+		TeamUser:    q.TeamUser.WithContext(ctx),
+		User:        q.User.WithContext(ctx),
 	}
 }
 

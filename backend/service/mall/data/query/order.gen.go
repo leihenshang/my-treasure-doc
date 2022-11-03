@@ -29,8 +29,6 @@ func newOrder(db *gorm.DB, opts ...gen.DOOption) order {
 	_order.ALL = field.NewAsterisk(tableName)
 	_order.ID = field.NewInt32(tableName, "id")
 	_order.OrderNo = field.NewString(tableName, "order_no")
-	_order.GoodID = field.NewInt32(tableName, "good_id")
-	_order.SkuID = field.NewInt32(tableName, "sku_id")
 	_order.UserID = field.NewInt32(tableName, "user_id")
 	_order.Amount = field.NewFloat64(tableName, "amount")
 	_order.Status = field.NewInt32(tableName, "status")
@@ -48,9 +46,7 @@ type order struct {
 
 	ALL       field.Asterisk
 	ID        field.Int32
-	OrderNo   field.String // 订单号
-	GoodID    field.Int32
-	SkuID     field.Int32   // sku id
+	OrderNo   field.String  // 订单号
 	UserID    field.Int32   // 用户id
 	Amount    field.Float64 // 金额
 	Status    field.Int32   // 状态,0-异常,1-待支付,2-已支付,3-支付失败,4-用户取消,5-系统取消,6-订单异常
@@ -75,8 +71,6 @@ func (o *order) updateTableName(table string) *order {
 	o.ALL = field.NewAsterisk(table)
 	o.ID = field.NewInt32(table, "id")
 	o.OrderNo = field.NewString(table, "order_no")
-	o.GoodID = field.NewInt32(table, "good_id")
-	o.SkuID = field.NewInt32(table, "sku_id")
 	o.UserID = field.NewInt32(table, "user_id")
 	o.Amount = field.NewFloat64(table, "amount")
 	o.Status = field.NewInt32(table, "status")
@@ -99,11 +93,9 @@ func (o *order) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (o *order) fillFieldMap() {
-	o.fieldMap = make(map[string]field.Expr, 10)
+	o.fieldMap = make(map[string]field.Expr, 8)
 	o.fieldMap["id"] = o.ID
 	o.fieldMap["order_no"] = o.OrderNo
-	o.fieldMap["good_id"] = o.GoodID
-	o.fieldMap["sku_id"] = o.SkuID
 	o.fieldMap["user_id"] = o.UserID
 	o.fieldMap["amount"] = o.Amount
 	o.fieldMap["status"] = o.Status
