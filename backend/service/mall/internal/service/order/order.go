@@ -9,13 +9,44 @@ import (
 	orderResp "fastduck/treasure-doc/service/mall/data/response/order"
 	"fastduck/treasure-doc/service/mall/global"
 	goodsDao "fastduck/treasure-doc/service/mall/internal/dao/goods"
+	orderDao "fastduck/treasure-doc/service/mall/internal/dao/order"
 	"fmt"
 )
 
-func OrderList(ctx context.Context, f orderReq.FilterOrderList) (res []*model.Order, total int64, err error) {
-	q := query.Order.WithContext(ctx)
+func OrderList(ctx context.Context, f orderReq.FilterOrderList) (res *orderResp.OrderList, err error) {
+	res = new(orderResp.OrderList)
+	if f.UserId <= 0 {
+		err = errors.New("用户id不能为空")
+		return
+	}
 
-	res, total, err = q.FindByPage(int(f.Offset), int(f.Limit))
+	filter := &orderDao.OrderListFilter{
+		UserId:   f.UserId,
+		DataSort: f.DataSort,
+	}
+	pagination := &f.Pagination
+
+	result, total, err := orderDao.OrderList(ctx, filter, pagination)
+	if err != nil {
+		global.ZapSugar.Errorf("[OrderList|orderDao.OrderList]get order list err:%+v,filter:%+v,pagination:%+v", err, *filter, pagination)
+		err = errors.New("获取用户订单数据失败")
+	}
+
+	for _, v := range result {
+		res.List = append(res.List, &orderResp.OrderEntity{
+			ID:        v.ID,
+			OrderNo:   v.OrderNo,
+			UserID:    v.UserID,
+			Amount:    v.Amount,
+			Status:    v.Status,
+			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
+			UpdatedAt: v.UpdatedAt.Format("2006-01-02 15:04:05"),
+			DeletedAt: v.DeletedAt.Time.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	res.Total = total
+
 	return
 }
 

@@ -11,21 +11,26 @@ import (
 )
 
 func List(c *gin.Context) {
-	resp := response.ListResponse{}
 	var req reqOrder.FilterOrderList
 	if err := c.ShouldBindQuery(&req); err != nil {
 		global.ZapSugar.Infof("order|List err:%+v", err)
 		response.FailWithMessage(global.ErrResp(err), c)
 		return
 	}
+	u, err := auth.GetUserInfoByCtx(c)
+	if err != nil {
+		global.ZapSugar.Infof("[order|srvOrder.OrderCreate] get user info err:%+v", err)
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
 
-	if d, t, ok := srvOrder.OrderList(c, req); ok != nil {
-		global.ZapSugar.Infof("order|srvOrder.OrderList err:%+v", ok)
+	req.UserId = int32(u.ID)
+
+	if d, ok := srvOrder.OrderList(c, req); ok != nil {
+		global.ZapSugar.Infof("[order|srvOrder.OrderList] err:%+v", ok)
 		response.FailWithMessage(ok.Error(), c)
 	} else {
-		resp.List = d
-		resp.Total = t
-		response.OkWithData(resp, c)
+		response.OkWithData(d, c)
 	}
 }
 

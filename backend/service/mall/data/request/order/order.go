@@ -5,6 +5,7 @@ import "fastduck/treasure-doc/service/mall/data/request/common"
 type FilterOrderList struct {
 	common.Pagination
 	common.DataSort
+	UserId int32 `json:"userId" form:"userId"`
 }
 
 type FilterOrderDetail struct {
