@@ -116,7 +116,7 @@ func OrderDetail(ctx context.Context, f orderReq.FilterOrderDetail) (res *orderR
 	return
 }
 
-func OrderCreate(ctx context.Context, f orderReq.FilterOrderCreate) (res *orderResp.OrderCreate, err error) {
+func OrderCreate(ctx context.Context, f orderReq.ParamsOrderCreate) (res *orderResp.OrderCreate, err error) {
 	res = new(orderResp.OrderCreate)
 	if f.Quantity <= 0 {
 		err = errors.New("数量不能小于1")

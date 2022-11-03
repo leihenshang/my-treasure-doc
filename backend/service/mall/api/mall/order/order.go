@@ -60,7 +60,7 @@ func Detail(c *gin.Context) {
 }
 
 func Create(c *gin.Context) {
-	var req reqOrder.FilterOrderCreate
+	var req reqOrder.ParamsOrderCreate
 	if err := c.ShouldBindJSON(&req); err != nil {
 		global.ZapSugar.Infof("[order|Create] parse user request data err:%+v", err)
 		response.FailWithMessage(global.ErrResp(err), c)

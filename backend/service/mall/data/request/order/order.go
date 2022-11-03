@@ -14,7 +14,7 @@ type FilterOrderDetail struct {
 	UserId  int32 `json:"userId" form:"userId"`
 }
 
-type FilterOrderCreate struct {
+type ParamsOrderCreate struct {
 	SkuId    int32 `json:"skuId"  form:"skuId"`
 	Quantity int32 `json:"quantity" form:"quantity"`
 	UserId   int32 `json:"userId" form:"userId"`
