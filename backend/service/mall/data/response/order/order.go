@@ -20,3 +20,19 @@ type OrderEntity struct {
 	UpdatedAt string  `json:"updatedAt"`
 	DeletedAt string  `json:"deletedAt"`
 }
+type OrderDetailEntity struct {
+	ID        int32   `json:"id"`
+	OrderID   int32   `json:"orderId"`
+	GoodID    int32   `json:"goodId"`
+	SkuID     int32   `json:"skuId"`
+	Price     float64 `json:"price"`
+	Quantity  int32   `json:"quantity"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt string  `json:"updatedAt"`
+	DeletedAt string  `json:"deletedAt"`
+}
+
+type OrderInfo struct {
+	OrderEntity       *OrderEntity         `json:"order"`
+	OrderDetailEntity []*OrderDetailEntity `json:"orderDetail"`
+}

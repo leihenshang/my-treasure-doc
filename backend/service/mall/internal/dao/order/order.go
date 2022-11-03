@@ -10,12 +10,16 @@ import (
 
 type GetOrderFilter struct {
 	OrderId int32
+	UserId  int32
 }
 
 func GetOrder(ctx context.Context, f *GetOrderFilter) (res *model.Order, err error) {
 	q := query.Order.WithContext(ctx)
 	if f.OrderId > 0 {
 		q = q.Where(query.Order.ID.Eq(f.OrderId))
+	}
+	if f.UserId > 0 {
+		q = q.Where(query.Order.UserID.Eq(f.UserId))
 	}
 
 	res, err = q.First()

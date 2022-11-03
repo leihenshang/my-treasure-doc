@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/data/query"
+	"fastduck/treasure-doc/service/mall/data/request/common"
 	orderReq "fastduck/treasure-doc/service/mall/data/request/order"
 	orderResp "fastduck/treasure-doc/service/mall/data/response/order"
 	"fastduck/treasure-doc/service/mall/global"
@@ -51,7 +52,7 @@ func OrderList(ctx context.Context, f orderReq.FilterOrderList) (res *orderResp.
 	return
 }
 
-func OrderDetail(ctx context.Context, f orderReq.FilterOrderDetail) (res *model.Order, err error) {
+func OrderDetail(ctx context.Context, f orderReq.FilterOrderDetail) (res *orderResp.OrderInfo, err error) {
 	if f.OrderId == 0 {
 		err = errors.New("订单id不能为空")
 		return
@@ -61,8 +62,56 @@ func OrderDetail(ctx context.Context, f orderReq.FilterOrderDetail) (res *model.
 		return
 	}
 
-	q := query.Order.WithContext(ctx)
-	res, err = q.Where(query.Order.ID.Eq(f.OrderId)).First()
+	orderF := &orderDao.GetOrderFilter{
+		OrderId: f.OrderId,
+		UserId:  f.UserId,
+	}
+
+	result, err := orderDao.GetOrder(ctx, orderF)
+	if err != nil {
+		err = errors.New("获取订单失败")
+		global.ZapSugar.Errorf("[OrderDetail|orderDao.GetOrder] failed to get order data.params:%+v,err:%+v", orderF, err)
+		return
+	}
+
+	res = new(orderResp.OrderInfo)
+	res.OrderEntity = &orderResp.OrderEntity{
+		ID:        result.ID,
+		OrderNo:   result.OrderNo,
+		UserID:    result.UserID,
+		Amount:    result.Amount,
+		Status:    result.Status,
+		CreatedAt: utils_datetime.TimeToFormat(&result.CreatedAt),
+		UpdatedAt: utils_datetime.TimeToFormat(&result.UpdatedAt),
+		DeletedAt: utils_datetime.TimeToFormat(&result.DeletedAt.Time),
+	}
+
+	// 获取订单明细
+	details, _, err := orderDao.OrderDetailList(ctx, &orderDao.OrderDetailListFilter{
+		OrderId: result.ID,
+	}, &common.Pagination{
+		Limit:  10000,
+		Offset: 0,
+	})
+	if err != nil {
+		err = errors.New("获取订单明细失败")
+		global.ZapSugar.Errorf("[OrderDetail|orderDao.OrderDetailList] failed to get order data.params:%+v,err:%+v", orderF, err)
+		return
+	}
+	for _, v := range details {
+		res.OrderDetailEntity = append(res.OrderDetailEntity, &orderResp.OrderDetailEntity{
+			ID:        v.ID,
+			OrderID:   v.OrderID,
+			GoodID:    v.GoodID,
+			SkuID:     v.SkuID,
+			Price:     v.Price,
+			Quantity:  v.Quantity,
+			CreatedAt: utils_datetime.TimeToFormat(&v.CreatedAt),
+			UpdatedAt: utils_datetime.TimeToFormat(&v.UpdatedAt),
+			DeletedAt: utils_datetime.TimeToFormat(&v.DeletedAt.Time),
+		})
+	}
+
 	return
 }
 
