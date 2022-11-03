@@ -10,6 +10,7 @@ import (
 	"fastduck/treasure-doc/service/mall/global"
 	goodsDao "fastduck/treasure-doc/service/mall/internal/dao/goods"
 	orderDao "fastduck/treasure-doc/service/mall/internal/dao/order"
+	utils_datetime "fastduck/treasure-doc/service/mall/utils/utils-datetime"
 	"fmt"
 )
 
@@ -39,9 +40,9 @@ func OrderList(ctx context.Context, f orderReq.FilterOrderList) (res *orderResp.
 			UserID:    v.UserID,
 			Amount:    v.Amount,
 			Status:    v.Status,
-			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
-			UpdatedAt: v.UpdatedAt.Format("2006-01-02 15:04:05"),
-			DeletedAt: v.DeletedAt.Time.Format("2006-01-02 15:04:05"),
+			CreatedAt: utils_datetime.TimeToFormat(&v.CreatedAt),
+			UpdatedAt: utils_datetime.TimeToFormat(&v.UpdatedAt),
+			DeletedAt: utils_datetime.TimeToFormat(&v.DeletedAt.Time),
 		})
 	}
 
@@ -53,6 +54,10 @@ func OrderList(ctx context.Context, f orderReq.FilterOrderList) (res *orderResp.
 func OrderDetail(ctx context.Context, f orderReq.FilterOrderDetail) (res *model.Order, err error) {
 	if f.OrderId == 0 {
 		err = errors.New("订单id不能为空")
+		return
+	}
+	if f.UserId == 0 {
+		err = errors.New("用户id不能为空")
 		return
 	}
 

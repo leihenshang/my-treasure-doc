@@ -8,6 +8,21 @@ import (
 	reqCommon "fastduck/treasure-doc/service/mall/data/request/common"
 )
 
+type GetOrderFilter struct {
+	OrderId int32
+}
+
+func GetOrder(ctx context.Context, f *GetOrderFilter) (res *model.Order, err error) {
+	q := query.Order.WithContext(ctx)
+	if f.OrderId > 0 {
+		q = q.Where(query.Order.ID.Eq(f.OrderId))
+	}
+
+	res, err = q.First()
+
+	return
+}
+
 type OrderListFilter struct {
 	UserId int32
 	reqCommon.DataSort

@@ -37,10 +37,19 @@ func List(c *gin.Context) {
 func Detail(c *gin.Context) {
 	var req reqOrder.FilterOrderDetail
 	if err := c.ShouldBindQuery(&req); err != nil {
-		global.ZapSugar.Infof("order|List err:%+v", err)
+		global.ZapSugar.Infof("[order|Detail] err:%+v", err)
 		response.FailWithMessage(global.ErrResp(err), c)
 		return
 	}
+
+	u, err := auth.GetUserInfoByCtx(c)
+	if err != nil {
+		global.ZapSugar.Infof("[order|srvOrder.OrderCreate] get user info err:%+v", err)
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	req.UserId = int32(u.ID)
 
 	if d, ok := srvOrder.OrderDetail(c, req); ok != nil {
 		global.ZapSugar.Infof("order|srvOrder.OrderList err:%+v", ok)
