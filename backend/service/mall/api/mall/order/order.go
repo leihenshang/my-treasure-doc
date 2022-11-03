@@ -5,6 +5,7 @@ import (
 	"fastduck/treasure-doc/service/mall/data/response"
 	"fastduck/treasure-doc/service/mall/global"
 	srvOrder "fastduck/treasure-doc/service/mall/internal/service/order"
+	"fastduck/treasure-doc/service/mall/middleware/auth"
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,5 +46,26 @@ func Detail(c *gin.Context) {
 }
 
 func Create(c *gin.Context) {
+	var req reqOrder.FilterOrderCreate
+	if err := c.ShouldBindJSON(&req); err != nil {
+		global.ZAPSUGAR.Infof("[order|Create] parse user request data err:%+v", err)
+		response.FailWithMessage(global.ErrResp(err), c)
+		return
+	}
 
+	u, err := auth.GetUserInfoByCtx(c)
+	if err != nil {
+		global.ZAPSUGAR.Infof("[order|srvOrder.OrderCreate] get user info err:%+v", err)
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	req.UserId = int32(u.ID)
+
+	if d, ok := srvOrder.OrderCreate(c, req); ok != nil {
+		global.ZAPSUGAR.Infof("[order|srvOrder.OrderCreate] err:%+v", ok)
+		response.FailWithMessage(ok.Error(), c)
+	} else {
+		response.OkWithData(d, c)
+	}
 }

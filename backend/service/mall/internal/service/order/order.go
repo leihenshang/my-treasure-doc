@@ -3,11 +3,11 @@ package order
 import (
 	"context"
 	"errors"
-	"fastduck/treasure-doc/service/admin/global"
 	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/data/query"
 	orderReq "fastduck/treasure-doc/service/mall/data/request/order"
 	orderResp "fastduck/treasure-doc/service/mall/data/response/order"
+	"fastduck/treasure-doc/service/mall/global"
 	goodsDao "fastduck/treasure-doc/service/mall/internal/dao/goods"
 	"fmt"
 )
@@ -54,7 +54,7 @@ func OrderCreate(ctx context.Context, f orderReq.FilterOrderCreate) (res *orderR
 	}
 	sku, skuErr := goodsDao.GetSku(ctx, skuF)
 	if skuErr != nil {
-		global.ZAPSUGAR.Errorf("OrderCreate failed to get sku info. params:%+v err:%+v", skuF, skuErr)
+		global.ZAPSUGAR.Errorf("OrderCreate failed to get sku info. params:%+v err:%+v", *skuF, skuErr)
 		err = errors.New("获取sku信息失败")
 		return
 	}
