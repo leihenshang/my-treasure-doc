@@ -54,12 +54,12 @@ func OrderCreate(ctx context.Context, f orderReq.FilterOrderCreate) (res *orderR
 	}
 	sku, skuErr := goodsDao.GetSku(ctx, skuF)
 	if skuErr != nil {
-		global.ZAPSUGAR.Errorf("OrderCreate failed to get sku info. params:%+v err:%+v", *skuF, skuErr)
+		global.ZapSugar.Errorf("OrderCreate failed to get sku info. params:%+v err:%+v", *skuF, skuErr)
 		err = errors.New("获取sku信息失败")
 		return
 	}
 	if sku == nil {
-		global.ZAPSUGAR.Error("OrderCreate failed to get sku info. err:sku not existed")
+		global.ZapSugar.Error("OrderCreate failed to get sku info. err:sku not existed")
 		err = errors.New(fmt.Sprintf("sku不存在,skuId:%d", f.SkuId))
 		return
 	}
@@ -67,26 +67,26 @@ func OrderCreate(ctx context.Context, f orderReq.FilterOrderCreate) (res *orderR
 	remnant := sku.Stock - f.Quantity
 
 	if remnant <= 0 {
-		global.ZAPSUGAR.Errorf("OrderCreate skuId:%d stock shortage", sku.ID)
+		global.ZapSugar.Errorf("OrderCreate skuId:%d stock shortage", sku.ID)
 		err = errors.New(fmt.Sprintf("库存不足,skuId:%d", f.SkuId))
 		return
 	}
 
 	orderNo, noErr := GenerateOrderNo()
 	if noErr != nil {
-		global.ZAPSUGAR.Errorf("[OrderCreate] generate order no err:%+v", noErr)
+		global.ZapSugar.Errorf("[OrderCreate] generate order no err:%+v", noErr)
 		err = errors.New("生成订单号错误")
 		return
 	}
 
 	// 开启事务
-	q := query.Use(global.DB)
+	q := query.Use(global.DbIns)
 	tx := q.Begin()
 
 	_, skuUpdateErr := tx.WithContext(ctx).GoodsSku.Where(tx.GoodsSku.ID.Eq(sku.ID)).UpdateColumn(tx.GoodsSku.Stock, remnant)
 	if skuUpdateErr != nil {
 		err = errors.New("更新库存失败")
-		global.ZAPSUGAR.Error("[OrderCreate] update sku stock err,skuId:%+v,remnant:%+v", sku.ID, remnant)
+		global.ZapSugar.Error("[OrderCreate] update sku stock err,skuId:%+v,remnant:%+v", sku.ID, remnant)
 		tx.Rollback()
 		return
 	}
@@ -103,7 +103,7 @@ func OrderCreate(ctx context.Context, f orderReq.FilterOrderCreate) (res *orderR
 	orderErr := tx.WithContext(ctx).Order.Create(insertOrder)
 	if orderErr != nil {
 		err = errors.New("保存订单失败")
-		global.ZAPSUGAR.Error("[OrderCreate] create order err:%+v,data:%+v", orderErr, *insertOrder)
+		global.ZapSugar.Error("[OrderCreate] create order err:%+v,data:%+v", orderErr, *insertOrder)
 		tx.Rollback()
 		return
 	}
@@ -118,7 +118,7 @@ func OrderCreate(ctx context.Context, f orderReq.FilterOrderCreate) (res *orderR
 	orderDetailErr := tx.WithContext(ctx).OrderDetail.Create(insertOrderDetail)
 	if orderDetailErr != nil {
 		err = errors.New("保存订单明细失败")
-		global.ZAPSUGAR.Error("[OrderCreate] create order detail err:%+v,data:%#v", orderDetailErr, *insertOrderDetail)
+		global.ZapSugar.Error("[OrderCreate] create order detail err:%+v,data:%#v", orderDetailErr, *insertOrderDetail)
 		tx.Rollback()
 		return
 	}

@@ -2,10 +2,10 @@ package service
 
 import (
 	"errors"
-	"fastduck/treasure-doc/service/admin/response"
 	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/data/request"
 	"fastduck/treasure-doc/service/mall/data/request/doc"
+	"fastduck/treasure-doc/service/mall/data/response"
 	"fastduck/treasure-doc/service/mall/global"
 	"fmt"
 
@@ -22,7 +22,7 @@ func DocGroupCreate(r doc.CreateDocGroupRequest, userId uint64) (dg *model.DocGr
 	}
 
 	if existed, checkErr := checkDocGroupTitleRepeat(insertData.Title, userId); checkErr != nil {
-		global.ZAPSUGAR.Error(r, userId, "检查文档分组标题失败")
+		global.ZapSugar.Error(r, userId, "检查文档分组标题失败")
 		return nil, errors.New("检查文档分组标题失败")
 	} else {
 		fmt.Println(existed)
@@ -31,8 +31,8 @@ func DocGroupCreate(r doc.CreateDocGroupRequest, userId uint64) (dg *model.DocGr
 		}
 	}
 
-	if err = global.DB.Create(insertData).Error; err != nil {
-		global.ZAPSUGAR.Error(r, err)
+	if err = global.DbIns.Create(insertData).Error; err != nil {
+		global.ZapSugar.Error(r, err)
 		return nil, errors.New("创建文档分组失败")
 	}
 
@@ -41,7 +41,7 @@ func DocGroupCreate(r doc.CreateDocGroupRequest, userId uint64) (dg *model.DocGr
 
 //checkDocGroupTitleRepeat 查询数据库检查文档分组标题是否重复
 func checkDocGroupTitleRepeat(title string, userId uint64) (dg *model.DocGroup, err error) {
-	q := global.DB.Model(&model.DocGroup{}).Where("title = ? AND user_id = ?", title, userId)
+	q := global.DbIns.Model(&model.DocGroup{}).Where("title = ? AND user_id = ?", title, userId)
 	if err = q.First(&dg).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -59,7 +59,7 @@ func DocGroupList(r request.ListRequest, userId uint64) (res response.ListRespon
 	}
 
 	var list []model.DocGroup
-	q := global.DB.Model(&model.DocGroup{}).Where("user_id = ?", userId)
+	q := global.DbIns.Model(&model.DocGroup{}).Where("user_id = ?", userId)
 	q.Count(&res.Total)
 	err = q.
 		Limit(r.PageSize).
@@ -74,15 +74,15 @@ func DocGroupList(r request.ListRequest, userId uint64) (res response.ListRespon
 func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
-		global.ZAPSUGAR.Error(errMsg)
+		global.ZapSugar.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
-	q := global.DB.Model(&model.DocGroup{}).Where("id = ? AND user_id = ?", r.Id, userId)
+	q := global.DbIns.Model(&model.DocGroup{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	u := map[string]interface{}{"Title": r.Title, "PId": r.PId, "Icon": r.Icon}
 	if err = q.Updates(u).Error; err != nil {
 		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
-		global.ZAPSUGAR.Error(errMsg)
+		global.ZapSugar.Error(errMsg)
 		return errors.New("操作失败")
 	}
 
@@ -93,14 +93,14 @@ func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 func DocGroupDelete(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
-		global.ZAPSUGAR.Error(errMsg)
+		global.ZapSugar.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
-	q := global.DB.Where("id = ? AND user_id = ?", r.Id, userId)
+	q := global.DbIns.Where("id = ? AND user_id = ?", r.Id, userId)
 	if err = q.Delete(&model.DocGroup{}).Error; err != nil {
 		errMsg := fmt.Sprintf("删除id 为 %d 的数据失败 %v ", r.Id, err)
-		global.ZAPSUGAR.Error(errMsg)
+		global.ZapSugar.Error(errMsg)
 		return errors.New("操作失败")
 	}
 

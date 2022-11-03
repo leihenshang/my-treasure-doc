@@ -14,13 +14,13 @@ func List(c *gin.Context) {
 	resp := response.ListResponse{}
 	var req reqOrder.FilterOrderList
 	if err := c.ShouldBindQuery(&req); err != nil {
-		global.ZAPSUGAR.Infof("order|List err:%+v", err)
+		global.ZapSugar.Infof("order|List err:%+v", err)
 		response.FailWithMessage(global.ErrResp(err), c)
 		return
 	}
 
 	if d, t, ok := srvOrder.OrderList(c, req); ok != nil {
-		global.ZAPSUGAR.Infof("order|srvOrder.OrderList err:%+v", ok)
+		global.ZapSugar.Infof("order|srvOrder.OrderList err:%+v", ok)
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		resp.List = d
@@ -32,13 +32,13 @@ func List(c *gin.Context) {
 func Detail(c *gin.Context) {
 	var req reqOrder.FilterOrderDetail
 	if err := c.ShouldBindQuery(&req); err != nil {
-		global.ZAPSUGAR.Infof("order|List err:%+v", err)
+		global.ZapSugar.Infof("order|List err:%+v", err)
 		response.FailWithMessage(global.ErrResp(err), c)
 		return
 	}
 
 	if d, ok := srvOrder.OrderDetail(c, req); ok != nil {
-		global.ZAPSUGAR.Infof("order|srvOrder.OrderList err:%+v", ok)
+		global.ZapSugar.Infof("order|srvOrder.OrderList err:%+v", ok)
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -48,14 +48,14 @@ func Detail(c *gin.Context) {
 func Create(c *gin.Context) {
 	var req reqOrder.FilterOrderCreate
 	if err := c.ShouldBindJSON(&req); err != nil {
-		global.ZAPSUGAR.Infof("[order|Create] parse user request data err:%+v", err)
+		global.ZapSugar.Infof("[order|Create] parse user request data err:%+v", err)
 		response.FailWithMessage(global.ErrResp(err), c)
 		return
 	}
 
 	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
-		global.ZAPSUGAR.Infof("[order|srvOrder.OrderCreate] get user info err:%+v", err)
+		global.ZapSugar.Infof("[order|srvOrder.OrderCreate] get user info err:%+v", err)
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
@@ -63,7 +63,7 @@ func Create(c *gin.Context) {
 	req.UserId = int32(u.ID)
 
 	if d, ok := srvOrder.OrderCreate(c, req); ok != nil {
-		global.ZAPSUGAR.Infof("[order|srvOrder.OrderCreate] err:%+v", ok)
+		global.ZapSugar.Infof("[order|srvOrder.OrderCreate] err:%+v", ok)
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)

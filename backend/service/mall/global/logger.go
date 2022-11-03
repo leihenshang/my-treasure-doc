@@ -23,7 +23,7 @@ func initLogger() {
 
 	var level zapcore.Level
 
-	switch CONFIG.Log.Level { // 初始化配置文件的Level
+	switch Config.Log.Level { // 初始化配置文件的Level
 	case "debug":
 		level = zap.DebugLevel
 	case "info":
@@ -43,20 +43,20 @@ func initLogger() {
 	}
 
 	if level == zap.DebugLevel || level == zap.ErrorLevel {
-		ZAP = zap.New(core, zap.AddStacktrace(level))
+		Zap = zap.New(core, zap.AddStacktrace(level))
 	} else {
-		ZAP = zap.New(core)
+		Zap = zap.New(core)
 	}
 
 	//显示行数
-	ZAP = ZAP.WithOptions(zap.AddCaller())
+	Zap = Zap.WithOptions(zap.AddCaller())
 
 	//ZAP SUGAR
-	ZAPSUGAR = ZAP.Sugar()
+	ZapSugar = Zap.Sugar()
 }
 
 func getEncoder() zapcore.Encoder {
-	if CONFIG.Log.Format == "json" {
+	if Config.Log.Format == "json" {
 		return zapcore.NewJSONEncoder(getEncoderConf())
 	}
 	return zapcore.NewConsoleEncoder(getEncoderConf())
@@ -93,7 +93,7 @@ func getEncoderConf() (config zapcore.EncoderConfig) {
 }
 
 func getLogWriter() (zapcore.WriteSyncer, error) {
-	logDir := CONFIG.Log.Directory
+	logDir := Config.Log.Directory
 	var err error
 	if isExists, _ := utils.PathExists(logDir); !isExists {
 		fmt.Printf("创建日志目录 %v \n", logDir)
@@ -108,7 +108,7 @@ func getLogWriter() (zapcore.WriteSyncer, error) {
 		Compress:   false,
 	}
 
-	if CONFIG.Log.ShowInConsole {
+	if Config.Log.ShowInConsole {
 		return zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(lumberJackLogger)), err
 	}
 

@@ -2,10 +2,10 @@ package service
 
 import (
 	"errors"
-	"fastduck/treasure-doc/service/admin/response"
 	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/data/request"
 	"fastduck/treasure-doc/service/mall/data/request/doc"
+	"fastduck/treasure-doc/service/mall/data/response"
 	"fastduck/treasure-doc/service/mall/global"
 	"fmt"
 
@@ -23,7 +23,7 @@ func DocCreate(r doc.CreateDocRequest, userId uint64) (d *model.Doc, err error) 
 	}
 
 	if existed, checkErr := checkDocTitleIsDuplicates(insertData.Title, userId); checkErr != nil {
-		global.ZAPSUGAR.Error(r, userId, "检查文档标题失败")
+		global.ZapSugar.Error(r, userId, "检查文档标题失败")
 		return nil, errors.New("检查文档标题失败")
 	} else {
 		if existed != nil {
@@ -31,8 +31,8 @@ func DocCreate(r doc.CreateDocRequest, userId uint64) (d *model.Doc, err error) 
 		}
 	}
 
-	if err = global.DB.Create(insertData).Error; err != nil {
-		global.ZAPSUGAR.Error(r, err)
+	if err = global.DbIns.Create(insertData).Error; err != nil {
+		global.ZapSugar.Error(r, err)
 		return nil, errors.New("创建文档失败")
 	}
 
@@ -41,7 +41,7 @@ func DocCreate(r doc.CreateDocRequest, userId uint64) (d *model.Doc, err error) 
 
 //checkDocTitleIsDuplicates 检查文档标题是否重复
 func checkDocTitleIsDuplicates(title string, userId uint64) (doc *model.Doc, err error) {
-	q := global.DB.Model(&model.Doc{}).Where("title = ? AND user_id = ?", title, userId)
+	q := global.DbIns.Model(&model.Doc{}).Where("title = ? AND user_id = ?", title, userId)
 	if err = q.First(&doc).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -53,7 +53,7 @@ func checkDocTitleIsDuplicates(title string, userId uint64) (doc *model.Doc, err
 
 //DocDetail 文档详情
 func DocDetail(r request.IdRequest, userId uint64) (d *model.Doc, err error) {
-	q := global.DB.Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
+	q := global.DbIns.Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	err = q.First(&d).Error
 	return
 }
@@ -66,7 +66,7 @@ func DocList(r request.ListRequest, userId uint64) (res response.ListResponse, e
 	}
 
 	var list []model.Doc
-	q := global.DB.Model(&model.Doc{}).Where("user_id = ?", userId)
+	q := global.DbIns.Model(&model.Doc{}).Where("user_id = ?", userId)
 	q.Count(&res.Total)
 	err = q.
 		Limit(r.PageSize).
@@ -81,15 +81,15 @@ func DocList(r request.ListRequest, userId uint64) (res response.ListResponse, e
 func DocUpdate(r doc.UpdateDocRequest, userId uint64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
-		global.ZAPSUGAR.Error(errMsg)
+		global.ZapSugar.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
-	q := global.DB.Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
+	q := global.DbIns.Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	u := map[string]interface{}{"Title": r.Title, "Content": r.Content, "GroupId": r.GroupId}
 	if err = q.Updates(u).Error; err != nil {
 		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
-		global.ZAPSUGAR.Error(errMsg)
+		global.ZapSugar.Error(errMsg)
 		return errors.New("操作失败")
 	}
 
@@ -100,14 +100,14 @@ func DocUpdate(r doc.UpdateDocRequest, userId uint64) (err error) {
 func DocDelete(r doc.UpdateDocRequest, userId uint64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
-		global.ZAPSUGAR.Error(errMsg)
+		global.ZapSugar.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
-	q := global.DB.Where("id = ? AND user_id = ?", r.Id, userId)
+	q := global.DbIns.Where("id = ? AND user_id = ?", r.Id, userId)
 	if err = q.Delete(&model.Doc{}).Error; err != nil {
 		errMsg := fmt.Sprintf("删除id 为 %d 的数据失败 %v ", r.Id, err)
-		global.ZAPSUGAR.Error(errMsg)
+		global.ZapSugar.Error(errMsg)
 		return errors.New("操作失败")
 	}
 

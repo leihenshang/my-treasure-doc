@@ -51,7 +51,7 @@ func UserRegister(r user.UserRegisterRequest) (u model.User, err error) {
 	u.Account = r.Account
 	u.Email = r.Email
 	u.Password = encryptedPwd
-	err = global.DB.Create(&u).Error
+	err = global.DbIns.Create(&u).Error
 	//返回数据不显示密码
 	u.Password = ""
 	return u, err
@@ -60,7 +60,7 @@ func UserRegister(r user.UserRegisterRequest) (u model.User, err error) {
 //checkAccountIsDuplicate 检查账号是否重复
 func checkAccountIsDuplicate(account string) bool {
 	var user *model.User
-	result := global.DB.Where("account = ?", account).First(&user)
+	result := global.DbIns.Where("account = ?", account).First(&user)
 	if result.RowsAffected > 0 {
 		return true
 	}
@@ -71,7 +71,7 @@ func checkAccountIsDuplicate(account string) bool {
 //checkAccountRule 检查账号规则
 func checkAccountRule(account string, accountLen int) (err error) {
 	if accountLen == 0 {
-		global.ZAPSUGAR.Fatal("accountLen is zero.")
+		global.ZapSugar.Fatal("accountLen is zero.")
 		return errors.New("accountLen 设置错误")
 	}
 
@@ -91,7 +91,7 @@ func checkAccountRule(account string, accountLen int) (err error) {
 //checkEmailIsDuplicate 检查邮箱是否重复
 func checkEmailIsDuplicate(email string) bool {
 	var user *model.User
-	result := global.DB.Where("email = ?", email).First(&user)
+	result := global.DbIns.Where("email = ?", email).First(&user)
 	if result.RowsAffected > 0 {
 		return true
 	}
@@ -118,7 +118,7 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 		return u, errors.New("密码或账号(邮箱)不能为空")
 	}
 
-	result := global.DB.Where("account = ? OR email = ?", r.Account, r.Account).First(&u)
+	result := global.DbIns.Where("account = ? OR email = ?", r.Account, r.Account).First(&u)
 	if result.RowsAffected <= 0 {
 		return u, errors.New(fmt.Sprintf("账号或登录邮箱: %s 没有找到", r.Account))
 	}
@@ -141,7 +141,7 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 	u.LastLoginIP = clientIp
 	customTime := time.Now()
 	u.LastLoginTime = customTime
-	if err := global.DB.Select("LastLoginIp", "LastLoginTime", "Token", "TokenExpire").Save(&u).Error; err != nil {
+	if err := global.DbIns.Select("LastLoginIp", "LastLoginTime", "Token", "TokenExpire").Save(&u).Error; err != nil {
 		return u, errors.New("登录失败: 更新登录状态发生错误")
 	}
 
@@ -153,14 +153,14 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 //UserLogout 用户退出登陆
 func UserLogout(userId uint64) error {
 	var user model.User
-	if errors.Is(global.DB.Where("id = ?", userId).First(&user).Error, gorm.ErrRecordNotFound) {
+	if errors.Is(global.DbIns.Where("id = ?", userId).First(&user).Error, gorm.ErrRecordNotFound) {
 		return nil
 	}
 
 	user.Token = ""
 
-	if err := global.DB.Save(&user).Error; err != nil {
-		global.ZAP.Error("退出登陆，更新信息失败", zap.Any("dbErr", err))
+	if err := global.DbIns.Save(&user).Error; err != nil {
+		global.Zap.Error("退出登陆，更新信息失败", zap.Any("dbErr", err))
 		return errors.New("更新信息失败")
 	}
 
@@ -169,11 +169,11 @@ func UserLogout(userId uint64) error {
 
 //UserProfileUpdate 更新用户个人资料
 func UserProfileUpdate(profile user.UserProfileUpdateRequest, userId uint64) (u model.User, err error) {
-	if errors.Is(global.DB.Where("id = ?", userId).First(&u).Error, gorm.ErrRecordNotFound) {
+	if errors.Is(global.DbIns.Where("id = ?", userId).First(&u).Error, gorm.ErrRecordNotFound) {
 		return u, errors.New("用户没有找到")
 	}
 
-	if err := global.DB.Model(&u).
+	if err := global.DbIns.Model(&u).
 		Select("NickName", "IconPath", "Bio", "Mobile").
 		Updates(model.User{
 			Nickname: profile.NickName,
@@ -192,7 +192,7 @@ func UserProfileUpdate(profile user.UserProfileUpdateRequest, userId uint64) (u 
 func GetUserByToken(token string) (u *model.User, err error) {
 
 	now := time.Now().Format("2006-01-02 15:04:05")
-	err = global.DB.Model(&model.User{}).Select(
+	err = global.DbIns.Model(&model.User{}).Select(
 		"user_type",
 		"user_status",
 		"token_expire",
@@ -209,7 +209,7 @@ func GetUserByToken(token string) (u *model.User, err error) {
 		First(&u).
 		Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		global.ZAPSUGAR.Errorf("用户 token : %s ,expire_time: %s \n", token, now)
+		global.ZapSugar.Errorf("用户 token : %s ,expire_time: %s \n", token, now)
 		return nil, errors.New("用户信息没有找到")
 	}
 

@@ -19,6 +19,7 @@ import (
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
 	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/go-redis/redis"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
@@ -29,13 +30,13 @@ import (
 )
 
 var (
-	CONFIG   *config.Config
-	VIPER    *viper.Viper
-	DB       *gorm.DB
-	ZAP      *zap.Logger
-	ZAPSUGAR *zap.SugaredLogger
-	REDIS    *redis.Client
-	TRANS    ut.Translator
+	Config   *config.Config
+	Viper    *viper.Viper
+	DbIns    *gorm.DB
+	Zap      *zap.Logger
+	ZapSugar *zap.SugaredLogger
+	Redis    *redis.Client
+	Trans    ut.Translator
 )
 
 // 环境标签
@@ -43,12 +44,14 @@ type srvType string
 
 func GlobalInit(srv srvType) {
 	fmt.Println("start global init")
-	fmt.Println("初始化配置")
-	initConf()
+	//读取配置
+	configFile := config.ConfigFile
+	fmt.Println("load config file:", path.Join(".", configFile))
+	initConf(configFile)
 	fmt.Println("初始化日志")
 	initLogger()
 
-	if CONFIG.Redis.Enable {
+	if Config.Redis.Enable {
 		fmt.Println("初始化redis")
 		initRedis()
 	}
@@ -57,8 +60,8 @@ func GlobalInit(srv srvType) {
 	initMysql()
 
 	if srv != "cli" {
-		fmt.Println("初始化query")
-		initQuery()
+		fmt.Printf("初始化query,mode: %+v", Config.App.RunMode)
+		initQuery(Config.App.RunMode == config.MODE_RELEASE)
 	}
 
 	fmt.Println("初始化validator")
@@ -71,41 +74,35 @@ func GlobalInit(srv srvType) {
 	fmt.Println("global init successfully!")
 }
 
-func initQuery() {
-	if CONFIG.App.IsRelease() {
-		ZAPSUGAR.Infof("初始化query，使用:release")
-		query.SetDefault(DB)
+func initQuery(IsRelease bool) {
+	if IsRelease {
+		query.SetDefault(DbIns)
 	} else {
-		ZAPSUGAR.Infof("初始化query，使用:dev")
-		query.SetDefault(DB.Debug())
+		query.SetDefault(DbIns.Debug())
 	}
 }
 
-func initConf() {
-	//读取配置
-	configFile := config.ConfigFile
-	fmt.Println("load config file:", path.Join(".", configFile))
-
-	VIPER = viper.New()
-	VIPER.SetConfigFile(configFile)
-	VIPER.AddConfigPath(".")
-	err := VIPER.ReadInConfig()
+func initConf(configFile string) {
+	Viper = viper.New()
+	Viper.SetConfigFile(configFile)
+	Viper.AddConfigPath(".")
+	err := Viper.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %w \n", err))
 	}
 
-	err = VIPER.Unmarshal(&CONFIG)
+	err = Viper.Unmarshal(&Config)
 	if err != nil {
 		panic("解析app配置失败")
 	}
 }
 
 func initMysql() {
-	mysqlPort := strconv.Itoa(CONFIG.Mysql.Port)
+	mysqlPort := strconv.Itoa(Config.Mysql.Port)
 	var err error
 	//初始化数据库
-	dsn := CONFIG.Mysql.User + ":" + CONFIG.Mysql.Password + "@tcp(" + CONFIG.Mysql.Host + ":" + mysqlPort + ")/" +
-		CONFIG.Mysql.DbName + "?charset=" + CONFIG.Mysql.Charset + "&parseTime=True&loc=Local"
+	dsn := Config.Mysql.User + ":" + Config.Mysql.Password + "@tcp(" + Config.Mysql.Host + ":" + mysqlPort + ")/" +
+		Config.Mysql.DbName + "?charset=" + Config.Mysql.Charset + "&parseTime=True&loc=Local"
 
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -116,7 +113,7 @@ func initMysql() {
 		},
 	)
 
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+	DbIns, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})
 	if err != nil {
@@ -128,13 +125,13 @@ func initMysql() {
 
 func initRedis() {
 	//初始化redis
-	REDIS = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", CONFIG.Redis.Host, CONFIG.Redis.Port),
-		Password: CONFIG.Redis.Password, // no password set
-		DB:       CONFIG.Redis.DbId,     // use default DB)
+	Redis = redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", Config.Redis.Host, Config.Redis.Port),
+		Password: Config.Redis.Password, // no password set
+		DB:       Config.Redis.DbId,     // use default DB)
 	})
 
-	if REDIS.Ping().Err() != nil {
+	if Redis.Ping().Err() != nil {
 		panic("链接redis失败")
 	}
 }
@@ -163,25 +160,25 @@ func InitTrans(locale string) (err error) {
 		// locale 通常取决于 http 请求头的 'Accept-Language'
 		var ok bool
 		// 也可以使用 uni.FindTranslator(...) 传入多个locale进行查找
-		TRANS, ok = uni.GetTranslator(locale)
+		Trans, ok = uni.GetTranslator(locale)
 		if !ok {
 			return fmt.Errorf("uni.GetTranslator(%s) failed", locale)
 		}
 
 		// 添加额外翻译
-		_ = v.RegisterTranslation("required_with", TRANS, func(ut ut.Translator) error {
+		_ = v.RegisterTranslation("required_with", Trans, func(ut ut.Translator) error {
 			return ut.Add("required_with", "{0} 为必填字段!", true)
 		}, func(ut ut.Translator, fe validator.FieldError) string {
 			t, _ := ut.T("required_with", fe.Field())
 			return t
 		})
-		_ = v.RegisterTranslation("required_without", TRANS, func(ut ut.Translator) error {
+		_ = v.RegisterTranslation("required_without", Trans, func(ut ut.Translator) error {
 			return ut.Add("required_without", "{0} 为必填字段!", true)
 		}, func(ut ut.Translator, fe validator.FieldError) string {
 			t, _ := ut.T("required_without", fe.Field())
 			return t
 		})
-		_ = v.RegisterTranslation("required_without_all", TRANS, func(ut ut.Translator) error {
+		_ = v.RegisterTranslation("required_without_all", Trans, func(ut ut.Translator) error {
 			return ut.Add("required_without_all", "{0} 为必填字段!", true)
 		}, func(ut ut.Translator, fe validator.FieldError) string {
 			t, _ := ut.T("required_without_all", fe.Field())
@@ -191,11 +188,11 @@ func InitTrans(locale string) (err error) {
 		// 注册翻译器
 		switch locale {
 		case "en":
-			err = enTranslations.RegisterDefaultTranslations(v, TRANS)
+			err = enTranslations.RegisterDefaultTranslations(v, Trans)
 		case "zh":
-			err = zhTranslations.RegisterDefaultTranslations(v, TRANS)
+			err = zhTranslations.RegisterDefaultTranslations(v, Trans)
 		default:
-			err = enTranslations.RegisterDefaultTranslations(v, TRANS)
+			err = enTranslations.RegisterDefaultTranslations(v, Trans)
 		}
 		return
 	}
@@ -239,11 +236,11 @@ func removeTopStruct(fields map[string]string) map[string]interface{} {
 //handler中调用的错误翻译方法
 func ErrResp(err error) string {
 	errs, ok := err.(validator.ValidationErrors)
-	fmt.Println(reflect.TypeOf(err))
+	// fmt.Println(reflect.TypeOf(err))
 	if !ok {
-		return err.Error()
+		return errors.Wrap(err, "parse user data err!").Error()
 	}
-	errStruct := removeTopStruct(errs.Translate(TRANS))
+	errStruct := removeTopStruct(errs.Translate(Trans))
 	for _, v := range errStruct {
 		if val, ok := v.(string); ok {
 			return val

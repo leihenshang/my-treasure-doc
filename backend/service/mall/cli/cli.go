@@ -25,11 +25,11 @@ func main() {
 	global.GlobalInit("cli")
 
 	//同步写入日志
-	defer global.ZAP.Sync()
-	defer global.ZAPSUGAR.Sync()
+	defer global.Zap.Sync()
+	defer global.ZapSugar.Sync()
 
 	//关闭mysql
-	db, _ := global.DB.DB()
+	db, _ := global.DbIns.DB()
 	defer func(db *sql.DB) {
 		err := db.Close()
 		if err != nil {
@@ -38,11 +38,11 @@ func main() {
 	}(db)
 
 	if *genOrm {
-		global.ZAPSUGAR.Info("genGormFile start!")
+		global.ZapSugar.Info("genGormFile start!")
 		genGormFile()
 	}
 
-	global.ZAPSUGAR.Info("cli is end!")
+	global.ZapSugar.Info("cli is end!")
 }
 
 func genGormFile() {
@@ -52,7 +52,7 @@ func genGormFile() {
 
 	})
 
-	g.UseDB(global.DB) // reuse your gorm db
+	g.UseDB(global.DbIns) // reuse your gorm db
 
 	// Generate basic type-safe DAO API for struct `model.User` following conventions
 	g.ApplyBasic(g.GenerateAllTable()...)

@@ -22,7 +22,7 @@ func GoodsList(ctx context.Context, f goodsReq.FilterGoodsList) (res *goodsResp.
 
 	result, total, qErr := goodsDao.GoodsList(ctx, filter, pagination)
 	if qErr != nil {
-		global.ZAPSUGAR.Errorf("GoodsList|goodsDao.GoodsList failed to get goods list.filter:%+v,pagination:%+v,err:%+v", filter, pagination, qErr)
+		global.ZapSugar.Errorf("GoodsList|goodsDao.GoodsList failed to get goods list.filter:%+v,pagination:%+v,err:%+v", filter, pagination, qErr)
 		err = errors.New("获取商品列表失败")
 		return
 	}
@@ -52,7 +52,7 @@ func GoodsDetail(ctx context.Context, f goodsReq.FilterGoodsDetail) (res *goodsR
 	q := query.Good.WithContext(ctx)
 	result, qErr := q.Where(query.Good.ID.Eq(f.GoodsId)).First()
 	if qErr != nil {
-		global.ZAPSUGAR.Errorf("GoodsDetail failed to get goods info.err:%+v", qErr)
+		global.ZapSugar.Errorf("GoodsDetail failed to get goods info.err:%+v", qErr)
 		err = errors.New("查询商品信息失败")
 		return
 	}
@@ -73,13 +73,13 @@ func GoodsDetail(ctx context.Context, f goodsReq.FilterGoodsDetail) (res *goodsR
 	// sku 信息
 	sku, skuErr := query.GoodsSku.WithContext(ctx).Where(query.GoodsSku.GoodsID.Eq(res.ID)).Find()
 	if skuErr != nil {
-		global.ZAPSUGAR.Errorf("GoodsDetail failed to get goods sku.err:%+v", skuErr)
+		global.ZapSugar.Errorf("GoodsDetail failed to get goods sku.err:%+v", skuErr)
 	}
 
 	// 获取spec 描述
 	spec, specErr := query.GoodsSpec.WithContext(ctx).Where(query.GoodsSpec.GoodID.In(res.ID)).Find()
 	if specErr != nil {
-		global.ZAPSUGAR.Errorf("GoodsDetail failed to get goods spec.err:%+v", specErr)
+		global.ZapSugar.Errorf("GoodsDetail failed to get goods spec.err:%+v", specErr)
 	}
 
 	specMap := make(map[int32][]string, 0)

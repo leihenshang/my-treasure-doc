@@ -18,11 +18,11 @@ func main() {
 	global.GlobalInit("api")
 
 	//同步写入日志
-	defer global.ZAP.Sync()
-	defer global.ZAPSUGAR.Sync()
+	defer global.Zap.Sync()
+	defer global.ZapSugar.Sync()
 
 	//关闭mysql
-	db, _ := global.DB.DB()
+	db, _ := global.DbIns.DB()
 	defer func(db *sql.DB) {
 		err := db.Close()
 		if err != nil {
@@ -31,7 +31,7 @@ func main() {
 	}(db)
 
 	//设置运行模式
-	if global.CONFIG.App.IsRelease() {
+	if global.Config.App.IsRelease() {
 		fmt.Println("设置模式为", gin.ReleaseMode)
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -47,7 +47,7 @@ func main() {
 	//初始化路由
 	router.InitRoute(r)
 
-	addr := fmt.Sprintf("%s:%d", global.CONFIG.App.Host, global.CONFIG.App.Port)
+	addr := fmt.Sprintf("%s:%d", global.Config.App.Host, global.Config.App.Port)
 	//设置服务
 	s := &http.Server{
 		Addr:           addr,
@@ -57,6 +57,6 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	global.ZAPSUGAR.Info("service is started!\n", "http://", addr)
-	global.ZAPSUGAR.Error(s.ListenAndServe().Error())
+	global.ZapSugar.Info("service is started!\n", "http://", addr)
+	global.ZapSugar.Error(s.ListenAndServe().Error())
 }

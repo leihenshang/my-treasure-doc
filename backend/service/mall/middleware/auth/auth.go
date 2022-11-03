@@ -25,12 +25,12 @@ func Auth() gin.HandlerFunc {
 
 		u, err := service.GetUserByToken(authKey)
 		if err != nil {
-			global.ZAPSUGAR.Errorf("[auth|service.GetUserByToken] an error occurred.err:%+v, authKey:%+v ", err, authKey)
+			global.ZapSugar.Errorf("[auth|service.GetUserByToken] an error occurred.err:%+v, authKey:%+v ", err, authKey)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "查询用户信息失败")
 			return
 		}
 		if u == nil {
-			global.ZAPSUGAR.Errorf("[auth|service.GetUserByToken] an error occurred.err:%+v, authKey:%+v ", "没有找到用户信息")
+			global.ZapSugar.Errorf("[auth|service.GetUserByToken] an error occurred.err:%+v, authKey:%+v ", "没有找到用户信息")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "没有找到用户信息")
 			return
 		}
