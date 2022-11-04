@@ -18,4 +18,6 @@ type ParamsOrderCreate struct {
 	SkuId    int32 `json:"skuId"  form:"skuId"`
 	Quantity int32 `json:"quantity" form:"quantity"`
 	UserId   int32 `json:"userId" form:"userId"`
+	//TODO 模拟超卖，记得后面删掉
+	Exceed int32 `json:"exceed" form:"exceed"`
 }

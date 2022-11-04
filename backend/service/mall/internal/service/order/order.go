@@ -13,6 +13,7 @@ import (
 	orderDao "fastduck/treasure-doc/service/mall/internal/dao/order"
 	utils_datetime "fastduck/treasure-doc/service/mall/utils/utils-datetime"
 	"fmt"
+	"time"
 )
 
 func OrderList(ctx context.Context, f orderReq.FilterOrderList) (res *orderResp.OrderList, err error) {
@@ -153,7 +154,7 @@ func OrderCreate(ctx context.Context, params orderReq.ParamsOrderCreate) (res *o
 
 	remnant := sku.Stock - params.Quantity
 
-	if remnant <= 0 {
+	if remnant < 0 {
 		global.ZapSugar.Errorf("OrderCreate skuId:%d stock shortage", sku.ID)
 		err = errors.New(fmt.Sprintf("库存不足,skuId:%d", params.SkuId))
 		return
@@ -166,6 +167,10 @@ func OrderCreate(ctx context.Context, params orderReq.ParamsOrderCreate) (res *o
 		return
 	}
 
+	//TODO 模拟并发时拿到的库存竞争读取
+	if params.Exceed > 0 {
+		time.Sleep(time.Second * time.Duration(params.Exceed))
+	}
 	// 开启事务
 	q := query.Use(global.DbIns)
 	tx := q.Begin()
@@ -179,7 +184,6 @@ func OrderCreate(ctx context.Context, params orderReq.ParamsOrderCreate) (res *o
 	}
 
 	// 订单
-
 	insertOrder := &model.Order{
 		OrderNo: orderNo,
 		UserID:  params.UserId,
