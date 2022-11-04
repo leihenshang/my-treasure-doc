@@ -12,7 +12,7 @@ import (
 
 const TableNameOrder = "order"
 
-// Order mapped from table <order>¸
+// Order mapped from table <order>
 type Order struct {
 	ID        int32          `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	OrderNo   string         `gorm:"column:order_no;not null" json:"order_no"`            // 订单号
