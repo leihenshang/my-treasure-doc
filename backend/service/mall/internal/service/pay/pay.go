@@ -31,14 +31,20 @@ func Create(ctx context.Context, params payReq.ParamsPayCreate) (res *payResp.Pa
 		global.ZapSugar.Errorf("[pay|Create]failed get order info,err:%+v,filter:%+v", orderErr, orderF)
 		return
 	}
-	if order.Status != 1 {
-		err = errors.New("订单状态错误")
-		global.ZapSugar.Errorf("[pay|Create]failed get order info,status err.orderId:%+v", order.ID)
-		return
+	// if order.Status != 1 {
+	// 	err = errors.New("订单状态错误")
+	// 	global.ZapSugar.Errorf("[pay|Create]failed get order info,status err.orderId:%+v", order.ID)
+	// 	return
+	// }
+
+	// FIXME 此处直接模拟订单状态，后期改掉
+	updateStatus := 2
+	if params.MockStatus > 0 {
+		updateStatus = int(params.MockStatus)
 	}
 
 	//TODO 更新
-	_, updateErr := query.Order.WithContext(ctx).Where(query.Order.ID.Eq(params.OrderId)).UpdateColumn(query.Order.Status, 2)
+	_, updateErr := query.Order.WithContext(ctx).Where(query.Order.ID.Eq(params.OrderId)).UpdateColumn(query.Order.Status, updateStatus)
 	if updateErr != nil {
 		err = errors.New("更新订单状态为已支付失败")
 		global.ZapSugar.Errorf("[pay|Create]failed to update order info.orderId:%+v status:%+v", order.ID, 1)
