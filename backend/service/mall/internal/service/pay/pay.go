@@ -3,6 +3,7 @@ package pay
 import (
 	"context"
 	"errors"
+	"fastduck/treasure-doc/service/mall/data/query"
 	payReq "fastduck/treasure-doc/service/mall/data/request/pay"
 	payResp "fastduck/treasure-doc/service/mall/data/response/pay"
 	"fastduck/treasure-doc/service/mall/global"
@@ -10,6 +11,7 @@ import (
 )
 
 func Create(ctx context.Context, params payReq.ParamsPayCreate) (res *payResp.PayCreate, err error) {
+	res = new(payResp.PayCreate)
 	if params.OrderId <= 0 {
 		err = errors.New("订单Id不能为空")
 		return
@@ -25,7 +27,7 @@ func Create(ctx context.Context, params payReq.ParamsPayCreate) (res *payResp.Pa
 	}
 	order, orderErr := orderDao.GetOrder(ctx, orderF)
 	if orderErr != nil {
-		err = errors.New("订单Id不能为空")
+		err = errors.New("查询订单失败")
 		global.ZapSugar.Errorf("[pay|Create]failed get order info,err:%+v,filter:%+v", orderErr, orderF)
 		return
 	}
@@ -36,6 +38,12 @@ func Create(ctx context.Context, params payReq.ParamsPayCreate) (res *payResp.Pa
 	}
 
 	//TODO 更新
+	_, updateErr := query.Order.WithContext(ctx).Where(query.Order.ID.Eq(params.OrderId)).UpdateColumn(query.Order.Status, 2)
+	if updateErr != nil {
+		err = errors.New("更新订单状态为已支付失败")
+		global.ZapSugar.Errorf("[pay|Create]failed to update order info.orderId:%+v status:%+v", order.ID, 1)
+		return
+	}
 
 	return
 }
