@@ -7,4 +7,5 @@ type Mysql struct {
 	Password string ``
 	Charset  string ``
 	DbName   string ``
+	Debug    bool   ``
 }

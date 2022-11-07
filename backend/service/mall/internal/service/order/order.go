@@ -173,7 +173,7 @@ func OrderCreate(ctx context.Context, params orderReq.ParamsOrderCreate) (res *o
 		time.Sleep(time.Second * time.Duration(params.Exceed))
 	}
 	// 开启事务
-	q := query.Use(global.DbIns.Debug())
+	q := query.Use(global.DbIns)
 	tx := q.Begin()
 
 	skuUpdateInfo, skuUpdateErr := tx.WithContext(ctx).GoodsSku.

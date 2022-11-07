@@ -57,11 +57,11 @@ func GlobalInit(srv srvType) {
 	}
 
 	fmt.Println("初始化mysql")
-	initMysql()
+	initMysql(Config.Mysql.Debug)
 
 	if srv != "cli" {
 		fmt.Printf("初始化query,mode: %+v", Config.App.RunMode)
-		initQuery(Config.App.RunMode == config.MODE_RELEASE)
+		initQuery()
 	}
 
 	fmt.Println("初始化validator")
@@ -74,12 +74,8 @@ func GlobalInit(srv srvType) {
 	fmt.Println("global init successfully!")
 }
 
-func initQuery(IsRelease bool) {
-	if IsRelease {
-		query.SetDefault(DbIns)
-	} else {
-		query.SetDefault(DbIns.Debug())
-	}
+func initQuery() {
+	query.SetDefault(DbIns)
 }
 
 func initConf(configFile string) {
@@ -97,7 +93,8 @@ func initConf(configFile string) {
 	}
 }
 
-func initMysql() {
+func initMysql(debug bool) {
+	fmt.Printf("hhhh:%t \n", debug)
 	mysqlPort := strconv.Itoa(Config.Mysql.Port)
 	var err error
 	//初始化数据库
@@ -119,6 +116,11 @@ func initMysql() {
 	if err != nil {
 		fmt.Println(err.Error())
 		panic("初始化mysql失败")
+	}
+
+	// 启动debug模式
+	if debug {
+		DbIns = DbIns.Debug()
 	}
 
 }
