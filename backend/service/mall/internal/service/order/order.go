@@ -14,6 +14,8 @@ import (
 	utils_datetime "fastduck/treasure-doc/service/mall/utils/utils-datetime"
 	"fmt"
 	"time"
+
+	"gorm.io/gorm/clause"
 )
 
 func OrderList(ctx context.Context, f orderReq.FilterOrderList) (res *orderResp.OrderList, err error) {
@@ -140,17 +142,17 @@ func OrderCreate(ctx context.Context, params orderReq.ParamsOrderCreate) (res *o
 		SkuId:   params.SkuId,
 		Enabled: 1,
 	}
-	sku, skuErr := goodsDao.GetSku(ctx, skuF)
-	if skuErr != nil {
-		global.ZapSugar.Errorf("OrderCreate failed to get sku info. params:%+v err:%+v", *skuF, skuErr)
-		err = errors.New("获取sku信息失败")
-		return
-	}
-	if sku == nil {
-		global.ZapSugar.Errorf("OrderCreate failed to get sku info. err:sku not existed")
-		err = errors.New(fmt.Sprintf("sku不存在,skuId:%d", params.SkuId))
-		return
-	}
+	// sku, skuErr := goodsDao.GetSku(ctx, skuF)
+	// if skuErr != nil {
+	// 	global.ZapSugar.Errorf("OrderCreate failed to get sku info. params:%+v err:%+v", *skuF, skuErr)
+	// 	err = errors.New("获取sku信息失败")
+	// 	return
+	// }
+	// if sku == nil {
+	// 	global.ZapSugar.Errorf("OrderCreate failed to get sku info. err:sku not existed")
+	// 	err = errors.New(fmt.Sprintf("sku不存在,skuId:%d", params.SkuId))
+	// 	return
+	// }
 
 	//TODO 不在程序中检查库存
 	// remnant := sku.Stock - params.Quantity
@@ -168,13 +170,39 @@ func OrderCreate(ctx context.Context, params orderReq.ParamsOrderCreate) (res *o
 		return
 	}
 
+	// 开启事务
+	q := query.Use(global.DbIns.Debug())
+	tx := q.Begin()
+
+	// 此处使用悲观锁
+	sku, skuErr := tx.GoodsSku.Where(
+		tx.GoodsSku.ID.Eq(params.SkuId),
+		tx.GoodsSku.Enabled.Eq(1),
+	).Clauses(clause.Locking{
+		Strength: "UPDATE",
+	}).First()
+	if skuErr != nil {
+		global.ZapSugar.Errorf("OrderCreate failed to get sku info. params:%+v err:%+v", *skuF, skuErr)
+		err = errors.New("获取sku信息失败")
+		tx.Rollback()
+		return
+	}
+	if sku == nil {
+		global.ZapSugar.Errorf("OrderCreate failed to get sku info. err:sku not existed")
+		err = errors.New(fmt.Sprintf("sku不存在,skuId:%d", params.SkuId))
+		tx.Rollback()
+		return
+	}
+
 	//TODO 模拟并发时拿到的库存竞争读取
 	if params.Exceed > 0 {
 		time.Sleep(time.Second * time.Duration(params.Exceed))
 	}
-	// 开启事务
-	q := query.Use(global.DbIns.Debug())
-	tx := q.Begin()
+
+	// skuUpdateInfo, skuUpdateErr := tx.WithContext(ctx).GoodsSku.
+	// 	Where(tx.GoodsSku.ID.Eq(sku.ID)).
+	// 	Where(tx.GoodsSku.Stock.Gt(0)).
+	// 	UpdateColumnSimple(tx.GoodsSku.Stock.Sub(params.Quantity))
 
 	skuUpdateInfo, skuUpdateErr := tx.WithContext(ctx).GoodsSku.
 		Where(tx.GoodsSku.ID.Eq(sku.ID)).
