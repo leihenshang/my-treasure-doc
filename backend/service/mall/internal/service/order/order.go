@@ -171,7 +171,7 @@ func OrderCreate(ctx context.Context, params orderReq.ParamsOrderCreate) (res *o
 	}
 
 	// 开启事务
-	q := query.Use(global.DbIns.Debug())
+	q := query.Use(global.DbIns)
 	tx := q.Begin()
 
 	// 此处使用悲观锁
