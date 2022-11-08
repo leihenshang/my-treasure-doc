@@ -11,7 +11,7 @@ user = "root"
 password = "root"
 charset = "utf8mb4"
 dbName = "doc_go"
-deBug = false # 使用gorm的debug模式，会打印sql(true/false)
+debug = false # 使用gorm的debug模式，会打印sql(true/false)
 
 [log]
 directory = "log"

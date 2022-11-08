@@ -2,6 +2,7 @@
 tmp
 rumtime
 log
+req-test 
 
 # 配置
 config.toml
