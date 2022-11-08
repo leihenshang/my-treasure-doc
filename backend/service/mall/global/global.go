@@ -85,7 +85,6 @@ func initConf(configFile string) {
 }
 
 func initMysql(debug bool) {
-	fmt.Printf("hhhh:%t \n", debug)
 	mysqlPort := strconv.Itoa(Config.Mysql.Port)
 	var err error
 	//初始化数据库

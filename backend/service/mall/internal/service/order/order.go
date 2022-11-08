@@ -178,7 +178,7 @@ func OrderCreate(ctx context.Context, params orderReq.ParamsOrderCreate) (res *o
 
 	skuUpdateInfo, skuUpdateErr := tx.WithContext(ctx).GoodsSku.
 		Where(tx.GoodsSku.ID.Eq(sku.ID)).
-		Where(tx.GoodsSku.Stock.Sub(params.Quantity).Gt(0)).
+		Where(tx.GoodsSku.Stock.Sub(params.Quantity).Gte(0)).
 		UpdateColumnSimple(tx.GoodsSku.Stock.Sub(params.Quantity))
 	if skuUpdateErr != nil {
 		err = errors.New("更新库存失败")
