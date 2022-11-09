@@ -120,7 +120,7 @@ func initRedis() {
 	Redis = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", Config.Redis.Host, Config.Redis.Port),
 		Password: Config.Redis.Password, // no password set
-		DB:       Config.Redis.DbId,     // use default DB)
+		DB:       Config.Redis.DbId,     // use default DB
 	})
 
 	if Redis.Ping().Err() != nil {
