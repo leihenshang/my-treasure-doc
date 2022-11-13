@@ -9,10 +9,10 @@ require (
 	github.com/go-playground/universal-translator v0.17.0
 	github.com/go-playground/validator/v10 v10.7.0
 	github.com/go-redis/redis v6.15.9+incompatible
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/onsi/gomega v1.14.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.8.1
 	github.com/ugorji/go v1.2.6 // indirect

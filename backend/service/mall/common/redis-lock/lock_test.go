@@ -10,8 +10,9 @@ import (
 )
 
 func setup() {
+	ctx := context.Background()
 	//全局初始化
-	global.GlobalInit("test")
+	global.GlobalInit(ctx, "test")
 
 	//同步写入日志
 	defer global.Zap.Sync()
@@ -36,7 +37,7 @@ func TestLock(t *testing.T) {
 	t.Log("start lock")
 	ctx := context.Background()
 	key := "hhhhlock"
-	lockDuration := time.Second * 5
+	lockDuration := time.Second * 10
 	lock := NewDistributeRedisLock(global.Redis, lockDuration)
 	err := lock.Lock(ctx, key)
 	if err != nil {
@@ -53,13 +54,16 @@ func TestLock(t *testing.T) {
 	// if unlockErr != nil {
 
 	// }
-
-	lock.Unlock(ctx, key)
-
-	err3 := lock.Lock(ctx, key)
-	if err3 != nil {
-		log.Fatal("the lock,failed!")
+	time.Sleep(time.Second * 5)
+	unlockErr := lock.Unlock(ctx, key)
+	if unlockErr != nil {
+		log.Fatal(unlockErr)
 	}
+
+	// err3 := lock.Lock(ctx, key)
+	// if err3 != nil {
+	// 	log.Fatal("the lock,failed!")
+	// }
 
 	t.Log("ok")
 }

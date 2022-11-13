@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fastduck/treasure-doc/service/mall/global"
 	"fastduck/treasure-doc/service/mall/router"
@@ -13,9 +14,9 @@ import (
 )
 
 func main() {
-
+	ctx := context.Background()
 	//全局初始化
-	global.GlobalInit("api")
+	global.GlobalInit(ctx, "api")
 
 	//同步写入日志
 	defer global.Zap.Sync()

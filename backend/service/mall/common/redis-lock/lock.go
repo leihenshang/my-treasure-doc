@@ -3,12 +3,11 @@ package redis_lock
 import (
 	"context"
 	"errors"
-	"fastduck/treasure-doc/service/mall/global"
 	"math/rand"
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis"
+	redis "github.com/go-redis/redis/v8"
 )
 
 type DistributeRedisLock struct {
@@ -28,7 +27,8 @@ func NewDistributeRedisLock(client *redis.Client, duration time.Duration) RedisL
 }
 
 func (d *DistributeRedisLock) Lock(ctx context.Context, key string) (err error) {
-	res, setErr := global.Redis.SetNX(key, d.lockVal, d.duration).Result()
+
+	res, setErr := d.client.SetNX(ctx, key, d.lockVal, d.duration).Result()
 	if setErr != nil {
 		if setErr != redis.Nil {
 			err = setErr
@@ -45,15 +45,28 @@ func (d *DistributeRedisLock) Lock(ctx context.Context, key string) (err error) 
 
 func (d *DistributeRedisLock) Unlock(ctx context.Context, key string) (err error) {
 	// TODO 获取和删除任然不是原子化的，最好还是用lua脚本
-	get := global.Redis.Get(key)
-	if get.Err() != nil {
-		return get.Err()
-	}
-	if get.Val() == d.lockVal {
-		delRes := global.Redis.Del(key)
-		if delRes.Err() != nil {
-			return delRes.Err()
-		}
+	// get := d.client.Get(ctx, key)
+	// if get.Err() != nil {
+	// 	return get.Err()
+	// }
+	// if get.Val() == d.lockVal {
+	// 	delRes := d.client.Del(ctx, key)
+	// 	if delRes.Err() != nil {
+	// 		return delRes.Err()
+	// 	}
+	// }
+
+	script := redis.NewScript(`
+	if redis.call('get',KEYS[1]) == ARGV[1] then 
+   		return redis.call('del',KEYS[1]) 
+	else
+		return 0
+	end;
+	`)
+
+	delRes := script.Run(ctx, d.client, []string{key}, []interface{}{d.lockVal})
+	if delRes.Err() != nil {
+		return delRes.Err()
 	}
 
 	return

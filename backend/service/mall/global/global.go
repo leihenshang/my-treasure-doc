@@ -1,6 +1,7 @@
 package global
 
 import (
+	"context"
 	"fastduck/treasure-doc/service/mall/config"
 	"fmt"
 	"log"
@@ -10,7 +11,7 @@ import (
 	"time"
 
 	ut "github.com/go-playground/universal-translator"
-	"github.com/go-redis/redis"
+	redis "github.com/go-redis/redis/v8"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
@@ -33,7 +34,8 @@ var (
 // 环境标签
 type srvType string
 
-func GlobalInit(srv srvType) {
+func GlobalInit(ctx context.Context,srv srvType) {
+
 	fmt.Println("start global init")
 	//读取配置
 	configFile := config.ConfigFile
@@ -44,7 +46,7 @@ func GlobalInit(srv srvType) {
 
 	if Config.Redis.Enable {
 		fmt.Println("初始化redis")
-		initRedis()
+		initRedis(ctx)
 	}
 
 	fmt.Println("初始化mysql")
@@ -115,7 +117,7 @@ func initMysql(debug bool) {
 
 }
 
-func initRedis() {
+func initRedis(ctx context.Context) {
 	//初始化redis
 	Redis = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", Config.Redis.Host, Config.Redis.Port),
@@ -123,7 +125,7 @@ func initRedis() {
 		DB:       Config.Redis.DbId,     // use default DB
 	})
 
-	if Redis.Ping().Err() != nil {
+	if Redis.Ping(ctx).Err() != nil {
 		panic("链接redis失败")
 	}
 }
