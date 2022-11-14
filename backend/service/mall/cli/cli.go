@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fastduck/treasure-doc/service/mall/global"
 	"flag"
@@ -20,9 +21,9 @@ type Querier interface {
 func main() {
 
 	flag.Parse()
-
+	ctx := context.Background()
 	//全局初始化
-	global.GlobalInit("cli")
+	global.GlobalInit(ctx, "cli")
 
 	//同步写入日志
 	defer global.Zap.Sync()
