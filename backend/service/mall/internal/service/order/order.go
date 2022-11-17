@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"errors"
+	redisLock "fastduck/treasure-doc/service/mall/common/redis-lock"
 	"fastduck/treasure-doc/service/mall/data/model"
 	"fastduck/treasure-doc/service/mall/data/query"
 	"fastduck/treasure-doc/service/mall/data/request/common"
@@ -13,6 +14,7 @@ import (
 	orderDao "fastduck/treasure-doc/service/mall/internal/dao/order"
 	utils_datetime "fastduck/treasure-doc/service/mall/utils/utils-datetime"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -167,6 +169,17 @@ func OrderCreate(ctx context.Context, params orderReq.ParamsOrderCreate) (res *o
 		err = errors.New("生成订单号错误")
 		return
 	}
+
+	lockKey := "distributeLock:orderSku:" + strconv.Itoa(int(params.SkuId))
+	// 使用锁
+	locker := redisLock.NewDistributeRedisLock(global.Redis, time.Second*15)
+	lockErr := locker.Lock(ctx, lockKey)
+	if lockErr != nil {
+		global.ZapSugar.Errorf("[OrderCreate] failed to get lock err:%+v", lockErr)
+		err = errors.New("该sku有其他操作请稍后再试")
+		return
+	}
+	defer locker.Unlock(ctx, lockKey)
 
 	//TODO 模拟并发时拿到的库存竞争读取
 	if params.Exceed > 0 {
