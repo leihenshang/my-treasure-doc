@@ -176,7 +176,7 @@ func OrderCreate(ctx context.Context, params orderReq.ParamsOrderCreate) (res *o
 	lockErr := locker.Lock(ctx, lockKey)
 	if lockErr != nil {
 		global.ZapSugar.Errorf("[OrderCreate] failed to get lock err:%+v", lockErr)
-		err = errors.New("该sku有其他操作请稍后再试")
+		err = errors.New("该sku有其他购买，请稍后再试")
 		return
 	}
 	defer locker.Unlock(ctx, lockKey)
