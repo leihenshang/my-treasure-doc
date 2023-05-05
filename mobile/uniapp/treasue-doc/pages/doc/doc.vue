@@ -1,6 +1,7 @@
 <template>
-	<view>
-		<h1>this is doc page</h1>
+	<view class="container">
+		<editor id="editor" class="ql-container" :placeholder="placeholder" @ready="onEditorReady"></editor>
+		<button type="warn" @tap="undo">撤销</button>
 	</view>
 </template>
 
@@ -8,12 +9,40 @@
 	export default {
 		data() {
 			return {
-				
+				placeholder: '开始输入...'
 			};
+		},
+		methods: {
+			onEditorReady() {
+				// #ifdef MP-BAIDU
+				this.editorCtx = requireDynamicLib('editorLib').createEditorContext('editor');
+				// #endif
+
+				// #ifdef APP-PLUS || H5 ||MP-WEIXIN
+				uni.createSelectorQuery().select('#editor').context((res) => {
+					this.editorCtx = res.context
+				}).exec()
+				// #endif
+			},
+			undo() {
+				this.editorCtx.undo()
+			}
 		}
 	}
 </script>
 
 <style lang="scss">
+	.container {
+		padding: 10px;
+	}
 
+	#editor {
+		width: 100%;
+		height: 300px;
+		background-color: #CCCCCC;
+	}
+
+	button {
+		margin-top: 10px;
+	}
 </style>
