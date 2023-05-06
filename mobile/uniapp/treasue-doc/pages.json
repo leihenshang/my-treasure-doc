@@ -6,7 +6,7 @@
 			}
 		},
 		{
-			"path": "pages/doc/doc",
+			"path": "pages/write/write",
 			"style": {
 				"navigationBarTitleText": "文档",
 				"enablePullDownRefresh": false
@@ -43,8 +43,8 @@
 			"pagePath": "pages/index/index",
 			"text": "首页"
 		}, {
-			"pagePath": "pages/doc/doc",
-			"text": "文档"
+			"pagePath": "pages/write/write",
+			"text": "写作"
 		}, {
 			"pagePath": "pages/myCenter/myCenter",
 			"text": "个人中心"
