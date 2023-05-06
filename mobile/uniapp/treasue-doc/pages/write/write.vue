@@ -4,8 +4,8 @@
 			<button type="primary" @tap="save">保存</button>
 			<button type="warn" @tap="undo">清空</button>
 		</view>
-		<view class="uni-form-item uni-column">
-			<input class="uni-input" focus placeholder="输入你的标题" />
+		<view class="uni-form-item uni-column container">
+			<uni-easyinput focus placeholder="输入你的标题" class="title"></uni-easyinput>
 		</view>
 		<view class="uni-form-item uni-column container">
 			<editor id="editor" class="ql-container" :placeholder="placeholder" @ready="onEditorReady"></editor>
