@@ -1,33 +1,31 @@
 <template>
 	<view class="login-box">
-		<view>
-			<form @submit="formSubmit" @reset="formReset">
+
+		<view class="input-box">
+			<uni-forms @submit="formSubmit" @reset="formReset">
 				<view class="uni-form-item uni-column">
-					<view class="title">用户名：</view>
-					<view>
-						<input class="uni-input" focus name="username" placeholder="用户名" />
-					</view>
+					<uni-forms-item label="用户名" required>
+						<uni-easyinput placeholder="请输入姓名" focus name="username" />
+					</uni-forms-item>
 				</view>
 				<view class="uni-form-item uni-column">
-					<view class="title">密码：</view>
-					<view>
-						<input class="uni-input" name="password" placeholder="密码" />
-					</view>
+					<uni-forms-item label="密码" required>
+						<uni-easyinput placeholder="请输入密码" focus name="password" />
+					</uni-forms-item>
 				</view>
 				<view class="uni-form-item uni-column">
-					<view>
-						<checkbox-group>
-							<label>
-								<checkbox value="cb" />记住密码
-							</label>
-						</checkbox-group>
-					</view>
+					<checkbox-group>
+						<label>
+							<checkbox value="cb" />记住密码
+						</label>
+					</checkbox-group>
+
 				</view>
 				<view class="uni-btn-v">
-					<button form-type="submit">Submit</button>
-					<button type="default" form-type="reset">Reset</button>
+					<button form-type="submit" type="primary">登录</button>
+					<button type="warn">注册</button>
 				</view>
-			</form>
+			</uni-forms>
 		</view>
 	</view>
 </template>
@@ -57,11 +55,16 @@
 
 <style lang="scss">
 	.login-box {
-		background-color: pink;
+		padding: 50rpx 20rpx;
 
-		.uni-form-item,
-		.title {
-			padding: 20rpx 0;
+		.uni-btn-v {
+			padding: 0 10rpx;
+			width: 100%;
+
+			button {
+				margin: 10rpx 0;
+				width: 100%;
+			}
 		}
 	}
 </style>
