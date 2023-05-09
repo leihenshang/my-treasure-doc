@@ -46,7 +46,18 @@
 			}
 		},
 		methods: {
-
+			getDocList() {
+				uni.request({
+					url: "https://www.baidu.com",
+					header: {},
+					success(v) {
+						console.log(v)
+					}
+				})
+			}
+		},
+		beforeMount() {
+			this.getDocList()
 		}
 	}
 </script>
@@ -59,13 +70,14 @@
 
 		ul {
 			list-style-type: none;
-			margin:0;
-			padding:0;
+			margin: 0;
+			padding: 0;
+
 			li {
 				height: 100rpx;
 				width: 100%;
 				background-color: pink;
-				margin:10rpx 0;
+				margin: 10rpx 0;
 			}
 		}
 	}

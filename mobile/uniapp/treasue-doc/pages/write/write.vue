@@ -45,6 +45,20 @@
 					}
 				})
 			},
+		},
+		methods: {
+			getDocList() {
+				uni.request({
+					url: "https://www.baidu.com",
+					header: {},
+					success(v) {
+						console.log(v)
+					}
+				})
+			}
+		},
+		beforeMount() {
+			this.getDocList()
 		}
 	}
 </script>
