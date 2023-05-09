@@ -5,7 +5,7 @@
 			<h1>我的名字</h1>
 		</view>
 		<view class="myCenter-bottom">
-			<button type="primary">退出登录</button>
+			<button type="primary" @click="loginOut">退出登录</button>
 		</view>
 	</view>
 </template>
@@ -16,6 +16,18 @@
 			return {
 
 			};
+		},
+		methods: {
+			loginOut() {
+				uni.removeStorageSync('token');
+				uni.showModal({
+					content: '退出登录',
+					showCancel: false
+				});
+				uni.redirectTo({
+					url: "/pages/login/login"
+				})
+			}
 		}
 	}
 </script>
