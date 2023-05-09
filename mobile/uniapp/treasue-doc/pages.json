@@ -41,13 +41,19 @@
 	"tabBar": {
 		"list": [{
 			"pagePath": "pages/index/index",
-			"text": "首页"
+			"text": "首页",
+			"iconPath": "static/tabBar/home.png",
+			"selectedIconPath": "static/tabBar/homeSelected.png"
 		}, {
 			"pagePath": "pages/write/write",
-			"text": "写作"
+			"text": "写作",
+			"iconPath": "static/tabBar/pen.png",
+			"selectedIconPath": "static/tabBar/penSelected.png"
 		}, {
 			"pagePath": "pages/myCenter/myCenter",
-			"text": "个人中心"
+			"text": "个人中心",
+			"iconPath": "static/tabBar/myCenter.png",
+			"selectedIconPath": "static/tabBar/myCenterSelected.png"
 		}]
 	}
 
