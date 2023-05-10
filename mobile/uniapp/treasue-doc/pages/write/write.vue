@@ -1,15 +1,19 @@
 <template>
-	<view class="uni-common-mt">
-		<view class="btn-group">
-			<button type="primary" @tap="save">保存</button>
-			<button type="warn" @tap="undo">清空</button>
-		</view>
-		<view class="uni-form-item uni-column container">
-			<uni-easyinput focus placeholder="输入你的标题" class="title"></uni-easyinput>
-		</view>
-		<view class="uni-form-item uni-column container">
-			<editor id="editor" class="ql-container" :placeholder="placeholder" @ready="onEditorReady"></editor>
-		</view>
+	<view class="write-box">
+		<uni-forms ref="form" label-position="top" :model="formData">
+			<view class="btn-group">
+				<button type="primary" @click="save">保存</button>
+				<button type="warn" @click="undo">上一步</button>
+			</view>
+			<uni-forms-item label="标题" name="">
+				<uni-easyinput focus placeholder="输入你的标题" class="title" v-model="formData.title"></uni-easyinput>
+			</uni-forms-item>
+			<uni-forms-item label="内容" name="" class="">
+			
+				<editor id="editor" class="ql-container" :placeholder="placeholder" @ready="onEditorReady"
+					@input="editorInput"></editor>
+			</uni-forms-item>
+		</uni-forms>
 	</view>
 </template>
 
@@ -17,7 +21,11 @@
 	export default {
 		data() {
 			return {
-				placeholder: '挥洒你的创意吧...'
+				placeholder: '挥洒你的创意吧...',
+				formData: {
+					title: "",
+					content: ""
+				}
 			};
 		},
 		methods: {
@@ -32,21 +40,23 @@
 				}).exec()
 				// #endif
 			},
+			editorInput(e) {
+				this.formData.content = e.detail.text
+			},
 			undo() {
 				this.editorCtx.undo()
 			},
 			save() {
+				console.log(this.formData)
 				this.editorCtx.getContents({
 					success: (data) => {
 						uni.showModal({
-							content: "表单数据为:" + data.text,
+							content: "表单数据为:" + JSON.stringify(this.formData),
 							showCancel: false
 						})
 					}
 				})
 			},
-		},
-		methods: {
 			getDocList() {
 				uni.request({
 					url: "https://www.baidu.com",
@@ -56,32 +66,29 @@
 					}
 				})
 			}
-		},
-		beforeMount() {
-			this.getDocList()
 		}
+
 	}
 </script>
 
 <style lang="scss">
-	.container {
-		padding: 10rpx;
-	}
+	
+	.write-box {
+		padding: 10rpx 10rpx 10rpx;
 
-	#editor {
-		width: 100%;
-		height: 800rpx;
-		background-color: #CCCCCC;
-	}
+		#editor {
+			width: 100%;
+			height: 800rpx;
+			background-color: #FFF;
+		}
 
-	.btn-group {
-		display: flex;
-		justify-content: space-between;
-		padding: 0 10rpx;
+		.btn-group {
+			display: flex;
+			justify-content: space-between;
 
-		button {
-			margin: 10rpx 0;
-			width: 200rpx;
+			button {
+				margin: 10rpx 0;
+			}
 		}
 	}
 </style>

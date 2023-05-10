@@ -54,6 +54,13 @@
 	// 设置整个项目的背景色
 	page {
 		background-color: #f5f5f5;
+		width: 100%;
+		height: 100%;
+	}
+
+	uni-page-body,
+	#app {
+		height: 100%;
 	}
 
 	/* #endif */

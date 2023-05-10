@@ -57,7 +57,7 @@
 			}
 		},
 		beforeMount() {
-			this.getDocList()
+			// this.getDocList()
 		}
 	}
 </script>

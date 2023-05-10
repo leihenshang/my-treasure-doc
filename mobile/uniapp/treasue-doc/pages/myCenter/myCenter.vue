@@ -34,7 +34,6 @@
 
 <style lang="scss">
 	.myCenter-whole {
-		margin: 20rpx;
 
 		.myCenter-top {
 			img {
