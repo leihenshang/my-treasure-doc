@@ -3,6 +3,7 @@ package router
 import (
 	"fastduck/treasure-doc/service/user/api"
 	"fastduck/treasure-doc/service/user/middleware/auth"
+	"fastduck/treasure-doc/service/user/middleware/cors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -34,7 +35,7 @@ func InitRoute(r *gin.Engine) {
 	}
 
 	//doc
-	docRoute := r.Group("doc").Use(auth.Auth())
+	docRoute := r.Group("doc").Use(auth.Auth(), cors.Cors())
 	{
 		docRoute.POST("/create", api.DocCreate)
 		docRoute.POST("/detail", api.DocDetail)
