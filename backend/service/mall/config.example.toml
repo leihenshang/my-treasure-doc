@@ -1,17 +1,16 @@
 [app]
 host = "localhost"
 port = 2021
-name = "doc"
-runMode = "release" # dev-开发模式 prod-生产(正式)模式
+name = "my_treasure_doc"
+runMode = "release" # dev-开发模式 release-生产模式
 
 [mysql]
-host = "127.0.0.1"
+host = "0.0.0.0"
 port = 3306
 user = "root"
 password = "root"
 charset = "utf8mb4"
-dbName = "doc_go"
-debug = false # 使用gorm的debug模式，会打印sql(true/false)
+dbName = "my_treasure_doc"
 
 [log]
 directory = "log"
