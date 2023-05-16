@@ -9,7 +9,11 @@
 </template>
 
 <script>
-	let docList = [{
+	import {
+		docList
+	} from "@/request/api.js"
+
+	let docList1 = [{
 			"content": "sssssssss",
 			"id": 1,
 			"title": "hhhhhhhhh"
@@ -42,26 +46,22 @@
 		data() {
 			return {
 				href: 'https://uniapp.dcloud.io/component/README?id=uniui',
-				list: docList
+				list: docList1
 			}
 		},
 		methods: {
-			getDocList() {
-				uni.request({
-					url: "https://www.baidu.com",
-					header: {},
-					success(v) {
-						console.log(v)
-					}
+			async getDocList() {
+				await docList({
+					"page": 1,
+					"pageSize": 10
 				})
 			}
 		},
 		beforeMount() {
-			// this.getDocList()
+			this.getDocList()
 		}
 	}
 </script>
-
 <style lang="scss">
 	.container {
 		padding: 20px;

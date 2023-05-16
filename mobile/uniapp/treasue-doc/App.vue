@@ -17,10 +17,10 @@
 				invoke(args) {
 					// request 触发前拼接 url 
 					args.url = args.url
+
 				},
 				success(args) {
 					// 请求成功后，修改code值为1
-					args.data.code = 1
 					console.log('interceptor-success')
 				},
 				fail(err) {

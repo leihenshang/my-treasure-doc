@@ -9,7 +9,7 @@
 				<uni-easyinput focus placeholder="输入你的标题" class="title" v-model="formData.title"></uni-easyinput>
 			</uni-forms-item>
 			<uni-forms-item label="内容" name="" class="">
-			
+
 				<editor id="editor" class="ql-container" :placeholder="placeholder" @ready="onEditorReady"
 					@input="editorInput"></editor>
 			</uni-forms-item>
@@ -18,6 +18,10 @@
 </template>
 
 <script>
+	import {
+		docCreate
+	} from "@/request/api.js"
+
 	export default {
 		data() {
 			return {
@@ -50,19 +54,19 @@
 				console.log(this.formData)
 				this.editorCtx.getContents({
 					success: (data) => {
-						uni.showModal({
-							content: "表单数据为:" + JSON.stringify(this.formData),
-							showCancel: false
+						docCreate(this.formData).then((res) => {
+							console.log(res)
+							uni.showModal({
+								content: "表单数据为:" + JSON.stringify(this.formData),
+								showCancel: false
+							})
+							uni.reLaunch({
+								url: "/pages/index/index",
+							})
+						}).catch(res => {
+							console.log(res)
 						})
-					}
-				})
-			},
-			getDocList() {
-				uni.request({
-					url: "https://www.baidu.com",
-					header: {},
-					success(v) {
-						console.log(v)
+
 					}
 				})
 			}
@@ -72,7 +76,6 @@
 </script>
 
 <style lang="scss">
-	
 	.write-box {
 		padding: 10rpx 10rpx 10rpx;
 
