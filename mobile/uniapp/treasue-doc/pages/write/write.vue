@@ -55,11 +55,6 @@
 				this.editorCtx.getContents({
 					success: (data) => {
 						docCreate(this.formData).then((res) => {
-							console.log(res)
-							uni.showModal({
-								content: "表单数据为:" + JSON.stringify(this.formData),
-								showCancel: false
-							})
 							uni.reLaunch({
 								url: "/pages/index/index",
 							})

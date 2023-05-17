@@ -23,3 +23,11 @@ export function docCreate(data) {
 		data
 	})
 }
+
+export function docDetail(data) {
+	return request({
+		url: '/test/doc/detail',
+		method: 'POST',
+		data
+	})
+}
