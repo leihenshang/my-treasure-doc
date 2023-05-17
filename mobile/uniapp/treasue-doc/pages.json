@@ -34,6 +34,13 @@
 				"enablePullDownRefresh": false
 			}
 
+		}, {
+			"path": "pages/todo/todo",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
 		}
 	],
 	"globalStyle": {
@@ -54,8 +61,8 @@
 			"iconPath": "static/tabBar/home.png",
 			"selectedIconPath": "static/tabBar/homeSelected.png"
 		}, {
-			"pagePath": "pages/write/write",
-			"text": "写作",
+			"pagePath": "pages/todo/todo",
+			"text": "待办",
 			"iconPath": "static/tabBar/pen.png",
 			"selectedIconPath": "static/tabBar/penSelected.png"
 		}, {

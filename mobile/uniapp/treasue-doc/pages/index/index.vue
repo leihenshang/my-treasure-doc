@@ -8,6 +8,7 @@
 		<view class="bottom-fill">
 			<text class="bottom-fill-text">暂时没有更多了...</text>
 		</view>
+		<uni-fab horizontal="right" @fabClick="fabClick"></uni-fab>
 	</view>
 </template>
 
@@ -97,6 +98,14 @@
 			},
 			clickLoadMore(e) {
 				console.log(e.detail)
+			},
+			fabClick() {
+				uni.navigateTo({
+					url: '/pages/write/write',
+					success: res => {},
+					fail: () => {},
+					complete: () => {}
+				});
 			}
 		},
 		beforeMount() {
