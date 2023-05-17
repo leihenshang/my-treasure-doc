@@ -1,12 +1,13 @@
 <template>
 	<view class="container">
-		<ul>
-			<li v-for="item in list.list">
-				<p class="listItem" @click="detail(item.id)">{{item.id}}-{{item.title}}</p>
-				<p>创建时间:{{item.createdAt}}</p>
-				<p>{{item.content.substring(0,20)}}...</p>
-			</li>
-		</ul>
+		<uni-list :border="true">
+			<uni-list-item :to="'/pages/docDetail/docDetail?id='+item.id" :clickable=true :title="item.title"
+				:right-text="item.createdAt" :note="item.content.substring(0,20)+'...'"
+				v-for="item in list.list"></uni-list-item>
+		</uni-list>
+		<view class="bottom-fill">
+			<text class="bottom-fill-text">暂时没有更多了...</text>
+		</view>
 	</view>
 </template>
 
@@ -51,17 +52,33 @@
 		data() {
 			return {
 				href: 'https://uniapp.dcloud.io/component/README?id=uniui',
-				list: docList1
+				list: {
+					"total": 0,
+					"list": []
+				},
+				status: 'more',
+				docPage: {
+					page: 1,
+					pageSize: 20
+				},
+				lastPage: 0
 			}
 		},
 		methods: {
 			async getDocList() {
+				if (this.lastPage == this.docPage.page) {
+					return
+				}
+
 				await docList({
-					"page": 1,
-					"pageSize": 10
+					page: this.docPage.page,
+					pageSize: this.docPage.pageSize
 				}).then(res => {
-					console.log(res)
-					this.list = res
+					this.lastPage = this.docPage.page
+					if (Math.ceil(res.total / this.docPage.pageSize) > this.docPage.page) {
+						this.docPage.page++
+					}
+					this.list.list.push(...res.list)
 				}).catch(res => {
 					uni.showModal({
 						content: res
@@ -77,29 +94,48 @@
 				uni.navigateTo({
 					url: "/pages/docDetail/docDetail?id=" + id
 				})
+			},
+			clickLoadMore(e) {
+				console.log(e.detail)
 			}
 		},
 		beforeMount() {
 			this.getDocList()
+		},
+		onLoad: function(options) {
+			setTimeout(function() {
+				console.log('start pulldown');
+			}, 1000);
+			uni.startPullDownRefresh();
+		},
+		onPullDownRefresh() {
+			console.log('refresh');
+			setTimeout(function() {
+				uni.stopPullDownRefresh();
+			}, 1000);
+		},
+		onReachBottom() {
+			uni.showToast({
+				icon: "none",
+				title: "触底了"
+			})
+			this.getDocList()
+
 		}
 	}
 </script>
 <style lang="scss">
 	.container {
-		padding: 20px;
-		font-size: 14px;
-		line-height: 24px;
+		.bottom-fill {
+			height: 180rpx;
+			width: 100%;
+			text-align: center;
+			font-size: 10rpx;
+			color: gray;
 
-		ul {
-			list-style-type: none;
-			margin: 0;
-			padding: 0;
-
-			li {
-				height: 150rpx;
-				width: 100%;
-				background-color: pink;
-				margin: 10rpx 0;
+			.bottom-fill-text {
+				display: block;
+				margin: 20rpx;
 			}
 		}
 	}

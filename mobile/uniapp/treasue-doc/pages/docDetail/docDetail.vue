@@ -1,8 +1,12 @@
 <template>
-	<view>
-		<h1>{{docData.title}}</h1>
-		<p>最后更新时间:{{docData.createdAt}}</p>
-		<p>{{docData.content}}</p>
+	<view class="c-container">
+		<view class="c-title">
+			<uni-section :title="docData.title" :sub-title="docData.createdAt" title-font-size="14px"></uni-section>
+		</view>
+		<view class="c-content">
+			<rich-text :nodes="docData.content"></rich-text>
+		</view>
+		<uni-fab :pattern="{icon:'compose'}" horizontal="right" @fabClick="fabClick"></uni-fab>
 	</view>
 </template>
 
@@ -31,9 +35,13 @@
 				}
 			};
 		},
+		methods: {
+			fabClick() {
+				console.log('hhh')
+			}
+		},
 		onLoad: function(option) { //option为object类型，会序列化上个页面传递的参数
-			console.log(option.id); //打印出上个页面传递的参数。
-			console.log(option.name); //打印出上个页面传递的参数。
+			console.log(option.id);
 			docDetail({
 				id: Number(option.id)
 			}).then(res => {
@@ -52,5 +60,9 @@
 </script>
 
 <style lang="scss">
-
+	.c-container {
+		.c-content {
+			padding: 30rpx 20rpx;
+		}
+	}
 </style>
