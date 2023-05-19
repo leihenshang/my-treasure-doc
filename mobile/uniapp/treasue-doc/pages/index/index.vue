@@ -80,14 +80,14 @@
 						this.docPage.page++
 					}
 					this.list.list.push(...res.list)
-				}).catch(res => {
+				}).catch(err => {
+					console.log(err)
 					uni.showModal({
-						content: res
+						content: '出现异常了！'
 					})
 				})
 			},
 			detail(id) {
-				console.log(id)
 				uni.showToast({
 					icon: "none",
 					title: String(id)

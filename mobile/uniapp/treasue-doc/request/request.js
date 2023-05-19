@@ -3,7 +3,8 @@ import store from '@/store/index.js'; //vuex
 let server_url = ' '; //请求地址
 let token = ' '; // 凭证
 server_url = process.env.NODE_ENV === 'development' ? '' : 'http://***/api'; //环境配置
-token = store.state.xToken
+token = store.state.userInfo.token
+console.log(token)
 
 function service(options = {}) {
 	store.state.token && (token = store.state.token); //从vuex中获取登录凭证

@@ -1,35 +1,41 @@
 <script>
+	import
+	store
+	from "@/store/index.js"
+
 	export default {
 		onLaunch: function() {
-			let token = uni.getStorageSync('token');
+			let token = uni.getStorageSync('userInfo');
 			if (token) {
 				//存在则关闭启动页进入首页
-
+				uni.switchTab({
+					url: "/pages/index/index"
+				})
+				store.commit("setUserInfo", token)
 			} else {
 				//不存在则跳转至登录页
 				uni.reLaunch({
 					url: "/pages/login/login",
-					success: () => {}
 				})
 			}
 
-			uni.addInterceptor('request', {
-				invoke(args) {
-					// request 触发前拼接 url 
-					args.url = args.url
+			// uni.addInterceptor('request', {
+			// 	invoke(args) {
+			// 		// request 触发前拼接 url 
+			// 		args.url = args.url
 
-				},
-				success(args) {
-					// 请求成功后，修改code值为1
-					console.log('interceptor-success')
-				},
-				fail(err) {
-					console.log('interceptor-fail', err)
-				},
-				complete(res) {
-					console.log('interceptor-complete', res)
-				}
-			})
+			// 	},
+			// 	success(args) {
+			// 		// 请求成功后，修改code值为1
+			// 		console.log('interceptor-success')
+			// 	},
+			// 	fail(err) {
+			// 		console.log('interceptor-fail', err)
+			// 	},
+			// 	complete(res) {
+			// 		console.log('interceptor-complete', res)
+			// 	}
+			// })
 
 
 

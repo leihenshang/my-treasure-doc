@@ -7,18 +7,18 @@
 				</view>
 			</view>
 			<view class="uni-form-item uni-column">
-				<uni-forms-item label="用户名" required name="username">
-					<uni-easyinput placeholder="请输入用户名" v-model="formData.username" focus name="username" />
+				<uni-forms-item label="用户名" required name="account">
+					<uni-easyinput placeholder="请输入用户名" v-model="formData.account" focus name="account" />
 				</uni-forms-item>
 			</view>
 			<view class="uni-form-item uni-column">
 				<uni-forms-item label="密码" required name="password">
-					<uni-easyinput placeholder="请输入密码" v-model="formData.password" name="password" />
+					<uni-easyinput type="password" placeholder="请输入密码" v-model="formData.password" name="password" />
 				</uni-forms-item>
 			</view>
 			<view class="uni-form-item uni-column login-btn">
 				<uni-forms-item>
-				<button form-type="submit" @click="formSubmit" type="primary">登录</button>
+					<button form-type="submit" @click="formSubmit" type="primary">登录</button>
 				</uni-forms-item>
 			</view>
 		</uni-forms>
@@ -26,15 +26,20 @@
 </template>
 
 <script>
+	import {
+		login as apiLogin
+	} from "@/request/api.js"
+
 	export default {
 		data() {
 			return {
 				formData: {
-					'username': '',
-					'password': '',
+					account: '',
+					password: '',
+					verifyCode: "123456789",
 				},
 				rules: {
-					username: {
+					account: {
 						rules: [{
 								required: true,
 								errorMessage: '请输入用户名',
@@ -64,24 +69,33 @@
 		methods: {
 			formSubmit: function(e) {
 				this.$refs.form.validate().then(res => {
-					console.log('表单数据信息：', res);
-					console.log('form发生了submit事件，携带数据为：' + JSON.stringify(this.formData))
-					uni.showModal({
-						content: '表单数据内容：' + JSON.stringify(this.formData),
-						showCancel: false
-					});
-					uni.setStorageSync('token', '123456')
-					uni.switchTab({
-						url: "/pages/index/index"
+					console.log('form发生了submit事件,表单数据信息：', res);
+					apiLogin(this.formData).then(res => {
+						console.log(res)
+						uni.setStorageSync('userInfo', res)
+						this.$store.commit('setUserInfo', res)
+						console.log(this.$store.state.userInfo)
+						uni.switchTab({
+							url: "/pages/index/index"
+						})
+					}).catch(err => {
+						console.log(err)
+						uni.showToast({
+							icon: "none",
+							title: '登录失败:' + err
+						});
 					})
+
+
 				}).catch(err => {
 					console.log('表单错误信息：', err);
 				})
-				
+
 			},
-			formReset: function(e) {
-				console.log('清空数据')
-			}
+
+		},
+		onLoad() {
+			console.log('login page onload', this.$store.state.userInfo)
 		}
 	}
 </script>
@@ -121,7 +135,7 @@
 					}
 				}
 			}
-			
+
 		}
 	}
 </style>

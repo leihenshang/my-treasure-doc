@@ -4,7 +4,12 @@ import {
 } from 'vuex'
 const store = createStore({
 	state: { //存放状态
-		"xToken": "3b5b3d702a9637860ac351550859cd19",
+		userInfo: {}
+	},
+	mutations: {
+		setUserInfo(state, userInfo) {
+			state.userInfo = userInfo
+		},
 	}
 })
 
