@@ -8,7 +8,7 @@
 		<view class="bottom-fill">
 			<text class="bottom-fill-text">暂时没有更多了...</text>
 		</view>
-		<uni-fab horizontal="right" @fabClick="fabClick"></uni-fab>
+		<uni-fab ref="fab" :pattern="pattern" horizontal="right" @fabClick="fabClick"></uni-fab>
 	</view>
 </template>
 
@@ -52,6 +52,13 @@
 	export default {
 		data() {
 			return {
+				pattern: {
+					color: '#7A7E83',
+					backgroundColor: '#fff',
+					selectedColor: '#007AFF',
+					buttonColor: '#007AFF',
+					iconColor: '#fff'
+				},
 				href: 'https://uniapp.dcloud.io/component/README?id=uniui',
 				list: {
 					"total": 0,

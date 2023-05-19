@@ -37,7 +37,7 @@
 		}, {
 			"path": "pages/todo/todo",
 			"style": {
-				"navigationBarTitleText": "",
+				"navigationBarTitleText": "待办",
 				"enablePullDownRefresh": false
 			}
 

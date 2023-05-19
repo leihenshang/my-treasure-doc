@@ -1,4 +1,10 @@
 <template>
+	<page-meta>
+		<navigation-bar :title="nbTitle" :title-icon="titleIcon" :title-icon-radius="titleIconRadius"
+			:subtitle-text="subtitleText" :subtitle-color="nbFrontColor" :loading="nbLoading"
+			:front-color="nbFrontColor" :background-color="nbBackgroundColor" :color-animation-duration="2000"
+			color-animation-timing-func="easeIn" />
+	</page-meta>
 	<view class="write-box">
 		<uni-forms ref="form" label-position="top" :model="formData">
 			<view class="btn-group">
@@ -29,7 +35,14 @@
 				formData: {
 					title: "",
 					content: ""
-				}
+				},
+				nbTitle: '编辑',
+				titleIcon: '/static/logo.png',
+				titleIconRadius: '20px',
+				subtitleText: 'subtitleText',
+				nbLoading: false,
+				nbFrontColor: '#000000',
+				nbBackgroundColor: '#ffffff'
 			};
 		},
 		methods: {
@@ -78,6 +91,7 @@
 			width: 100%;
 			height: 800rpx;
 			background-color: #FFF;
+			padding: 10rpx;
 		}
 
 		.btn-group {
