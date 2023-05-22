@@ -19,23 +19,32 @@
 				})
 			}
 
-			// uni.addInterceptor('request', {
-			// 	invoke(args) {
-			// 		// request 触发前拼接 url 
-			// 		args.url = args.url
+			uni.addInterceptor('request', {
+				invoke(args) {
+					// request 触发前拼接 url 
+					// args.url = args.url
 
-			// 	},
-			// 	success(args) {
-			// 		// 请求成功后，修改code值为1
-			// 		console.log('interceptor-success')
-			// 	},
-			// 	fail(err) {
-			// 		console.log('interceptor-fail', err)
-			// 	},
-			// 	complete(res) {
-			// 		console.log('interceptor-complete', res)
-			// 	}
-			// })
+				},
+				success(args) {
+					// 请求成功后
+					console.log('interceptor-success', args)
+					// 检查是否登录出现问题
+					if (args.statusCode == 401) {
+						console.log('response status code is 401')
+						uni.removeStorageSync('userInfo')
+						store.commit('setUserInfo', {})
+						uni.redirectTo({
+							url: "/pages/login/login"
+						})
+					}
+				},
+				fail(err) {
+					console.log('interceptor-fail', err)
+				},
+				complete(res) {
+					// console.log('interceptor-complete', res)
+				}
+			})
 
 
 

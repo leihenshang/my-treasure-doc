@@ -1,13 +1,11 @@
 //把配置项单独处理
 import store from '@/store/index.js'; //vuex  
-let server_url = ' '; //请求地址
-let token = ' '; // 凭证
+let server_url = ''; //请求地址
+let token = ''; // 凭证
 server_url = process.env.NODE_ENV === 'development' ? '' : 'http://***/api'; //环境配置
-token = store.state.userInfo.token
-console.log(token)
 
 function service(options = {}) {
-	store.state.token && (token = store.state.token); //从vuex中获取登录凭证
+	store.state.userInfo.token && (token = store.state.userInfo.token); //从vuex中获取登录凭证
 	options.url = `${server_url}${options.url}`;
 	//配置请求头
 	options.header = {

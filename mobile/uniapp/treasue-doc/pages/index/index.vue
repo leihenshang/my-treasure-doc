@@ -1,7 +1,7 @@
 <template>
 	<view class="container">
 		<uni-list :border="true">
-			<uni-list-item :to="'/pages/docDetail/docDetail?id='+item.id" :clickable=true :title="item.title"
+			<uni-list-item :to="'/pages/docDetail/docDetail?id='+item.id" clickable :title="item.title"
 				:right-text="item.createdAt" :note="item.content.substring(0,20)+'...'"
 				v-for="item in list.list"></uni-list-item>
 		</uni-list>
@@ -16,38 +16,6 @@
 	import {
 		docList
 	} from "@/request/api.js"
-
-	let docList1 = {
-		"total": 6,
-		"list": [{
-				"content": "sssssssss",
-				"id": 1,
-				"title": "hhhhhhhhh"
-			},
-			{
-				"content": "sssssssss",
-				"id": 2,
-				"title": "hhhhhhhhh"
-			}, {
-				"content": "sssssssss",
-				"id": 3,
-				"title": "hhhhhhhhh"
-			},
-			{
-				"content": "sssssssss",
-				"id": 4,
-				"title": "hhhhhhhhh"
-			}, {
-				"content": "sssssssss",
-				"id": 5,
-				"title": "hhhhhhhhh"
-			}, {
-				"content": "sssssssss",
-				"id": 6,
-				"title": "hhhhhhhhh"
-			}
-		]
-	};
 
 	export default {
 		data() {
@@ -89,8 +57,9 @@
 					this.list.list.push(...res.list)
 				}).catch(err => {
 					console.log(err)
-					uni.showModal({
-						content: '出现异常了！'
+					uni.showToast({
+						title: '请求文档列表异常！',
+						icon: "none",
 					})
 				})
 			},
