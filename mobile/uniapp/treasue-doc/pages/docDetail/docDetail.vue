@@ -37,7 +37,9 @@
 		},
 		methods: {
 			fabClick() {
-				console.log('hhh')
+				uni.redirectTo({
+					url: "/pages/edit/edit?id=" + this.docData.id
+				})
 			}
 		},
 		onLoad: function(option) { //option为object类型，会序列化上个页面传递的参数

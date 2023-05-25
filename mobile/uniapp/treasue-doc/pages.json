@@ -13,6 +13,14 @@
 				"enablePullDownRefresh": false
 			}
 
+		},
+		{
+			"path": "pages/edit/edit",
+			"style": {
+				"navigationBarTitleText": "文档编辑",
+				"enablePullDownRefresh": false
+			}
+
 		}, {
 			"path": "pages/login/login",
 			"style": {
