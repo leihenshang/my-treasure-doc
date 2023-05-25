@@ -4,7 +4,7 @@
       <img src="../assets/images/logIn.png" alt="">
     </div>
     <div class="log-in">
-      <h3>my-note</h3>
+      <h3>登陆</h3>
       <n-form :model="userInfo" ref="formRef" label-placement="left" class="long-in-form" size="large">
         <n-form-item path="username" :rule="getRules('用户名')">
           <n-input v-model:value="userInfo.username" placeholder="用户名" />

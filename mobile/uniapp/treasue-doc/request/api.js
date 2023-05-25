@@ -31,3 +31,11 @@ export function docDetail(data) {
 		data
 	})
 }
+
+export function ApiDocUpdate(data) {
+	return request({
+		url: '/test/doc/update',
+		method: 'POST',
+		data
+	})
+}

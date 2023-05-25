@@ -1,23 +1,14 @@
 <template>
-	<page-meta>
-		<navigation-bar :title="nbTitle" :title-icon="titleIcon" :title-icon-radius="titleIconRadius"
-			:subtitle-text="subtitleText" :subtitle-color="nbFrontColor" :loading="nbLoading"
-			:front-color="nbFrontColor" :background-color="nbBackgroundColor" :color-animation-duration="2000"
-			color-animation-timing-func="easeIn" />
-	</page-meta>
 	<view class="edit-box">
-		<uni-forms ref="form" label-position="top" :model="formData">
+		<uni-forms ref="form" label-position="top" :model="docData">
 			<view class="btn-group">
 				<button type="primary" @click="save">保存</button>
-				<button type="warn" @click="undo">上一步</button>
 			</view>
 			<uni-forms-item label="标题" name="">
-				<uni-easyinput focus placeholder="输入你的标题" class="title" v-model="formData.title"></uni-easyinput>
+				<uni-easyinput focus class="title" v-model="docData.title"></uni-easyinput>
 			</uni-forms-item>
 			<uni-forms-item label="内容" name="" class="">
-
-				<editor id="editor" class="ql-container" :placeholder="placeholder" @ready="onEditorReady"
-					@input="editorInput"></editor>
+				<editor id="editor" class="ql-container" @ready="onEditorReady" @input="editorInput"></editor>
 			</uni-forms-item>
 		</uni-forms>
 	</view>
@@ -25,25 +16,27 @@
 
 <script>
 	import {
-		docCreate
+		ApiDocUpdate,docDetail
 	} from "@/request/api.js"
 
 	export default {
 		data() {
 			return {
-				placeholder: '挥洒你的创意吧...',
-				formData: {
-					title: "",
-					content: ""
-				},
-				nbTitle: '编辑',
-				titleIcon: '/static/logo.png',
-				titleIconRadius: '20px',
-				subtitleText: 'subtitleText',
-				nbLoading: false,
-				nbFrontColor: '#000000',
-				nbBackgroundColor: '#ffffff',
-
+				docData: {
+					id: 0,
+					createdAt: "0000-00-00 00:00:00",
+					updatedAt: "0000-00-00 00:00:00",
+					deletedAt: null,
+					userId: 0,
+					title: "没有标题",
+					content: "没有内容",
+					docStatus: 0,
+					groupId: 0,
+					viewCount: 0,
+					likeCount: 0,
+					isTop: 0,
+					priority: 0
+				}
 			};
 		},
 		methods: {
@@ -59,18 +52,19 @@
 				// #endif
 			},
 			editorInput(e) {
-				this.formData.content = e.detail.text
+				this.docData.content = e.detail.text
 			},
 			undo() {
 				this.editorCtx.undo()
 			},
 			save() {
-				console.log(this.formData)
+				console.log(this.docData)
 				this.editorCtx.getContents({
 					success: (data) => {
-						docCreate(this.formData).then((res) => {
-							uni.reLaunch({
-								url: "/pages/index/index",
+						ApiDocUpdate(this.docData).then((res) => {
+							uni.showModal({
+								content: "更新成功",
+								showCancel: false
 							})
 						}).catch(res => {
 							console.log(res)
@@ -79,6 +73,25 @@
 					}
 				})
 			}
+		},
+		onLoad: function(option) {
+			this.docData.id = Number(option.id)
+			docDetail({
+				id: this.docData.id
+			}).then(res => {
+				console.log(res)
+				this.docData = res
+				this.editorCtx.setContents({
+					html: this.docData.content
+				})
+			}).catch(err => {
+				uni.showToast({
+					icon: "none",
+					title: String(err)
+				})
+
+				uni.navigateBack()
+			})
 		}
 
 	}

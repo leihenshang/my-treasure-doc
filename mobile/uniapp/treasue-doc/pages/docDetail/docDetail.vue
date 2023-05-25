@@ -25,7 +25,7 @@
 					deletedAt: null,
 					userId: 0,
 					title: "没有标题",
-					content: "没有内容没有内容没有内容没有内容没有内容\n没有内容没有内容没有内容没有内容没有内容没有内容没有内容没有内容没有内容没有内容没有内容没有内容",
+					content: "没有内容",
 					docStatus: 0,
 					groupId: 0,
 					viewCount: 0,
