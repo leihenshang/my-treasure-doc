@@ -224,9 +224,11 @@
 		},
 		watch: {
 			value(newVal, oldVal) {
-				this.editorCtx.setContents({
-					html: newVal
-				});
+				if (this.editorCtx) {
+					this.editorCtx.setContents({
+						html: newVal
+					});
+				}
 			}
 		}
 	};
