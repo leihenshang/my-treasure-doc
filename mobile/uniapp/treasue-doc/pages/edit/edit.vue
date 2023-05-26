@@ -8,7 +8,8 @@
 				<uni-easyinput focus class="title" v-model="docData.title"></uni-easyinput>
 			</uni-forms-item>
 			<uni-forms-item label="内容" name="" class="">
-				<editor id="editor" class="ql-container" @ready="onEditorReady" @input="editorInput"></editor>
+				<!-- <editor id="editor" class="ql-container" @ready="onEditorReady" @input="editorInput"></editor> -->
+				<richTextEditor :value="editorContent" @input="editorInput"></richTextEditor>
 			</uni-forms-item>
 		</uni-forms>
 	</view>
@@ -18,8 +19,17 @@
 	import {
 		ApiDocUpdate,docDetail
 	} from "@/request/api.js"
+		import richTextEditor from '@/component/editor/editor.vue'
 
 	export default {
+		components:{
+			richTextEditor
+		},
+		computed:{
+			editorContent() {
+				return this.docData.content
+			}
+		}
 		data() {
 			return {
 				docData: {
@@ -40,22 +50,8 @@
 			};
 		},
 		methods: {
-			onEditorReady() {
-				// #ifdef MP-BAIDU
-				this.editorCtx = requireDynamicLib('editorLib').createEditorContext('editor');
-				// #endif
-
-				// #ifdef APP-PLUS || H5 ||MP-WEIXIN
-				uni.createSelectorQuery().select('#editor').context((res) => {
-					this.editorCtx = res.context
-				}).exec()
-				// #endif
-			},
 			editorInput(e) {
-				this.docData.content = e.detail.text
-			},
-			undo() {
-				this.editorCtx.undo()
+				this.docData.content = e
 			},
 			save() {
 				console.log(this.docData)
@@ -81,9 +77,6 @@
 			}).then(res => {
 				console.log(res)
 				this.docData = res
-				this.editorCtx.setContents({
-					html: this.docData.content
-				})
 			}).catch(err => {
 				uni.showToast({
 					icon: "none",

@@ -160,6 +160,7 @@
 						:show-img-resize="true"
 						@ready="onEditorReady"
 						@input="getCtx"
+						:read-only="false"
 					></editor>
 				</view>
 			</view>
