@@ -8,8 +8,7 @@
 				<uni-easyinput focus class="title" v-model="docData.title"></uni-easyinput>
 			</uni-forms-item>
 			<uni-forms-item label="内容" name="" class="">
-				<!-- <editor id="editor" class="ql-container" @ready="onEditorReady" @input="editorInput"></editor> -->
-				<richTextEditor :value="editorContent" @input="editorInput"></richTextEditor>
+				<richTextEditor :value="docData.content" @input="editorInput"></richTextEditor>
 			</uni-forms-item>
 		</uni-forms>
 	</view>
@@ -27,26 +26,13 @@
 		},
 		computed:{
 			editorContent() {
+				console.log('hhh')
 				return this.docData.content
 			}
-		}
+		},
 		data() {
 			return {
-				docData: {
-					id: 0,
-					createdAt: "0000-00-00 00:00:00",
-					updatedAt: "0000-00-00 00:00:00",
-					deletedAt: null,
-					userId: 0,
-					title: "没有标题",
-					content: "没有内容",
-					docStatus: 0,
-					groupId: 0,
-					viewCount: 0,
-					likeCount: 0,
-					isTop: 0,
-					priority: 0
-				}
+				docData: {}
 			};
 		},
 		methods: {
@@ -54,20 +40,14 @@
 				this.docData.content = e
 			},
 			save() {
-				console.log(this.docData)
-				this.editorCtx.getContents({
-					success: (data) => {
-						ApiDocUpdate(this.docData).then((res) => {
-							uni.showModal({
-								content: "更新成功",
-								showCancel: false
-							})
-						}).catch(res => {
-							console.log(res)
-						})
-
-					}
+			ApiDocUpdate(this.docData).then((res) => {
+				uni.showModal({
+					content: "更新成功",
+					showCancel: false
 				})
+			}).catch(res => {
+				console.log(res)
+			})
 			}
 		},
 		onLoad: function(option) {
