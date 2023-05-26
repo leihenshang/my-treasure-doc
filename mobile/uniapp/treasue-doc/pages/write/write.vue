@@ -54,8 +54,6 @@
 </script>
 
 <style lang="scss">
-	@import '../../static/editor-icon.css';
-
 	.write-box {
 		padding: 10rpx 10rpx 10rpx;
 
