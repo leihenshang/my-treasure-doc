@@ -2,7 +2,7 @@
 	<view class="container">
 		<uni-list :border="true">
 			<uni-list-item :to="'/pages/docDetail/docDetail?id='+item.id" clickable :title="item.title"
-				:right-text="item.createdAt" :note="item.content.substring(0,20)+'...'"
+				:right-text="item.createdAt" :note="removeHtmlTag(item.content)"
 				v-for="item in list.list"></uni-list-item>
 		</uni-list>
 		<view class="bottom-fill">
@@ -27,7 +27,6 @@
 					buttonColor: '#007AFF',
 					iconColor: '#fff'
 				},
-				href: 'https://uniapp.dcloud.io/component/README?id=uniui',
 				list: {
 					"total": 0,
 					"list": []
@@ -41,6 +40,11 @@
 			}
 		},
 		methods: {
+			removeHtmlTag(content) {
+				let regex = /(<([^>]+)>)/ig
+				let c = content.replace(regex, '')
+				return c.substring(0, 20) + '...'
+			},
 			async getDocList() {
 				if (this.lastPage == this.docPage.page) {
 					return
@@ -48,7 +52,8 @@
 
 				await docList({
 					page: this.docPage.page,
-					pageSize: this.docPage.pageSize
+					pageSize: this.docPage.pageSize,
+					isDesc: true
 				}).then(res => {
 					this.lastPage = this.docPage.page
 					if (Math.ceil(res.total / this.docPage.pageSize) > this.docPage.page) {

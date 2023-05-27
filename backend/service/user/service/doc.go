@@ -68,6 +68,11 @@ func DocList(r request.ListRequest, userId uint64) (res response.ListResponse, e
 	var list []model.Doc
 	q := global.DB.Model(&model.Doc{}).Where("user_id = ?", userId)
 	q.Count(&res.Total)
+
+	if r.IsDesc {
+		q = q.Order("id DESC")
+	}
+
 	err = q.
 		Limit(r.PageSize).
 		Offset(offset).

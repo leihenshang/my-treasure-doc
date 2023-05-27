@@ -3,6 +3,7 @@
 		<view class="c-title">
 			<uni-section :title="docData.title" :sub-title="docData.createdAt" title-font-size="14px"></uni-section>
 		</view>
+		<hr class="c-hr">
 		<view class="c-content">
 			<rich-text :nodes="docData.content"></rich-text>
 		</view>
@@ -62,8 +63,20 @@
 
 <style lang="scss">
 	.c-container {
+		height: 100%;
+		width: 100%;
+
+		.c-hr {
+			color: darkgrey;
+			width: 95%;
+			margin: 0 auto;
+		}
+
 		.c-content {
-			padding: 30rpx 20rpx;
+			background-color: #fff;
+			padding: 20rpx 10rpx;
+			height: calc(100% - 40rpx);
+			width: calc(100% - 20rpx);
 		}
 	}
 </style>
