@@ -1,10 +1,21 @@
 <template>
 	<view class="container">
-		<uni-list :border="true">
-			<uni-list-item :to="'/pages/docDetail/docDetail?id='+item.id" clickable :title="item.title"
-				:right-text="item.createdAt" :note="removeHtmlTag(item.content)"
-				v-for="item in list.list"></uni-list-item>
-		</uni-list>
+		<view class="search-box">
+			<uni-search-bar @confirm="searchDoc" @input="searchInput" bgColor="#EEEEEE" clearButton="auto"
+				placeholder="搜索一下" radius="100" cancelButton="none"></uni-search-bar>
+		</view>
+		<view class="group-btn">
+			<uni-data-picker placeholder="全部" popup-title="请选择分组" :localdata="dataTree" v-model="classes"
+				@change="onchange" @nodeclick="onnodeclick" @popupopened="onpopupopened" @popupclosed="onpopupclosed">
+			</uni-data-picker>
+		</view>
+		<view class="list-box">
+			<uni-list :border="true">
+				<uni-list-item :to="'/pages/docDetail/docDetail?id='+item.id" clickable :title="item.title"
+					:right-text="item.createdAt" :note="removeHtmlTag(item.content)"
+					v-for="item in list.list"></uni-list-item>
+			</uni-list>
+		</view>
 		<view class="bottom-fill">
 			<text class="bottom-fill-text">暂时没有更多了...</text>
 		</view>
@@ -36,10 +47,59 @@
 					page: 1,
 					pageSize: 20
 				},
-				lastPage: 0
+				lastPage: 0,
+				classes: '1-2',
+				dataTree: [{
+						text: "一年级",
+						value: "1-0",
+						children: [{
+								text: "1.1班",
+								value: "1-1"
+							},
+							{
+								text: "1.2班",
+								value: "1-2"
+							}
+						]
+					},
+					{
+						text: "二年级",
+						value: "2-0",
+						children: [{
+								text: "2.1班",
+								value: "2-1"
+							},
+							{
+								text: "2.2班",
+								value: "2-2"
+							}
+						]
+					},
+					{
+						text: "三年级",
+						value: "3-0",
+						disable: true
+					}
+				]
 			}
-		},
-		methods: {
+		}
+	},
+	methods: {
+
+			onnodeclick(e) {
+				console.log(e);
+			},
+			onpopupopened(e) {
+				console.log('popupopened');
+			},
+			onpopupclosed(e) {
+				console.log('popupclosed');
+			},
+			onchange(e) {
+				console.log('onchange:', e);
+			},
+			searchDoc() {},
+			searchInput() {},
 			removeHtmlTag(content) {
 				let regex = /(<([^>]+)>)/ig
 				let c = content.replace(regex, '')
@@ -88,6 +148,7 @@
 					complete: () => {}
 				});
 			}
+
 		},
 		beforeMount() {
 			this.getDocList()
@@ -116,6 +177,12 @@
 </script>
 <style lang="scss">
 	.container {
+		.search-box {
+			width: 100%;
+		}
+
+		.list-box {}
+
 		.bottom-fill {
 			height: 180rpx;
 			width: 100%;
