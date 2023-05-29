@@ -5,14 +5,16 @@
 				placeholder="搜索一下" radius="100" cancelButton="none"></uni-search-bar>
 		</view>
 		<view class="group-btn">
-			<button type="default">分组-全部</button>
+			<uni-data-picker placeholder="全部" popup-title="请选择分组" :localdata="dataTree" v-model="classes"
+				@change="onchange" @nodeclick="onnodeclick" @popupopened="onpopupopened" @popupclosed="onpopupclosed">
+			</uni-data-picker>
 		</view>
 		<view class="list-box">
-		<uni-list :border="true">
-			<uni-list-item :to="'/pages/docDetail/docDetail?id='+item.id" clickable :title="item.title"
-				:right-text="item.createdAt" :note="removeHtmlTag(item.content)"
-				v-for="item in list.list"></uni-list-item>
-		</uni-list>
+			<uni-list :border="true">
+				<uni-list-item :to="'/pages/docDetail/docDetail?id='+item.id" clickable :title="item.title"
+					:right-text="item.createdAt" :note="removeHtmlTag(item.content)"
+					v-for="item in list.list"></uni-list-item>
+			</uni-list>
 		</view>
 		<view class="bottom-fill">
 			<text class="bottom-fill-text">暂时没有更多了...</text>
@@ -82,6 +84,19 @@
 			}
 		},
 		methods: {
+			onnodeclick(e) {
+				console.log(e);
+			},
+			onpopupopened(e) {
+				console.log('popupopened');
+			},
+			onpopupclosed(e) {
+				console.log('popupclosed');
+			},
+			onchange(e) {
+				console.log('onchange:', e);
+			},
+
 			searchDoc() {},
 			searchInput() {},
 			removeHtmlTag(content) {
@@ -164,8 +179,12 @@
 		.search-box {
 			width: 100%;
 		}
-		.list-box {
+		
+		.group-btn {
+			
 		}
+
+		.list-box {}
 
 
 		.bottom-fill {
