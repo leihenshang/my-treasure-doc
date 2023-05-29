@@ -1,10 +1,19 @@
 <template>
 	<view class="container">
+		<view class="search-box">
+			<uni-search-bar @confirm="searchDoc" @input="searchInput" bgColor="#EEEEEE" clearButton="auto"
+				placeholder="搜索一下" radius="100" cancelButton="none"></uni-search-bar>
+		</view>
+		<view class="group-btn">
+			<button type="default">分组-全部</button>
+		</view>
+		<view class="list-box">
 		<uni-list :border="true">
 			<uni-list-item :to="'/pages/docDetail/docDetail?id='+item.id" clickable :title="item.title"
 				:right-text="item.createdAt" :note="removeHtmlTag(item.content)"
 				v-for="item in list.list"></uni-list-item>
 		</uni-list>
+		</view>
 		<view class="bottom-fill">
 			<text class="bottom-fill-text">暂时没有更多了...</text>
 		</view>
@@ -40,6 +49,8 @@
 			}
 		},
 		methods: {
+			searchDoc() {},
+			searchInput() {},
 			removeHtmlTag(content) {
 				let regex = /(<([^>]+)>)/ig
 				let c = content.replace(regex, '')
@@ -116,6 +127,13 @@
 </script>
 <style lang="scss">
 	.container {
+		.search-box {
+			width: 100%;
+		}
+		
+		.list-box {
+		}
+
 		.bottom-fill {
 			height: 180rpx;
 			width: 100%;
