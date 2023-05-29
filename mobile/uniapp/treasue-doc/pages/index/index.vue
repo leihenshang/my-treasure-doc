@@ -45,7 +45,40 @@
 					page: 1,
 					pageSize: 20
 				},
-				lastPage: 0
+				lastPage: 0,
+				classes: '1-2',
+				dataTree: [{
+						text: "一年级",
+						value: "1-0",
+						children: [{
+								text: "1.1班",
+								value: "1-1"
+							},
+							{
+								text: "1.2班",
+								value: "1-2"
+							}
+						]
+					},
+					{
+						text: "二年级",
+						value: "2-0",
+						children: [{
+								text: "2.1班",
+								value: "2-1"
+							},
+							{
+								text: "2.2班",
+								value: "2-2"
+							}
+						]
+					},
+					{
+						text: "三年级",
+						value: "3-0",
+						disable: true
+					}
+				]
 			}
 		},
 		methods: {
@@ -99,6 +132,7 @@
 					complete: () => {}
 				});
 			}
+
 		},
 		beforeMount() {
 			this.getDocList()
@@ -130,9 +164,9 @@
 		.search-box {
 			width: 100%;
 		}
-		
 		.list-box {
 		}
+
 
 		.bottom-fill {
 			height: 180rpx;
