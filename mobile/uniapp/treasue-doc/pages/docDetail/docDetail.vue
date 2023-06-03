@@ -7,7 +7,9 @@
 		<view class="c-content">
 			<rich-text :nodes="docData.content"></rich-text>
 		</view>
-		<uni-fab :pattern="{icon:'compose'}" horizontal="right" @fabClick="fabClick"></uni-fab>
+		<view class="c-fab">
+			<uni-fab :pattern="{icon:'compose'}" horizontal="right" @fabClick="fabClick"></uni-fab>
+		</view>
 	</view>
 </template>
 
@@ -71,6 +73,8 @@
 			width: 95%;
 			margin: 0 auto;
 		}
+
+		.c-fab {}
 
 		.c-content {
 			background-color: #fff;

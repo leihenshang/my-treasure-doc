@@ -4,10 +4,12 @@
 			<uni-search-bar @confirm="searchDoc" @input="searchInput" bgColor="#EEEEEE" clearButton="auto"
 				placeholder="搜索一下" radius="100" cancelButton="none"></uni-search-bar>
 		</view>
-		<view class="group-btn">
-			<uni-data-picker placeholder="全部" popup-title="请选择分组" :localdata="dataTree" v-model="classes"
-				@change="onchange" @nodeclick="onnodeclick" @popupopened="onpopupopened" @popupclosed="onpopupclosed">
-			</uni-data-picker>
+		<view class="group-box">
+			<view class="group-box-tree">
+
+			</view>
+			<view class="group-box-btn">
+			</view>
 		</view>
 		<view class="list-box">
 			<uni-list :border="true">
@@ -179,9 +181,18 @@
 		.search-box {
 			width: 100%;
 		}
-		
-		.group-btn {
-			
+
+		.group-box {
+			display: flex;
+			padding: 2rpx;
+
+			.group-box-tree {
+				width: 50%;
+			}
+
+			.group-box-btn {
+				width: 50%;
+			}
 		}
 
 		.list-box {}
