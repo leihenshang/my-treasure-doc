@@ -7,3 +7,5 @@ dist-ssr
 
 # log
 *.log
+
+.yarn

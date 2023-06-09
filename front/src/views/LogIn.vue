@@ -25,12 +25,16 @@
 
 <script lang="ts">
 import { FormInst } from 'naive-ui';
-import { ref, reactive } from 'vue';
+import { ref, reactive,getCurrentInstance } from 'vue';
 import { useRouter } from 'vue-router';
+
 
 export default {
   name: 'LogIn',
   setup() {
+    const { proxy } = getCurrentInstance()
+    console.log(proxy)
+
     const userInfo = ref({
       username: '',
       password: ''
@@ -41,6 +45,19 @@ export default {
       e.preventDefault()
       formRef.value?.validate((errors) => {
         if (!errors) {
+            console.log(proxy)
+          proxy.$axios.post('api/user/login', {
+            account: "tangzhiqiang",
+            password: "12345678",
+            verifyCode: "ssss"
+          }, {
+          }).then((response) => {
+            console.log(response)
+          }).catch(err => {
+            console.log(err)
+          })
+
+            return
           router.push({ name: 'HomePage' })
         }
       })
@@ -58,14 +75,15 @@ export default {
   display: flex;
   width: 100%;
   height: 100%;
-  > .img{
+
+  >.img {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 70%;
   }
 
-  > .log-in {
+  >.log-in {
     width: 30%;
     background: #ececec;
     display: flex;
@@ -73,26 +91,30 @@ export default {
     flex-direction: column;
     justify-content: center;
 
-    > h3 {
+    >h3 {
       font-size: 24px;
       text-align: center;
     }
 
-    > .long-in-form {
+    >.long-in-form {
       margin-top: 16px;
+
       > ::v-deep(.n-form-item) {
         .n-form-item-blank {
-          .buttons{
+          .buttons {
             width: 100%;
             display: flex;
             justify-content: space-between;
+
             button {
               width: 150px;
               background-color: #21a497;
               color: #ffffff;
+
               .n-button__border {
                 border: none;
               }
+
               &:first-child {
                 margin-right: 8px;
               }
@@ -102,6 +124,7 @@ export default {
 
         .n-input {
           width: 320px;
+
           .n-input__border {
             border: 1px solid #b8bcbf;
           }
