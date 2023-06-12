@@ -5,6 +5,7 @@ import { router } from './router'
 import naive from 'naive-ui'
 import VueAxiosPlugin from './plugin/axios/axios.ts'
 import axios from "axios";
+import { createPinia } from 'pinia'
 
 // axios.defaults.baseURL = 'http://localhost:2021'
 
@@ -19,4 +20,8 @@ app.use(VueAxiosPlugin, {
     resHandleFunc: (response: any) => response,
     resErrorFunc: (error: any) => Promise.reject(error)
 })
+
+const pinia = createPinia()
+app.use(pinia)
+
 app.mount('#app')

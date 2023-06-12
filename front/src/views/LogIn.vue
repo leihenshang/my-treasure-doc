@@ -25,46 +25,56 @@
 
 <script lang="ts">
 import { FormInst } from 'naive-ui';
-import { ref, reactive,getCurrentInstance } from 'vue';
+import { ref, reactive, getCurrentInstance, ComponentInternalInstance } from 'vue';
 import { useRouter } from 'vue-router';
+import { useMessage } from 'naive-ui';
+import { useUserinfoStore } from "../stores/user/userinfo.js";
 
 
 export default {
   name: 'LogIn',
   setup() {
-    const { proxy } = getCurrentInstance()
-    console.log(proxy)
+    const { proxy } = getCurrentInstance() as ComponentInternalInstance
+    const message = useMessage()
+    const formRef = ref<FormInst | null>(null)
+    const router = useRouter()
+    const storeUserinfo = useUserinfoStore()
 
-    const userInfo = ref({
+    interface user {
+      username: string,
+      password: string
+    }
+
+    const userInfo = ref<user>({
       username: '',
       password: ''
     });
-    const formRef = ref<FormInst | null>(null)
-    const router = useRouter()
+
     const longIn = (e: MouseEvent) => {
       e.preventDefault()
       formRef.value?.validate((errors) => {
         if (!errors) {
-            console.log(proxy)
-          proxy.$axios.post('api/user/login', {
-            account: "tangzhiqiang",
-            password: "12345678",
-            verifyCode: "ssss"
+          proxy?.$axios.post('api/user/login', {
+            account: userInfo.value.username,
+            password: userInfo.value.password,
+            verifyCode: "123456"
           }, {
-          }).then((response) => {
+          }).then((response: any) => {
+            //todo save user information to vuex or state management?
             console.log(response)
-          }).catch(err => {
+            storeUserinfo.updateUserinfo(response?.data?.data)
+            message.success("登录成功")
+            router.push({ name: 'HomePage' })
+          }).catch((err: any) => {
             console.log(err)
           })
-
-            return
-          router.push({ name: 'HomePage' })
         }
-      })
+      }).catch(() => { })
     }
     const getRules = (name: string) => {
       return { required: true, trigger: ['blur', 'input'], message: '请输入' + name }
     }
+
     return { userInfo, longIn, formRef, getRules };
   }
 };
