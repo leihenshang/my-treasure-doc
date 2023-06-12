@@ -128,7 +128,7 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 	}
 
 	if utils.PasswordCompare(u.Password, r.Password) == false {
-		return u, errors.New("输入的密码不匹配")
+		return u, errors.New("账号或密码错误")
 	}
 
 	//下发token以及设置token过期时间

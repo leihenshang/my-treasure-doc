@@ -7,10 +7,10 @@
       <h3>登陆</h3>
       <n-form :model="userInfo" ref="formRef" label-placement="left" class="long-in-form" size="large">
         <n-form-item path="username" :rule="getRules('用户名')">
-          <n-input v-model:value="userInfo.username" placeholder="用户名" />
+          <n-input v-model:value="userInfo.username" autofocus clearable placeholder="用户名" ref="usernameInput" />
         </n-form-item>
         <n-form-item path="password" :rule="getRules('密码')">
-          <n-input v-model:value="userInfo.password" type="password" placeholder="密码" />
+          <n-input v-model:value="userInfo.password" type="password" clearable placeholder="密码" />
         </n-form-item>
         <n-form-item class="buttons-wrapper">
           <div class="buttons">
@@ -24,7 +24,7 @@
 </template>
 
 <script lang="ts">
-import { FormInst } from 'naive-ui';
+import { FormInst, timePickerDark } from 'naive-ui';
 import { ref, reactive, getCurrentInstance, ComponentInternalInstance } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
@@ -50,10 +50,16 @@ export default {
       password: ''
     });
 
+    const usernameInput = ref(null as any)
+
     const longIn = (e: MouseEvent) => {
       e.preventDefault()
       formRef.value?.validate((errors) => {
         if (!errors) {
+          message.loading("登录...")
+          
+
+
           proxy?.$axios.post('api/user/login', {
             account: userInfo.value.username,
             password: userInfo.value.password,
@@ -61,9 +67,19 @@ export default {
           }, {
           }).then((response: any) => {
             //todo save user information to vuex or state management?
+            message.destroyAll()
             console.log(response)
-            if(response?.data?.code) {
-              message.error(response?.data?.msg)
+            if (!response) {
+              message.error("响应数据错误！")
+              return
+            }
+
+            if (response?.data?.code) {
+              message.error("登录失败:" + response?.data?.msg)
+              if (usernameInput.value) {
+                (usernameInput.value.focus)()
+              }
+
               return
             }
 
@@ -80,7 +96,7 @@ export default {
       return { required: true, trigger: ['blur', 'input'], message: '请输入' + name }
     }
 
-    return { userInfo, longIn, formRef, getRules };
+    return { userInfo, longIn, formRef, getRules,usernameInput };
   }
 };
 </script>
