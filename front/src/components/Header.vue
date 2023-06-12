@@ -2,7 +2,7 @@
   <header>
     <section class="left">
       <img src="../assets/images/duck.png" class="favicon" alt="" width="32" height="32"/>
-      <h3>my-treasure</h3>
+      <h3>my-treasure-doc</h3>
     </section>
     <section class="right">
       <div class="avatar-wrapper">
