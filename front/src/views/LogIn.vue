@@ -62,6 +62,11 @@ export default {
           }).then((response: any) => {
             //todo save user information to vuex or state management?
             console.log(response)
+            if(response?.data?.code) {
+              message.error(response?.data?.msg)
+              return
+            }
+
             storeUserinfo.updateUserinfo(response?.data?.data)
             message.success("登录成功")
             router.push({ name: 'HomePage' })
