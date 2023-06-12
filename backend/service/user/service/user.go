@@ -119,7 +119,7 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 
 	result := global.DB.Where("account = ? OR email = ?", r.Account, r.Account).First(&u)
 	if result.RowsAffected <= 0 {
-		return u, errors.New(fmt.Sprintf("账号或登录邮箱: %s 没有找到", r.Account))
+		return u, errors.New(fmt.Sprintf("账号 %s 没有找到", r.Account))
 	}
 
 	//检查账号状态
