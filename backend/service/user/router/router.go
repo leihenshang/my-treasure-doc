@@ -34,7 +34,7 @@ func InitRoute(r *gin.Engine) {
 	userRoute.Use(auth.Auth())
 	{
 		userRoute.POST("/logout", api.UserLogout)
-		userRoute.POST("/updateProfile", api.UserProfileUpdate)
+		userRoute.POST("/update-profile", api.UserProfileUpdate)
 	}
 
 	//doc
