@@ -85,7 +85,8 @@ func initMysql() {
 	//初始化数据库
 	dsn := CONFIG.Mysql.User + ":" + CONFIG.Mysql.Password + "@tcp(" + CONFIG.Mysql.Host + ":" + mysqlPort + ")/" +
 		CONFIG.Mysql.DbName + "?charset=" + CONFIG.Mysql.Charset + "&parseTime=True&loc=Local"
-	println(CONFIG)
+
+	// table prefix
 	tablePrefix := CONFIG.Mysql.TablePrefix
 
 	newLogger := logger.New(
