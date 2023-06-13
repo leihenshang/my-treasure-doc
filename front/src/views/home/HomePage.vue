@@ -5,6 +5,7 @@
       <!-- left sidebar -->
       <n-layout-sider class="menu-sider" bordered collapse-mode="width" :collapsed-width="64" :width="280"
         :collapsed="collapsed" @collapse="collapsed = true" @expand="collapsed = false">
+        <h3>treasure_doc</h3>
         <!-- user menu -->
         <n-menu v-model:value="activeKey" mode="horizontal" :options="horizontalMenuOptions" />
         <n-menu class="menu-menu" :collapsed="collapsed" :collapsed-width="64" :collapsed-icon-size="22"
@@ -191,6 +192,11 @@ export default {
 
     .menu-sider {
       background: $menuBackground;
+
+      h3 {
+       text-align: left;
+       padding-left: 20px;
+      }
 
       .menu-menu ::v-deep(.n-menu-item.n-menu-item--selected) {
         .n-menu-item-content {
