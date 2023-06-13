@@ -16,7 +16,5 @@ type Team struct {
 }
 
 func (m *Team) TableName() string {
-	return "team"
+	return "td_team"
 }
-
-

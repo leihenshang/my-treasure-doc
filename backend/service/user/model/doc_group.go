@@ -11,5 +11,5 @@ type DocGroup struct {
 }
 
 func (m *DocGroup) TableName() string {
-	return "doc_group"
+	return "td_doc_group"
 }

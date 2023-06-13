@@ -18,7 +18,5 @@ type GlobalConf struct {
 }
 
 func (m *GlobalConf) TableName() string {
-	return "global_conf"
+	return "td_global_conf"
 }
-
-

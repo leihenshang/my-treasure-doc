@@ -10,7 +10,8 @@ port = 3306
 user = "root"
 password = "root"
 charset = "utf8mb4"
-dbName = "my_treasure_doc"
+dbName = "treasure_doc"
+tablePrefix = "td_"
 
 [log]
 directory = "log"

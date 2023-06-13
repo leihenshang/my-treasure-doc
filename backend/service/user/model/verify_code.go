@@ -21,7 +21,7 @@ type VerifyCode struct {
 
 // TableName get sql table name.获取数据库表名
 func (m *VerifyCode) TableName() string {
-	return "verify_code"
+	return "td_verify_code"
 }
 
 // VerifyCodeColumns get sql column name.获取数据库列名

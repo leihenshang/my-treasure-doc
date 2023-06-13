@@ -14,5 +14,5 @@ type Doc struct {
 }
 
 func (m *Doc) TableName() string {
-	return "doc"
+	return "td_doc"
 }

@@ -3,6 +3,7 @@ package global
 import (
 	"fastduck/treasure-doc/service/user/config"
 	"fmt"
+	"gorm.io/gorm/schema"
 	"log"
 	"os"
 	"path"
@@ -84,6 +85,8 @@ func initMysql() {
 	//初始化数据库
 	dsn := CONFIG.Mysql.User + ":" + CONFIG.Mysql.Password + "@tcp(" + CONFIG.Mysql.Host + ":" + mysqlPort + ")/" +
 		CONFIG.Mysql.DbName + "?charset=" + CONFIG.Mysql.Charset + "&parseTime=True&loc=Local"
+	println(CONFIG)
+	tablePrefix := CONFIG.Mysql.TablePrefix
 
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -96,6 +99,12 @@ func initMysql() {
 
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   tablePrefix,
+			SingularTable: true,
+			NameReplacer:  nil,
+			NoLowerCase:   false,
+		},
 	})
 	if err != nil {
 		fmt.Println(err.Error())
