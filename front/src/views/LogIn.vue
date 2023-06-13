@@ -28,7 +28,7 @@ import { FormInst, timePickerDark } from 'naive-ui';
 import { ref, reactive, getCurrentInstance, ComponentInternalInstance } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
-import { useUserinfoStore } from "../stores/user/userinfo.js";
+import { useUserinfoStore } from "../stores/user/userinfo";
 
 
 export default {
@@ -57,7 +57,7 @@ export default {
       formRef.value?.validate((errors) => {
         if (!errors) {
           message.loading("登录...")
-          
+
 
 
           proxy?.$axios.post('api/user/login', {
@@ -76,6 +76,7 @@ export default {
 
             if (response?.data?.code) {
               message.error("登录失败:" + response?.data?.msg)
+              localStorage.removeItem('userInfo')
               if (usernameInput.value) {
                 (usernameInput.value.focus)()
               }
@@ -83,6 +84,8 @@ export default {
               return
             }
 
+            // local storage
+            localStorage.setItem('userInfo', JSON.stringify(response?.data?.data))
             storeUserinfo.updateUserinfo(response?.data?.data)
             message.success("登录成功")
             router.push({ name: 'HomePage' })
@@ -96,7 +99,7 @@ export default {
       return { required: true, trigger: ['blur', 'input'], message: '请输入' + name }
     }
 
-    return { userInfo, longIn, formRef, getRules,usernameInput };
+    return { userInfo, longIn, formRef, getRules, usernameInput };
   }
 };
 </script>

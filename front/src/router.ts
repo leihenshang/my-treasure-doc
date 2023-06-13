@@ -1,5 +1,5 @@
 import { createWebHashHistory, createRouter } from 'vue-router';
-import { useUserinfoStore } from "./stores/user/userinfo.js";
+import { useUserinfoStore } from "./stores/user/userinfo";
 
 
 const router = createRouter({
@@ -23,9 +23,27 @@ const router = createRouter({
 
 router.beforeEach(async (to, from) => {
   let isAuthenticated = false
+
+
+  type TypeUserInfo = {
+    id: number
+  }
+
   const storeUserinfo = useUserinfoStore()
   if (storeUserinfo.userId > 0) {
     isAuthenticated = true
+
+    // use local storage user info
+  } else {
+    let localUserInfo: string | null = localStorage.getItem('userInfo')
+    let userInfo: TypeUserInfo = { id: 0 }
+    if (localUserInfo) {
+      userInfo = JSON.parse(localUserInfo)
+      if (userInfo && userInfo.id > 0) {
+        storeUserinfo.updateUserinfo(userInfo)
+        isAuthenticated = true
+      }
+    }
   }
 
   if (
