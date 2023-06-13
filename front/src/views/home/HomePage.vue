@@ -3,7 +3,7 @@
     <!-- <Header></Header> -->
     <n-layout has-sider class="menu-layout">
       <!-- left sidebar -->
-      <n-layout-sider class="menu-sider" bordered collapse-mode="width" :collapsed-width="64" :width="290"
+      <n-layout-sider class="menu-sider" bordered collapse-mode="width" :collapsed-width="64" :width="280"
         :collapsed="collapsed" @collapse="collapsed = true" @expand="collapsed = false">
         <!-- user menu -->
         <n-menu v-model:value="activeKey" mode="horizontal" :options="horizontalMenuOptions" />
@@ -187,7 +187,7 @@ export default {
   height: 100%;
 
   >.menu-layout {
-    height: calc(100% - #{$headerHeight});
+    height: 100%;
 
     .menu-sider {
       background: $menuBackground;

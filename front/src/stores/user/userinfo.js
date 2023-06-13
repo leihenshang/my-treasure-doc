@@ -27,5 +27,8 @@ export const useUserinfoStore = defineStore('userinfo',{
         updateUserinfo(newUserinfo) {
             this.userinfo = newUserinfo
         }
+    },
+    getters: {
+        userId:(state) => state.userinfo.id
     }
 })

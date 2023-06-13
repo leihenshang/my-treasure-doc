@@ -1,6 +1,8 @@
 import { createWebHashHistory, createRouter } from 'vue-router';
+import { useUserinfoStore } from "./stores/user/userinfo.js";
 
-export const router = createRouter({
+
+const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     { path: '/', redirect: '/LogIn' },
@@ -18,3 +20,23 @@ export const router = createRouter({
     }
   ]
 })
+
+router.beforeEach(async (to, from) => {
+  let isAuthenticated = false
+  const storeUserinfo = useUserinfoStore()
+  if (storeUserinfo.userId > 0) {
+    isAuthenticated = true
+  }
+
+  if (
+    // 检查用户是否已登录
+    !isAuthenticated &&
+    // ❗️ 避免无限重定向
+    to.name !== 'LogIn'
+  ) {
+    // 将用户重定向到登录页面
+    return { name: 'LogIn' }
+  }
+})
+
+export { router }
