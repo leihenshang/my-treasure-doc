@@ -10,6 +10,7 @@ import (
 )
 
 func InitRoute(r *gin.Engine) {
+
 	//测试连通性
 	base := r.Group("/")
 	{
@@ -20,8 +21,10 @@ func InitRoute(r *gin.Engine) {
 		})
 	}
 
+	apiBase := r.Group("api")
+
 	//user
-	userRoute := r.Group("user")
+	userRoute := apiBase.Group("user")
 	//不需要验证登录参数
 	{
 		userRoute.POST("/reg", api.UserRegister)
@@ -35,7 +38,7 @@ func InitRoute(r *gin.Engine) {
 	}
 
 	//doc
-	docRoute := r.Group("doc").Use(auth.Auth(), cors.Cors())
+	docRoute := apiBase.Group("doc").Use(auth.Auth(), cors.Cors())
 	{
 		docRoute.POST("/create", api.DocCreate)
 		docRoute.POST("/detail", api.DocDetail)
@@ -45,7 +48,7 @@ func InitRoute(r *gin.Engine) {
 	}
 
 	//doc group
-	docGroupRoute := r.Group("doc-group").Use(auth.Auth())
+	docGroupRoute := apiBase.Group("doc-group").Use(auth.Auth())
 	{
 		docGroupRoute.POST("/create", api.DocGroupCreate)
 		docGroupRoute.POST("/list", api.DocGroupList)
