@@ -35,7 +35,8 @@ import {
   EllipsisHorizontalCircleOutline as EllipsisHorizontalCircle,
   Pencil as Pen,
   SearchSharp as Search,
-  MailOpen
+  MailOpen,
+  ArrowForwardCircleSharp
 } from '@vicons/ionicons5'
 
 function renderIcon(icon: Component) {
@@ -44,7 +45,7 @@ function renderIcon(icon: Component) {
 
 const horizontalMenuOptions: MenuOption[] = [
   {
-    label: "",
+    label: '',
     key: 'hear-the-wind-sing',
     icon: renderIcon(MailOpen)
   },
@@ -54,7 +55,16 @@ const horizontalMenuOptions: MenuOption[] = [
     icon: renderIcon(Search),
   },
   {
-    label: '',
+    label: () => 
+      h(
+        RouterLink,
+        {
+          to: {
+            name: 'Write',
+          }
+        }
+      )
+    ,
     key: 'a-wild-sheep-chase',
     icon: renderIcon(Pen),
   },
@@ -64,47 +74,12 @@ const horizontalMenuOptions: MenuOption[] = [
     icon: renderIcon(EllipsisHorizontalCircle),
     children: [
       {
-        type: 'group',
-        label: '人物',
-        key: 'people',
-        children: [
-          {
-            label: '叙事者',
-            key: 'narrator',
-            icon: renderIcon(PersonIcon)
-          },
-          {
-            label: '羊男',
-            key: 'sheep-man',
-            icon: renderIcon(PersonIcon)
-          }
-        ]
+        label: '退出登录',
+        key: 'login-out',
+        icon: renderIcon(ArrowForwardCircleSharp),
+       
       },
-      {
-        label: '饮品',
-        key: 'beverage',
-        icon: renderIcon(WineIcon),
-        children: [
-          {
-            label: '威士忌',
-            key: 'whisky'
-          }
-        ]
-      },
-      {
-        label: '食物',
-        key: 'food',
-        children: [
-          {
-            label: '三明治',
-            key: 'sandwich'
-          }
-        ]
-      },
-      {
-        label: '过去增多，未来减少',
-        key: 'the-past-increases-the-future-recedes'
-      }
+
     ]
   }
 ]
@@ -194,8 +169,8 @@ export default {
       background: $menuBackground;
 
       h3 {
-       text-align: left;
-       padding-left: 20px;
+        text-align: left;
+        padding-left: 20px;
       }
 
       .menu-menu ::v-deep(.n-menu-item.n-menu-item--selected) {

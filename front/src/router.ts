@@ -8,7 +8,9 @@ const router = createRouter({
     { path: '/', redirect: '/LogIn' },
     { path: '/LogIn', name: 'LogIn', component: () => import('./views/LogIn.vue') },
     {
-      path: '/HomePage', name: 'HomePage', component: () => import('./views/home/HomePage.vue'), redirect: { name: 'Collection' },
+      path: '/HomePage', name: 'HomePage',
+      component: () => import('./views/home/HomePage.vue'),
+      redirect: { name: 'Collection' },
       children: [
         { path: '/Collection', name: 'Collection', component: () => import('./views/home/Collection.vue') },
         { path: '/Work', name: 'Work', component: () => import('./views/home/notes/Work.vue') },
@@ -16,6 +18,7 @@ const router = createRouter({
         { path: '/Experience', name: 'Experience', component: () => import('./views/home/notes/Experience.vue') },
         { path: '/Plan', name: 'Plan', component: () => import('./views/home/Plan.vue') },
         { path: '/Diary', name: 'Diary', component: () => import('./views/home/Diary.vue') },
+        { path: '/Write', name: 'Write', component: () => import('./views/home/Write.vue') },
       ],
     }
   ]
