@@ -36,7 +36,8 @@ import {
   Pencil as Pen,
   SearchSharp as Search,
   MailOpen,
-  ArrowForwardCircleSharp
+  ArrowForwardCircleSharp,
+  AppsSharp
 } from '@vicons/ionicons5'
 
 function renderIcon(icon: Component) {
@@ -55,7 +56,7 @@ const horizontalMenuOptions: MenuOption[] = [
     icon: renderIcon(Search),
   },
   {
-    label: () => 
+    label: () =>
       h(
         RouterLink,
         {
@@ -77,7 +78,7 @@ const horizontalMenuOptions: MenuOption[] = [
         label: '退出登录',
         key: 'login-out',
         icon: renderIcon(ArrowForwardCircleSharp),
-       
+
       },
 
     ]
@@ -85,12 +86,25 @@ const horizontalMenuOptions: MenuOption[] = [
 ]
 const menuOptions = [
   {
+    label: '最新',
+    key: 'all-doc',
+    pathName: 'Collection',
+    iconName: 'diary',
+  },
+  {
     label: '收藏',
     key: 'like',
     pathName: 'Collection',
     iconName: 'collect',
-  }, {
-    label: '我的笔记',
+  },
+  {
+    label: '计划',
+    key: 'plan',
+    pathName: 'Plan',
+    iconName: 'plan',
+  },
+  {
+    label: '全部',
     key: 'notes',
     iconName: 'notes',
     children: [
@@ -111,17 +125,14 @@ const menuOptions = [
         iconName: 'experience',
       }
     ]
-  }, {
-    label: '计划',
-    key: 'plan',
-    pathName: 'Plan',
-    iconName: 'plan',
-  }, {
-    label: '我的日记本',
-    key: 'diary',
-    pathName: 'Diary',
-    iconName: 'diary',
   },
+
+  // {
+  //   label: '我的日记本',
+  //   key: 'diary',
+  //   pathName: 'Diary',
+  //   iconName: 'diary',
+  // },
 ];
 
 export default {
