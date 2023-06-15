@@ -28,6 +28,9 @@ export default {
                         console.log(htmlVal)
                         console.log(mb)
                     }
+                },
+                toolbars: {
+                    theme: 'light'
                 }
             });
         })
