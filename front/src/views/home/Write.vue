@@ -3,39 +3,29 @@
     </div>
 </template>
   
-<script lang="ts">
+<script lang="ts" setup>
 import Cherry from 'cherry-markdown/dist/cherry-markdown.core'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
-import { setup } from 'naive-ui/es/radio/src/use-radio'
-import { onMounted, getCurrentInstance, ComponentInternalInstance } from 'vue'
+import { onMounted, ref } from 'vue'
 
-export default {
-    name: "Write",
-    data() {
-        return {
-            editor: null
+
+let editor: any = ref(null)
+
+onMounted(() => {
+    editor = new Cherry({
+        id: 'markdown-container',
+        value: '# welcome to cherry editor!',
+        callback: {
+            afterChange(mb: any, htmlVal: any) {
+                console.log(htmlVal)
+                console.log(mb)
+            }
+        },
+        toolbars: {
+            theme: 'light'
         }
-    },
-    setup() {
-        const instance = getCurrentInstance() as ComponentInternalInstance
-
-        onMounted(() => {
-            instance.data.editor = new Cherry({
-                id: 'markdown-container',
-                value: '# welcome to cherry editor!',
-                callback: {
-                    afterChange(mb: any, htmlVal: any) {
-                        console.log(htmlVal)
-                        console.log(mb)
-                    }
-                },
-                toolbars: {
-                    theme: 'light'
-                }
-            });
-        })
-    }
-}
+    });
+})
 </script>
   
 <style scoped lang='scss'></style>

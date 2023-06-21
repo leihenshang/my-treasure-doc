@@ -24,7 +24,7 @@
 
 <script lang="ts" setup>
 import Header from '../../components/Header.vue';
-import { h, ref, Component, computed } from 'vue';
+import { h, ref, Component, computed,DefineComponent } from 'vue';
 import { MenuOption, useMessage } from 'naive-ui';
 import { useRoute, RouterLink } from 'vue-router';
 import SvgIcon from '../../components/public/SvgIcon.vue';
@@ -179,12 +179,6 @@ function createDoc() {
 function topMenuUpdate(key: string, item: MenuOption): void {
   console.log(key, item)
   if (key === 'top-menu-write') {
-    menuOptions.push({
-      label: '',
-      key: 'top-menu-message1',
-      icon: renderIcon(MailOpen)
-    })
-
     console.log(menuOptions)
     console.log(topMenuRef)
 
@@ -198,7 +192,8 @@ const collapsed = ref(false)
 
 function renderMenuLabel(option: MenuOption) {
   if ('pathName' in option) {
-    return h(RouterLink,
+    return h(
+      RouterLink as Component,
       {
         to: {
           name: option.pathName,
@@ -211,7 +206,7 @@ function renderMenuLabel(option: MenuOption) {
 }
 
 function renderMenuIcon(option: MenuOption) {
-  return option.iconName && h(SvgIcon, { iconName: option.iconName });
+  return option.iconName && h(SvgIcon as Component, { iconName: option.iconName });
 }
 </script>
 

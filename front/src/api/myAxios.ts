@@ -1,12 +1,19 @@
 import axios from 'axios'
 
-const defaultOptions = {
+interface DefaultOptions {
+    reqHandleFunc: Function,
+    reqErrorFunc: Function,
+    resHandleFunc: Function,
+    resErrorFunc: Function
+}
+
+const defaultOptions: DefaultOptions = {
     // request interceptor handler
-    reqHandleFunc: config => config,
-    reqErrorFunc: error => Promise.reject(error),
+    reqHandleFunc: (config: any) => config,
+    reqErrorFunc: (error: any) => Promise.reject(error),
     // response interceptor handler
-    resHandleFunc: response => response,
-    resErrorFunc: error => Promise.reject(error)
+    resHandleFunc: (response: any) => response,
+    resErrorFunc: (error: any) => Promise.reject(error)
 }
 
 const options = {}
