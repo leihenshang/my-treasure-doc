@@ -7,7 +7,8 @@
         :collapsed="collapsed" @collapse="collapsed = true" @expand="collapsed = false">
         <h3>treasure_doc</h3>
         <!-- user menu -->
-        <n-menu v-model:value="activeKey" mode="horizontal" :options="horizontalMenuOptions" />
+        <n-menu v-model:value="activeKey" mode="horizontal" :options="horizontalMenuOptions" @update:value="topMenuUpdate"
+          ref="topMenuRef" />
         <n-menu class="menu-menu" :collapsed="collapsed" :collapsed-width="64" :collapsed-icon-size="22"
           :options="menuOptions" :indent="24" :render-label="renderMenuLabel" :default-value="route.path"
           :render-icon="renderMenuIcon" />
@@ -21,10 +22,10 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import Header from '../../components/Header.vue';
-import { h, ref, Component } from 'vue';
-import type { MenuOption } from 'naive-ui';
+import { h, ref, Component, computed } from 'vue';
+import { MenuOption, useMessage } from 'naive-ui';
 import { useRoute, RouterLink } from 'vue-router';
 import SvgIcon from '../../components/public/SvgIcon.vue';
 import { NIcon } from 'naive-ui';
@@ -39,6 +40,15 @@ import {
   ArrowForwardCircleSharp,
   AppsSharp
 } from '@vicons/ionicons5'
+import { useRouter } from 'vue-router';
+import { myHttp } from "../../api/myAxios";
+
+
+
+const route = useRoute();
+const topMenuRef = ref(null)
+const message = useMessage()
+const router = useRouter()
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) })
@@ -47,12 +57,12 @@ function renderIcon(icon: Component) {
 const horizontalMenuOptions: MenuOption[] = [
   {
     label: '',
-    key: 'hear-the-wind-sing',
+    key: 'top-menu-message',
     icon: renderIcon(MailOpen)
   },
   {
     label: '',
-    key: 'pinball-1973',
+    key: 'top-menu-search',
     icon: renderIcon(Search),
   },
   {
@@ -66,12 +76,12 @@ const horizontalMenuOptions: MenuOption[] = [
         }
       )
     ,
-    key: 'a-wild-sheep-chase',
+    key: 'top-menu-write',
     icon: renderIcon(Pen),
   },
   {
     label: '',
-    key: 'dance-dance-dance',
+    key: 'top-menu-my-center',
     icon: renderIcon(EllipsisHorizontalCircle),
     children: [
       {
@@ -135,36 +145,74 @@ const menuOptions = [
   // },
 ];
 
-export default {
-  name: 'HomePage',
-  components: { Header },
-  setup() {
-    const route = useRoute();
-    return {
-      activeKey: ref<string | null>(null),
-      horizontalMenuOptions,
-      route,
-      collapsed: ref(false),
-      menuOptions,
-      renderMenuLabel(option: MenuOption) {
-        if ('pathName' in option) {
-          return h(RouterLink,
-            {
-              to: {
-                name: option.pathName,
-              }
-            },
-            { default: () => option.label }
-          );
-        }
-        return option.label as string;
-      },
-      renderMenuIcon(option: MenuOption) {
-        return option.iconName && h(SvgIcon, { iconName: option.iconName });
-      },
-    };
+
+let today = new Date();
+
+function createDoc() {
+  myHttp.post('api/doc/create', {
+    title: today.getFullYear() + today.getMonth() + today.getDate(),
+    content: "## day",
+    groupId: 0,
+    isTop: 0
+  }, {
+    headers: { "X-Token": '3b5b3d702a9637860ac351550859cd19' }
+  }).then((response: any) => {
+    //todo save user information to vuex or state management?
+    message.destroyAll()
+    console.log(response)
+    if (!response) {
+      message.error("响应数据错误！")
+      return
+    }
+
+    if (response?.data?.code) {
+      message.error("创建失败:" + response?.data?.msg)
+      return
+    }
+
+    router.push({ name: 'Write' })
+  }).catch((err: any) => {
+    console.log(err)
+  })
+}
+
+function topMenuUpdate(key: string, item: MenuOption): void {
+  console.log(key, item)
+  if (key === 'top-menu-write') {
+    menuOptions.push({
+      label: '',
+      key: 'top-menu-message1',
+      icon: renderIcon(MailOpen)
+    })
+
+    console.log(menuOptions)
+    console.log(topMenuRef)
+
+    createDoc()
   }
-};
+}
+
+const activeKey = ref<string | null>(null)
+const collapsed = ref(false)
+
+
+function renderMenuLabel(option: MenuOption) {
+  if ('pathName' in option) {
+    return h(RouterLink,
+      {
+        to: {
+          name: option.pathName,
+        }
+      },
+      { default: () => option.label }
+    );
+  }
+  return option.label as string;
+}
+
+function renderMenuIcon(option: MenuOption) {
+  return option.iconName && h(SvgIcon, { iconName: option.iconName });
+}
 </script>
 
 <style scoped lang='scss'>

@@ -1,6 +1,6 @@
 {
-  "name": "api-doc",
-  "version": "0.0.0",
+  "name": "treasure_doc",
+  "version": "0.0.1",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
