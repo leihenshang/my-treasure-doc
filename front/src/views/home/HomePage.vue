@@ -30,9 +30,6 @@ import { useRoute, RouterLink } from 'vue-router';
 import SvgIcon from '../../components/public/SvgIcon.vue';
 import { NIcon } from 'naive-ui';
 import {
-  BookOutline as BookIcon,
-  PersonOutline as PersonIcon,
-  WineOutline as WineIcon,
   EllipsisHorizontalCircleOutline as EllipsisHorizontalCircle,
   Pencil as Pen,
   SearchSharp as Search,
@@ -40,15 +37,11 @@ import {
   ArrowForwardCircleSharp,
   AppsSharp
 } from '@vicons/ionicons5'
-import { useRouter } from 'vue-router';
-import { myHttp } from "../../api/myAxios";
 
 
 
 const route = useRoute();
 const topMenuRef = ref(null)
-const message = useMessage()
-const router = useRouter()
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) })
@@ -146,43 +139,11 @@ const menuOptions = [
 ];
 
 
-let today = new Date();
-
-function createDoc() {
-  myHttp.post('api/doc/create', {
-    title: today.getFullYear() + today.getMonth() + today.getDate(),
-    content: "## day",
-    groupId: 0,
-    isTop: 0
-  }, {
-    headers: { "X-Token": '3b5b3d702a9637860ac351550859cd19' }
-  }).then((response: any) => {
-    //todo save user information to vuex or state management?
-    message.destroyAll()
-    console.log(response)
-    if (!response) {
-      message.error("响应数据错误！")
-      return
-    }
-
-    if (response?.data?.code) {
-      message.error("创建失败:" + response?.data?.msg)
-      return
-    }
-
-    router.push({ name: 'Write' })
-  }).catch((err: any) => {
-    console.log(err)
-  })
-}
-
 function topMenuUpdate(key: string, item: MenuOption): void {
   console.log(key, item)
   if (key === 'top-menu-write') {
     console.log(menuOptions)
     console.log(topMenuRef)
-
-    createDoc()
   }
 }
 
