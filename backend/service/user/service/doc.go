@@ -36,7 +36,7 @@ func DocCreate(r doc.CreateDocRequest, userId uint64) (d *model.Doc, err error) 
 		return nil, errors.New("创建文档失败")
 	}
 
-	return
+	return insertData, nil
 }
 
 //checkDocTitleIsDuplicates 检查文档标题是否重复
@@ -91,7 +91,17 @@ func DocUpdate(r doc.UpdateDocRequest, userId uint64) (err error) {
 	}
 
 	q := global.DB.Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
-	u := map[string]interface{}{"Title": r.Title, "Content": r.Content, "GroupId": r.GroupId}
+	u := map[string]interface{}{}
+	if r.Title != "" {
+		u["Title"] = r.Title
+	}
+	if r.Content != "" {
+		u["Content"] = r.Content
+	}
+	if r.GroupId > 0 {
+		u["GroupId"] = r.GroupId
+	}
+
 	if err = q.Updates(u).Error; err != nil {
 		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
 		global.ZAPSUGAR.Error(errMsg)
