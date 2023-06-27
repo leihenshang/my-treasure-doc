@@ -91,7 +91,7 @@ const menuOptions = [
   {
     label: '最新',
     key: 'all-doc',
-    pathName: 'Collection',
+    pathName: 'New',
     iconName: 'diary',
   },
   {

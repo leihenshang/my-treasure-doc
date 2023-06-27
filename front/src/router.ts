@@ -19,6 +19,7 @@ const router = createRouter({
         { path: '/Plan', name: 'Plan', component: () => import('./views/home/Plan.vue') },
         { path: '/Diary', name: 'Diary', component: () => import('./views/home/Diary.vue') },
         { path: '/Write', name: 'Write', component: () => import('./views/home/Write.vue') },
+        { path: '/New', name: 'New', component: () => import('./views/home/New.vue') },
       ],
     }
   ]
