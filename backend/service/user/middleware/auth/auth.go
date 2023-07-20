@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/model"
+	"fastduck/treasure-doc/service/user/response"
 	"fastduck/treasure-doc/service/user/service"
 	"net/http"
 
@@ -18,20 +19,24 @@ const (
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authKey := c.GetHeader("X-Token")
+		result := &response.Response{Code: response.ERROR}
 		if authKey == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, "参数错误")
+			result.Msg = "参数错误"
+			c.AbortWithStatusJSON(http.StatusOK, result)
 			return
 		}
 
 		u, err := service.GetUserByToken(authKey)
 		if err != nil {
 			global.ZAPSUGAR.Error(err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, "查询用户信息失败")
+			result.Msg = "查询用户信息失败"
+			c.AbortWithStatusJSON(http.StatusOK, result)
 			return
 		}
 		if u == nil {
 			global.ZAPSUGAR.Error("获取用户信息失败")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, "没有找到用户信息")
+			result.Msg = "获取用户信息失败"
+			c.AbortWithStatusJSON(http.StatusOK, result)
 			return
 		}
 
