@@ -59,7 +59,6 @@ const longIn = (e: MouseEvent) => {
         account: userInfo.value.username,
         password: userInfo.value.password,
         verifyCode: "123456"
-      }, {
       }).then((response: any) => {
         //todo save user information to vuex or state management?
         message.destroyAll()
@@ -88,7 +87,9 @@ const longIn = (e: MouseEvent) => {
         console.log(err)
       })
     }
-  }).catch(() => { })
+  }).catch((err: any) => {
+    console.log(err)
+  })
 }
 
 const getRules = (name: string) => {
