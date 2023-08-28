@@ -21,10 +21,7 @@ interface DocItemList {
     list: Array<any>
 }
 
-const docListObj = ref<DocItemList | null>({
-    total: 0,
-    list: []
-})
+const docListObj = ref<DocItemList | null>(null)
 
 onMounted(() => {
     docList();
