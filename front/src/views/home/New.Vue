@@ -1,11 +1,10 @@
 <template>
     <div class="my-note-wrapper">
-        New111
         <ul>
-        <li v-for="item in docListObj.list">
-           {{ item.title }}
-        </li>
-    </ul>
+            <li v-for="item in docListObj?.list">
+                {{ item.title }}
+            </li>
+        </ul>
     </div>
 </template>
 <script  lang="ts" setup>
@@ -22,7 +21,7 @@ interface DocItemList {
     list: Array<any>
 }
 
-let docListObj = ref<DocItemList>({
+const docListObj = ref<DocItemList | null>({
     total: 0,
     list: []
 })
@@ -51,7 +50,7 @@ function docList() {
             return
         }
 
-        docListObj = response.data?.data
+        docListObj.value = response.data?.data
         console.log(docListObj)
 
     }).catch((err: any) => {
