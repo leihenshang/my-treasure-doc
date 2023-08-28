@@ -1,17 +1,15 @@
 <template>
     <div class="my-note-wrapper">
-        <ul>
-            <li v-for="item in docListObj?.list">
-                {{ item.title }}
-            </li>
-        </ul>
+        <n-data-table remote ref="table" :columns="columns" :data="data" :loading="loading" :pagination="pagination"
+            :row-key="rowKey" @update:page="handlePageChange" />
     </div>
 </template>
 <script  lang="ts" setup>
 import Cherry from 'cherry-markdown'
-import { onMounted, ref } from 'vue'
+import { defineComponent, ref, reactive, onMounted, h } from 'vue'
 import { myHttp } from "../../api/myAxios";
-import { useMessage } from 'naive-ui';
+import { NButton, useMessage } from 'naive-ui'
+import type { DataTableColumns } from 'naive-ui'
 
 
 const message = useMessage()
@@ -21,17 +19,78 @@ interface DocItemList {
     list: Array<any>
 }
 
-const docListObj = ref<DocItemList | null>(null)
 
 onMounted(() => {
-    docList();
+    docList(
+        pagination.page,
+        pagination.pageSize,
+        true
+    );
 })
 
-function docList() {
+const columns = ref([
+    {
+        title: 'ID',
+        key: 'id',
+        sorter: true,
+        sortOrder: false
+    },
+    {
+        title: '名称',
+        key: 'title'
+    },
+    {
+        title: '置顶',
+        key: 'isTop'
+    },
+    {
+        title: '创建时间',
+        key: 'createdAt'
+    }
+])
+
+
+
+const data = ref([])
+const loading = ref(true)
+const pagination = reactive({
+    page: 1,
+    pageCount: 1,
+    pageSize: 10,
+    prefix({ itemCount }: { itemCount: any }) {
+        return `Total is ${itemCount}.`
+    }
+})
+
+function rowKey(rowData: any) {
+    return rowData?.id
+}
+
+
+function handlePageChange(currentPage) {
+    if (!loadingRef.value) {
+        loadingRef.value = true
+        query(
+            currentPage,
+            paginationReactive.pageSize,
+            column1Reactive.sortOrder,
+            column2Reactive.filterOptionValues
+        ).then((data) => {
+            dataRef.value = data.data
+            paginationReactive.page = currentPage
+            paginationReactive.pageCount = data.pageCount
+            paginationReactive.itemCount = data.total
+            loadingRef.value = false
+        })
+    }
+}
+
+
+function docList(page: Number = 1, pageSize: Number = 10, isDesc: boolean = true) {
     myHttp.post('api/doc/list', {
-        "page": 1,
-        "pageSize": 10,
-        "isDesc": true
+        "page": page,
+        "pageSize": pageSize,
+        "isDesc": isDesc
     }, {
         headers: { "X-Token": '3b5b3d702a9637860ac351550859cd19' }
     }).then((response: any) => {
@@ -47,8 +106,9 @@ function docList() {
             return
         }
 
-        docListObj.value = response.data?.data
-        console.log(docListObj)
+        pagination.itemCount = response.data?.data.total
+        data.value = response.data?.data.list
+        loading.value = false
 
     }).catch((err: any) => {
         console.log(err)
