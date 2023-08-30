@@ -67,26 +67,15 @@ function rowKey(rowData: any) {
 }
 
 
-function handlePageChange(currentPage) {
-    if (!loadingRef.value) {
-        loadingRef.value = true
-        query(
-            currentPage,
-            paginationReactive.pageSize,
-            column1Reactive.sortOrder,
-            column2Reactive.filterOptionValues
-        ).then((data) => {
-            dataRef.value = data.data
-            paginationReactive.page = currentPage
-            paginationReactive.pageCount = data.pageCount
-            paginationReactive.itemCount = data.total
-            loadingRef.value = false
-        })
+function handlePageChange(currentPage: any) {
+    if (!loading.value) {
+        loading.value = true
+        docList(currentPage, 10, true);
     }
 }
 
 
-function docList(page: Number = 1, pageSize: Number = 10, isDesc: boolean = true) {
+function docList(page: number = 1, pageSize: number = 10, isDesc: boolean = true) {
     myHttp.post('api/doc/list', {
         "page": page,
         "pageSize": pageSize,
@@ -107,9 +96,11 @@ function docList(page: Number = 1, pageSize: Number = 10, isDesc: boolean = true
         }
 
         pagination.itemCount = response.data?.data.total
+        pagination.page = page
+        pagination.pageCount = response.data?.data.total / 10
+        pagination.pageSize = pageSize
         data.value = response.data?.data.list
         loading.value = false
-
     }).catch((err: any) => {
         console.log(err)
     })
