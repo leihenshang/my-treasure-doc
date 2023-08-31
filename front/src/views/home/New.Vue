@@ -1,16 +1,14 @@
 <template>
     <div class="my-note-wrapper">
         <n-data-table remote ref="table" :columns="columns" :data="data" :loading="loading" :pagination="pagination"
-            :row-key="rowKey" @update:page="handlePageChange" />
+            :row-key="rowKey" @update:page="handlePageChange" :row-props="rowProps" />
     </div>
 </template>
 <script  lang="ts" setup>
-import Cherry from 'cherry-markdown'
-import { defineComponent, ref, reactive, onMounted, h } from 'vue'
+import { ref, reactive, onMounted, h, nextTick } from 'vue'
 import { myHttp } from "../../api/myAxios";
 import { NButton, useMessage } from 'naive-ui'
-import type { DataTableColumns } from 'naive-ui'
-
+import { useRouter, RouterLink } from 'vue-router';
 
 const message = useMessage()
 
@@ -50,6 +48,7 @@ const columns = ref([
 ])
 
 
+const router = useRouter()
 
 const data = ref([])
 const loading = ref(true)
@@ -71,6 +70,24 @@ function handlePageChange(currentPage: any) {
     if (!loading.value) {
         loading.value = true
         docList(currentPage, 10, true);
+    }
+}
+
+type RowData = {
+    key: number
+    name: string
+    age: string
+    address: string
+}
+
+function rowProps(row: any) {
+    return {
+        style: 'cursor: pointer;',
+        onClick: () => {
+            // message.info(JSON.stringify(row))
+            
+            router.push({ path: '/Edit', query: { id: row.id } })
+        }
     }
 }
 
