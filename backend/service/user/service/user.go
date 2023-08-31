@@ -123,7 +123,7 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 	}
 
 	//检查账号状态
-	if u.UserStatus != model.UserStatusAvaliable {
+	if u.UserStatus != model.UserStatusAvailable {
 		return u, errors.New("账号不可用或未激活")
 	}
 

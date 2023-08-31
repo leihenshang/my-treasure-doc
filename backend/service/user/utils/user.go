@@ -2,6 +2,8 @@ package utils
 
 import (
 	"crypto/md5"
+	"crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"strconv"
 
@@ -30,7 +32,16 @@ func PasswordCompare(encryptedPassword string, inputPassword string) bool {
 
 func GenerateLoginToken(userId uint64) string {
 	str := "apiDocGo" + strconv.FormatUint(userId, 2)
-	data := []byte(str)
+
+	// 生成随机数（生成4字节的随机数）
+	randomBytes := make([]byte, 4)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return ""
+	}
+	randomInt := int(binary.BigEndian.Uint32(randomBytes))
+
+	data := []byte(strconv.Itoa(randomInt) + str)
 	has := md5.Sum(data)
 
 	return fmt.Sprintf("%x", has)
