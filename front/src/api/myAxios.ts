@@ -1,4 +1,7 @@
 import axios from 'axios'
+import {useUserinfoStore} from '@/stores/user/userinfo'
+
+const userStore = useUserinfoStore()
 
 interface DefaultOptions {
     reqHandleFunc: Function,
@@ -48,7 +51,10 @@ const myHttp: MyHttp = {
             ...{
                 method: 'get',
                 url: url,
-                params: data
+                params: data,
+                headers:{
+                    'X-Token': userStore.userinfo.token
+                }
             }
         }
         return myAxios(axiosOpt)
@@ -59,7 +65,10 @@ const myHttp: MyHttp = {
             ...{
                 method: 'post',
                 url: url,
-                data: data
+                data: data,
+                headers:{
+                    'X-Token': userStore.userinfo.token
+                }
             }
         }
         return myAxios(axiosOpt)

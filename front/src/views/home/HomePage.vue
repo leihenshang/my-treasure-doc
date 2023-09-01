@@ -24,8 +24,8 @@
 
 <script lang="ts" setup>
 import Header from '../../components/Header.vue';
-import { h, ref, Component, computed,DefineComponent } from 'vue';
-import { MenuOption, useMessage } from 'naive-ui';
+import { h, ref, Component, computed, DefineComponent } from 'vue';
+import { MenuOption, messageDark, useMessage } from 'naive-ui';
 import { useRoute, RouterLink } from 'vue-router';
 import SvgIcon from '../../components/public/SvgIcon.vue';
 import { NIcon } from 'naive-ui';
@@ -37,11 +37,14 @@ import {
   ArrowForwardCircleSharp,
   AppsSharp
 } from '@vicons/ionicons5'
+import { myHttp } from '@/api/myAxios';
+import { router } from '@/router';
 
 
 
 const route = useRoute();
 const topMenuRef = ref(null)
+const msg = useMessage()
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) })
@@ -144,6 +147,11 @@ function topMenuUpdate(key: string, item: MenuOption): void {
   if (key === 'top-menu-write') {
     console.log(menuOptions)
     console.log(topMenuRef)
+  }
+  if (key == 'login-out') {
+    myHttp.post('/api/user/logout', {}).then(() => {
+      router.push("/LogIn")
+    })
   }
 }
 

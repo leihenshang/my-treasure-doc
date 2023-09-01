@@ -56,8 +56,6 @@ function createDoc() {
         content: content,
         groupId: 0,
         isTop: 0
-    }, {
-        headers: { "X-Token": '3b5b3d702a9637860ac351550859cd19' }
     }).then((response: any) => {
         //todo save user information to vuex or state management?
         message.destroyAll()
@@ -90,8 +88,6 @@ function updateDoc() {
         // groupId: 0,
         // isTop: 0,
         id: docId
-    }, {
-        headers: { "X-Token": '3b5b3d702a9637860ac351550859cd19' }
     }).then((response: any) => {
         //todo save user information to vuex or state management?
         message.destroyAll()

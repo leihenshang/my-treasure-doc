@@ -97,8 +97,6 @@ function docList(page: number = 1, pageSize: number = 10, isDesc: boolean = true
         "page": page,
         "pageSize": pageSize,
         "isDesc": isDesc
-    }, {
-        headers: { "X-Token": '3b5b3d702a9637860ac351550859cd19' }
     }).then((response: any) => {
         //todo save user information to vuex or state management?
         message.destroyAll()
