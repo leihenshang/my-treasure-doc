@@ -33,21 +33,21 @@ func (t *CustomTime) UnmarshalJSON(data []byte) (err error) {
 	return
 }
 
-func (t *CustomTime) MarshalJSON() ([]byte, error) {
+func (t CustomTime) MarshalJSON() ([]byte, error) {
 	b := make([]byte, 0, len(TimeFormat)+2)
 	b = append(b, '"')
-	b = time.Time(*t).AppendFormat(b, TimeFormat)
+	b = time.Time(t).AppendFormat(b, TimeFormat)
 	b = append(b, '"')
 	return b, nil
 }
 
 // Value 写入 mysql 时调用
-func (t *CustomTime) Value() (driver.Value, error) {
+func (t CustomTime) Value() (driver.Value, error) {
 	// 0001-01-01 00:00:00 属于空值，遇到空值解析成 null 即可
 	if t.String() == "0001-01-01 00:00:00" {
 		return nil, nil
 	}
-	return []byte(time.Time(*t).Format(TimeFormat)), nil
+	return []byte(time.Time(t).Format(TimeFormat)), nil
 }
 
 // Scan 检出 mysql 时调用
@@ -59,12 +59,11 @@ func (t *CustomTime) Scan(v interface{}) error {
 }
 
 // 用于 fmt.Println 和后续验证场景
-func (t *CustomTime) String() string {
-	return time.Time(*t).Format(TimeFormat)
+func (t CustomTime) String() string {
+	return time.Time(t).Format(TimeFormat)
 }
 
 //GetSelfLocalTime 获取自定义的时间
-func (t *CustomTime) GetSelfLocalTime(selfTime time.Time) string {
-	ct := CustomTime(selfTime)
-	return ct.String()
+func (CustomTime) GetSelfLocalTime(selfTime time.Time) string {
+	return CustomTime(selfTime).String()
 }
