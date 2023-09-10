@@ -181,6 +181,7 @@ export default {
 </script>
 
 <style scoped lang='scss'>
+
 $grey-color: #8A8F8D;
 $grey-background: #eff0f0;
 .handle-pop-select-options {
