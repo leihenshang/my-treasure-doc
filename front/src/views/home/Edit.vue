@@ -1,34 +1,43 @@
 <template>
-    <div style="width: 100%;height: 100%;">
-    <p>{{ title }}</p>
-    <div id="markdown-container">
+    <div class="edit-box">
+        <div class="edit-title">
+            <n-input v-model:value="document.title" type="text" placeholder="标题" size="large" />
+        </div>
+        <div class="edit-content">
+            <div id="markdown-container">
+            </div>
+        </div>
     </div>
-</div>
 </template>
   
 <script lang="ts" setup>
 import Cherry from 'cherry-markdown/dist/cherry-markdown.core'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { myHttp } from "../../api/myAxios";
 import { useMessage } from 'naive-ui';
 import { useRoute, RouterLink } from 'vue-router';
 
+type DocumentObj = {
+    id: number,
+    title: string,
+    content: string
+}
+
+
 const route = useRoute()
 const message = useMessage()
 const editor: any = ref(null)
-let docId: number = 0
-let content: string = ''
-let document: Object = ref(null)
-let title = ref('')
+const document = ref<DocumentObj>({
+    id: 0,
+    title: '',
+    content: ''
+})
 
-console.log(route.query.id)
+// console.log(route.query.id)
 
 onMounted(() => {
-
     getDoc(Number(route.query?.id))
-
-
 })
 
 
@@ -38,7 +47,7 @@ function getDoc(id: number) {
     }).then((response: any) => {
         //todo save user information to vuex or state management?
         message.destroyAll()
-        console.log(response)
+        // console.log(response)
         if (!response) {
             message.error("响应数据错误！")
             return
@@ -49,24 +58,19 @@ function getDoc(id: number) {
             return
         }
 
-        document = response?.data?.data
+        document.value = response?.data?.data as DocumentObj
         if (document) {
-            docId = document.id
-            title = document.title
             editor.value = new Cherry({
                 id: 'markdown-container',
-                value: document.content,
+                value: document.value.content,
                 callback: {
                     afterChange(mb: any, htmlVal: any) {
-                        console.log(htmlVal)
-                        console.log(mb)
+                        // console.log(htmlVal)
+                        // console.log(mb)
                         // update content variable
-                        content = mb
-                        if (docId > 0) {
-                            // update
-                            updateDoc()
+                        if (document.value) {
+                            document.value.content = mb
                         }
-
                     }
                 },
                 toolbars: {
@@ -81,21 +85,15 @@ function getDoc(id: number) {
 }
 
 
-function updateDoc() {
-    if (content.length === 0) {
+function updateDoc(doc: any) {
+    if (!document.value || document.value?.content.length === 0) {
         return
     }
 
-    myHttp.post('api/doc/update', {
-        // title: getTodayStr() + "速记",
-        content: content,
-        // groupId: 0,
-        // isTop: 0,
-        id: docId
-    }).then((response: any) => {
+    myHttp.post('api/doc/update', { ...document.value }).then((response: any) => {
         //todo save user information to vuex or state management?
         message.destroyAll()
-        console.log(response)
+        // console.log(response)
         if (!response) {
             message.error("响应数据错误！")
             return
@@ -111,6 +109,26 @@ function updateDoc() {
     })
 }
 
+watch(document, async (newD, oldD) => {
+    if (oldD.id > 0) {
+        updateDoc(newD)
+    }
+}, { deep: true })
+
 </script>
   
-<style scoped lang='scss'></style>
+<style scoped lang='scss'>
+.edit-box {
+    margin: 10px 10px;
+    height: 100%;
+
+    .edit-title {
+        margin: 0 0 10px 0;
+    }
+
+    .edit-content {
+        border: 1px dashed rgb(176, 170, 170);
+        height: 100%;
+    }
+}
+</style>

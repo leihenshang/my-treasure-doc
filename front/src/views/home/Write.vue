@@ -1,41 +1,52 @@
 <template>
-    <div id="markdown-container">
+    <div class="edit-box">
+        <div class="edit-title">
+            <n-input v-model:value="document.title" type="text" placeholder="标题" size="large" />
+        </div>
+        <div class="edit-content">
+            <div id="markdown-container">
+            </div>
+        </div>
     </div>
 </template>
   
 <script lang="ts" setup>
 import Cherry from 'cherry-markdown/dist/cherry-markdown.core'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { myHttp } from "../../api/myAxios";
 import { useMessage } from 'naive-ui';
 
+type DocumentObj = {
+    id: number,
+    title: string,
+    content: string,
+    groupId: number,
+    isTop: number
+}
 
+const document = ref<DocumentObj>({
+    id: 0,
+    title: getTodayStr() + "速记",
+    content: '# welcome to my-treasure-doc!',
+    groupId: 0,
+    isTop: 0
+})
 const message = useMessage()
 const editor: any = ref(null)
-let docId: number = 0
-let content: string = ''
-
 
 onMounted(() => {
     editor.value = new Cherry({
         id: 'markdown-container',
-        value: '# welcome to cherry editor!',
+        value: document.value.content,
         callback: {
             afterChange(mb: any, htmlVal: any) {
-                console.log(htmlVal)
-                console.log(mb)
+                // console.log(htmlVal)
+                // console.log(mb)
                 // update content variable
-                content = mb
-
-                if (docId > 0) {
-                    // update
-                    updateDoc()
-                } else {
-                    // create
-                    createDoc()
+                if (mb.length > 0) {
+                    document.value.content = mb
                 }
-
             }
         },
         toolbars: {
@@ -46,20 +57,17 @@ onMounted(() => {
 
 
 
-function createDoc() {
-    if (content.length === 0) {
+function createDoc(doc: any) {
+    if (doc.title.length === 0) {
         return
     }
 
     myHttp.post('api/doc/create', {
-        title: getTodayStr() + "速记" + Math.random().toString(),
-        content: content,
-        groupId: 0,
-        isTop: 0
+        ...doc
     }).then((response: any) => {
         //todo save user information to vuex or state management?
         message.destroyAll()
-        console.log(response)
+        // console.log(response)
         if (!response) {
             message.error("响应数据错误！")
             return
@@ -70,28 +78,24 @@ function createDoc() {
             return
         }
 
-        docId = (Number)(response?.data?.data?.id)
+        document.value.id = response.data.data.id
+
 
     }).catch((err: any) => {
         console.log(err)
     })
 }
 
-function updateDoc() {
-    if (content.length === 0) {
+function updateDoc(doc: any) {
+    if (doc.content.length === 0) {
         return
     }
 
     myHttp.post('api/doc/update', {
-        // title: getTodayStr() + "速记",
-        content: content,
-        // groupId: 0,
-        // isTop: 0,
-        id: docId
+        ...doc
     }).then((response: any) => {
-        //todo save user information to vuex or state management?
         message.destroyAll()
-        console.log(response)
+        // console.log(response)
         if (!response) {
             message.error("响应数据错误！")
             return
@@ -114,6 +118,28 @@ function getTodayStr() {
     return todayStr
 }
 
+watch(document, async (newD) => {
+    if (newD.id > 0) {
+        updateDoc(newD)
+    } else {
+        createDoc(newD)
+    }
+}, { deep: true, immediate: true })
+
 </script>
   
-<style scoped lang='scss'></style>
+<style scoped lang='scss'>
+.edit-box {
+    margin: 10px 10px;
+    height: 100%;
+
+    .edit-title {
+        margin: 0 0 10px 0;
+    }
+
+    .edit-content {
+        border: 1px dashed rgb(176, 170, 170);
+        height: 100%;
+    }
+}
+</style>
