@@ -22,14 +22,14 @@ func DocCreate(r doc.CreateDocRequest, userId uint64) (d *model.Doc, err error) 
 		IsTop:   r.IsTop,
 	}
 
-	if existed, checkErr := checkDocTitleIsDuplicates(insertData.Title, userId); checkErr != nil {
-		global.ZAPSUGAR.Error(r, userId, "检查文档标题失败")
-		return nil, errors.New("检查文档标题失败")
-	} else {
-		if existed != nil {
-			return nil, errors.New("文档标题已存在")
-		}
-	}
+	//if existed, checkErr := checkDocTitleIsDuplicates(insertData.Title, userId); checkErr != nil {
+	//	global.ZAPSUGAR.Error(r, userId, "检查文档标题失败")
+	//	return nil, errors.New("检查文档标题失败")
+	//} else {
+	//	if existed != nil {
+	//		return nil, errors.New("文档标题已存在")
+	//	}
+	//}
 
 	if err = global.DB.Create(insertData).Error; err != nil {
 		global.ZAPSUGAR.Error(r, err)
