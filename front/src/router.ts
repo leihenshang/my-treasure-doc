@@ -13,13 +13,9 @@ const router = createRouter({
       redirect: { name: 'Collection' },
       children: [
         { path: '/Collection', name: 'Collection', component: () => import('./views/home/Collection.vue') },
-        { path: '/Work', name: 'Work', component: () => import('./views/home/notes/Work.vue') },
-        { path: '/Life', name: 'Life', component: () => import('./views/home/notes/Life.vue') },
-        { path: '/Experience', name: 'Experience', component: () => import('./views/home/notes/Experience.vue') },
         { path: '/Plan', name: 'Plan', component: () => import('./views/home/Plan.vue') },
-        { path: '/Diary', name: 'Diary', component: () => import('./views/home/Diary.vue') },
         { path: '/Write', name: 'Write', component: () => import('./views/home/Write.vue') },
-        { path: '/New', name: 'New', component: () => import('./views/home/New.vue') },
+        { path: '/New', name: 'New', component: () => import('./views/home/Note.vue') },
         { path: '/Edit', name: 'Edit', component: () => import('./views/home/Edit.vue') },
       ],
     }

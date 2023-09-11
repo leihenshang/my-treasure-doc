@@ -92,7 +92,7 @@ const horizontalMenuOptions: MenuOption[] = [
 ]
 const menuOptions = [
   {
-    label: '最新',
+    label: '笔记',
     key: 'all-doc',
     pathName: 'New',
     iconName: 'diary',
@@ -108,37 +108,7 @@ const menuOptions = [
     key: 'plan',
     pathName: 'Plan',
     iconName: 'plan',
-  },
-  {
-    label: '全部',
-    key: 'notes',
-    iconName: 'notes',
-    children: [
-      {
-        label: '工作',
-        key: 'work',
-        pathName: 'Work',
-        iconName: 'work',
-      }, {
-        label: '生活',
-        pathName: 'Life',
-        key: 'life',
-        iconName: 'life',
-      }, {
-        label: '经验',
-        key: 'experience',
-        pathName: 'Experience',
-        iconName: 'experience',
-      }
-    ]
-  },
-
-  // {
-  //   label: '我的日记本',
-  //   key: 'diary',
-  //   pathName: 'Diary',
-  //   iconName: 'diary',
-  // },
+  }
 ];
 
 
