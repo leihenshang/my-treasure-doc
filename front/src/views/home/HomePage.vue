@@ -94,7 +94,7 @@ const menuOptions = [
   {
     label: '笔记',
     key: 'all-doc',
-    pathName: 'New',
+    pathName: 'Note',
     iconName: 'diary',
   },
   {

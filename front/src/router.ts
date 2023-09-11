@@ -15,7 +15,7 @@ const router = createRouter({
         { path: '/Collection', name: 'Collection', component: () => import('./views/home/Collection.vue') },
         { path: '/Plan', name: 'Plan', component: () => import('./views/home/Plan.vue') },
         { path: '/Write', name: 'Write', component: () => import('./views/home/Write.vue') },
-        { path: '/New', name: 'New', component: () => import('./views/home/Note.vue') },
+        { path: '/Note', name: 'Note', component: () => import('./views/home/Note.vue') },
         { path: '/Edit', name: 'Edit', component: () => import('./views/home/Edit.vue') },
       ],
     }

@@ -2,7 +2,7 @@
     <div class="my-note-wrapper">
         <div class="left">
             <div class="title">
-                <span>收藏列表</span>
+                <span>分组列表</span>
                 <SvgIcon icon-name="add" @click="changeGroup('add')"></SvgIcon>
             </div>
             <ul class="list">
@@ -23,7 +23,6 @@
                             </template>
                         </n-popselect>
                     </p>
-                    <p class="content">{{ item.count }}条内容</p>
                 </li>
             </ul>
         </div>
@@ -73,16 +72,17 @@ interface DocItemList {
     list: Array<any>
 }
 
-const groupList: Group[] = [{ title: '全部', type: 'all', count: 100, id: '1' }
-    , { title: 'javaScript', type: '', count: 50, id: '2' }, { title: '好看的花花们', type: '', count: 50, id: '3' },];
+const groupList = ref<Group[]>([{ title: '全部', type: 'all', count: 0, id: '1' }]);
 
 
 onMounted(() => {
+    getGroupList(1, 10000)
     docList(
         pagination.page,
         pagination.pageSize,
         true
     );
+
 })
 
 const columns = ref([
@@ -148,6 +148,10 @@ const viewCollectionList = (collectionId: string) => {
 };
 //左侧收藏分类的编辑删除操作
 const changeGroup = (type: string, group?: Group) => {
+    if (!group) {
+        return
+    }
+
     groupHandleType.value = type
     if (type === 'update') {
         updateGroup.value = group || {};
@@ -155,6 +159,16 @@ const changeGroup = (type: string, group?: Group) => {
         showModal.value = true;
     } else if (type === 'delete') {
         //调用删除接口后，再次调用分组接口刷新页面的分组信息
+        // message.info(JSON.stringify(group))
+        doDelGroup(group)
+        for (let i = 0; i < groupList.value.length; i++) {
+            if (groupList.value[i].id === group.id) {
+                groupList.value.splice(i, 1)
+                i--
+            }
+        }
+
+
     } else if (type === 'add') {
         newGroupName.value = ''
         showModal.value = true;
@@ -169,7 +183,7 @@ const updateGroupName = () => {
 
 //获取右侧表格的标题
 const selectedGroupName = computed(() => {
-    return groupList.filter((item) => item.id === selectedCollectionId.value)[0]?.title;
+    return groupList.value.filter((item) => item.id === selectedCollectionId.value)[0]?.title;
 });
 
 function rowKey(rowData: any) {
@@ -196,15 +210,14 @@ function rowProps(row: any) {
         style: 'cursor: pointer;',
         onClick: () => {
             // message.info(JSON.stringify(row))
-
             router.push({ path: '/Edit', query: { id: row.id } })
         }
     }
 }
 
 
-function docList(page: number = 1, pageSize: number = 10, isDesc: boolean = true) {
-    myHttp.post('api/doc/list', {
+async function docList(page: number = 1, pageSize: number = 10, isDesc: boolean = true) {
+    await myHttp.post('api/doc/list', {
         "page": page,
         "pageSize": pageSize,
         "isDesc": isDesc
@@ -227,6 +240,83 @@ function docList(page: number = 1, pageSize: number = 10, isDesc: boolean = true
         pagination.pageSize = pageSize
         data.value = response.data?.data.list
         loading.value = false
+    }).catch((err: any) => {
+        console.log(err)
+    })
+}
+
+async function getGroupList(page: number = 1, pageSize: number = 10) {
+    await myHttp.post('/api/doc-group/list', {
+        page,
+        pageSize,
+    }).then((response: any) => {
+        if (!response) {
+            message.error("获取分组数据失败！")
+            return
+        }
+
+        if (response?.data?.code) {
+            message.error(response?.data?.msg)
+            return
+        }
+        groupList.value.push(...response.data?.data.list)
+    }).catch((err: any) => {
+        console.log(err)
+    })
+}
+
+async function doUpdateGroup(groupObj: Group) {
+    await myHttp.post('/api/doc-group/update', {
+        ...groupObj
+    }).then((response: any) => {
+        if (!response) {
+            message.error("更新分组数据失败！")
+            return
+        }
+
+        if (response?.data?.code) {
+            message.error(response?.data?.msg)
+            return
+        }
+
+    }).catch((err: any) => {
+        console.log(err)
+    })
+}
+
+async function doDelGroup(groupObj: Group) {
+    await myHttp.post('/api/doc-group/delete', {
+        ...groupObj
+    }).then((response: any) => {
+        if (!response) {
+            message.error("删除分组数据失败！")
+            return
+        }
+
+        if (response?.data?.code) {
+            message.error(response?.data?.msg)
+            return
+        }
+
+    }).catch((err: any) => {
+        console.log(err)
+    })
+}
+
+async function doAddGroup(groupObj: Group) {
+    await myHttp.post('/api/doc-group/create', {
+        ...groupObj
+    }).then((response: any) => {
+        if (!response) {
+            message.error("创建分组数据失败！")
+            return
+        }
+
+        if (response?.data?.code) {
+            message.error(response?.data?.msg)
+            return
+        }
+
     }).catch((err: any) => {
         console.log(err)
     })
