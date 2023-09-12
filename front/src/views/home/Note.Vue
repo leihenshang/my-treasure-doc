@@ -72,7 +72,7 @@ interface DocItemList {
     list: Array<any>
 }
 
-const groupList = ref<Group[]>([{ title: '全部', type: 'all', count: 0, id: '1' }]);
+const groupList = ref<Group[]>([{ title: '全部', type: 'all', count: 0, id: '0' }]);
 
 
 onMounted(() => {
@@ -118,7 +118,7 @@ type search = {
 type Group = {
     title: string
     type: string
-    id: string
+    id: string | number
     count: number | string
 }
 
@@ -145,19 +145,19 @@ const groupHandleType = ref('');
 //选中收藏的某个分类，并保存分类的id
 const viewCollectionList = (collectionId: string) => {
     selectedCollectionId.value = collectionId;
+    docList(pagination.page, pagination.pageSize, true, Number(collectionId));
 };
 //左侧收藏分类的编辑删除操作
 const changeGroup = (type: string, group?: Group) => {
-    if (!group) {
-        return
-    }
-
     groupHandleType.value = type
     if (type === 'update') {
         updateGroup.value = group || {};
         newGroupName.value = group?.title || '';
         showModal.value = true;
     } else if (type === 'delete') {
+        if (!group) {
+            return
+        }
         //调用删除接口后，再次调用分组接口刷新页面的分组信息
         // message.info(JSON.stringify(group))
         doDelGroup(group)
@@ -167,8 +167,6 @@ const changeGroup = (type: string, group?: Group) => {
                 i--
             }
         }
-
-
     } else if (type === 'add') {
         newGroupName.value = ''
         showModal.value = true;
@@ -216,11 +214,12 @@ function rowProps(row: any) {
 }
 
 
-async function docList(page: number = 1, pageSize: number = 10, isDesc: boolean = true) {
+async function docList(page: number = 1, pageSize: number = 10, isDesc: boolean = true, groupId: number = 0) {
     await myHttp.post('api/doc/list', {
-        "page": page,
-        "pageSize": pageSize,
-        "isDesc": isDesc
+        page,
+        pageSize,
+        isDesc,
+        groupId
     }).then((response: any) => {
         //todo save user information to vuex or state management?
         message.destroyAll()
