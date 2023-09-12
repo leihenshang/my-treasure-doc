@@ -67,6 +67,11 @@ func DocList(r request.ListRequest, userId uint64) (res response.ListResponse, e
 
 	var list []model.Doc
 	q := global.DB.Model(&model.Doc{}).Where("user_id = ?", userId)
+
+	if r.GroupId > 0 {
+		q = q.Where("group_id = ?", r.GroupId)
+	}
+
 	q.Count(&res.Total)
 
 	if r.IsDesc {

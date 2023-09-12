@@ -9,4 +9,5 @@ type ListRequest struct {
 	PageSize  int    `json:"pageSize" form:"pageSize" xml:"pageSize"`
 	SortField string `json:"sortField" form:"sortField" xml:"sortField"`
 	IsDesc    bool   `json:"isDesc" form:"isDesc" xml:"isDesc"`
+	GroupId   int    `json:"groupId" form:"groupId" xml:"groupId"`
 }
