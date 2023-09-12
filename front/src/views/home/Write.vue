@@ -16,6 +16,7 @@ import 'cherry-markdown/dist/cherry-markdown.min.css'
 import { onMounted, ref, watch } from 'vue'
 import { myHttp } from "../../api/myAxios";
 import { useMessage } from 'naive-ui';
+import {useRoute} from 'vue-router';
 
 type DocumentObj = {
     id: number,
@@ -25,15 +26,18 @@ type DocumentObj = {
     isTop: number
 }
 
+const route =  useRoute()
+
 const document = ref<DocumentObj>({
     id: 0,
     title: getTodayStr() + "速记",
     content: '# welcome to my-treasure-doc!',
-    groupId: 0,
+    groupId: Number(route.query.groupId?.toString()),
     isTop: 0
 })
 const message = useMessage()
 const editor: any = ref(null)
+
 
 onMounted(() => {
     editor.value = new Cherry({

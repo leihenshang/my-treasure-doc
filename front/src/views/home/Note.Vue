@@ -22,6 +22,8 @@
                                 </ul>
                             </template>
                         </n-popselect>
+                        <SvgIcon icon-name="add" v-if="item.type !== 'all'" @click.stop="router.push('/Write?groupId=' + item.id)">
+                        </SvgIcon>
                     </p>
                 </li>
             </ul>
@@ -66,17 +68,19 @@ import { useRouter, RouterLink } from 'vue-router';
 import SvgIcon from '@/components/public/SvgIcon.vue';
 
 const message = useMessage()
+const isFirst = ref<boolean>(false)
 
 interface DocItemList {
     total: Number,
     list: Array<any>
 }
 
-const groupList = ref<Group[]>([{ title: '全部', type: 'all', count: 0, id: '0' }]);
+const groupList = ref<Group[]>([{ title: '全部', type: 'all', count: 0, id: 0 }]);
 
 
 onMounted(() => {
     getGroupList(1, 10000)
+    console.log('Note on mounted')
     docList(
         pagination.page,
         pagination.pageSize,
@@ -118,7 +122,7 @@ type search = {
 type Group = {
     title: string
     type: string
-    id: string | number
+    id: number
     count: number | string
 }
 
@@ -136,16 +140,17 @@ const pagination = reactive({
     }
 })
 const searchData = ref<search>({});
-const selectedCollectionId = ref('1');
+const selectedCollectionId = ref(0);
 const showModal = ref(false);
 const newGroupName = ref('');
 const updateGroup = ref({});
 const groupHandleType = ref('');
 
 //选中收藏的某个分类，并保存分类的id
-const viewCollectionList = (collectionId: string) => {
+const viewCollectionList = (collectionId: number) => {
     selectedCollectionId.value = collectionId;
     docList(pagination.page, pagination.pageSize, true, Number(collectionId));
+    console.log('viewCollectionList')
 };
 //左侧收藏分类的编辑删除操作
 const changeGroup = (type: string, group?: Group) => {
@@ -193,6 +198,7 @@ function handlePageChange(currentPage: any) {
     if (!loading.value) {
         loading.value = true
         docList(currentPage, 10, true);
+        console.log('handlePageChange')
     }
 }
 
@@ -385,6 +391,10 @@ $grey-background: #eff0f0;
 
             >.title {
                 color: #585A5A;
+
+                .icon {
+                    margin: 0 5px;
+                }
             }
 
             >.content {
