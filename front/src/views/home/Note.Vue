@@ -13,7 +13,7 @@
                         <span>{{ item.title }}</span>
                         <n-popselect :options="[]" trigger="hover">
                             <div>
-                                <SvgIcon icon-name="more" v-if="item.type !== 'all'"></SvgIcon>
+                                <SvgIcon icon-name="more" v-if="item.id !== 0"></SvgIcon>
                             </div>
                             <template #empty>
                                 <ul class="handle-pop-select-options">
@@ -22,7 +22,8 @@
                                 </ul>
                             </template>
                         </n-popselect>
-                        <SvgIcon icon-name="add" v-if="item.type !== 'all'" @click.stop="router.push('/Write?groupId=' + item.id)">
+                        <SvgIcon icon-name="add" v-if="item.id !== 0"
+                            @click.stop="router.push('/Write?groupId=' + item.id)">
                         </SvgIcon>
                     </p>
                 </li>
@@ -75,7 +76,7 @@ interface DocItemList {
     list: Array<any>
 }
 
-const groupList = ref<Group[]>([{ title: '全部', type: 'all', count: 0, id: 0 }]);
+const groupList = ref<Group[]>([{ title: '全部', id: 0 }]);
 
 
 onMounted(() => {
@@ -121,9 +122,7 @@ type search = {
 }
 type Group = {
     title: string
-    type: string
     id: number
-    count: number | string
 }
 
 
@@ -143,7 +142,7 @@ const searchData = ref<search>({});
 const selectedCollectionId = ref(0);
 const showModal = ref(false);
 const newGroupName = ref('');
-const updateGroup = ref({});
+const updateGroup = ref<Group | null>(null);
 const groupHandleType = ref('');
 
 //选中收藏的某个分类，并保存分类的id
@@ -153,10 +152,10 @@ const viewCollectionList = (collectionId: number) => {
     console.log('viewCollectionList')
 };
 //左侧收藏分类的编辑删除操作
-const changeGroup = (type: string, group?: Group) => {
+const changeGroup = (type: string, group: Group | null = null) => {
     groupHandleType.value = type
     if (type === 'update') {
-        updateGroup.value = group || {};
+        updateGroup.value = group;
         newGroupName.value = group?.title || '';
         showModal.value = true;
     } else if (type === 'delete') {
@@ -180,6 +179,23 @@ const changeGroup = (type: string, group?: Group) => {
 //更新分组名字
 const updateGroupName = () => {
     //调用保存接口后，再次调用分组接口刷新页面的分组信息
+    if (groupHandleType.value == 'update') {
+        let g = updateGroup.value as Group
+        if (g.id > 0) {
+            g.title = newGroupName.value
+            doUpdateGroup(g)
+        }
+    }
+
+    if (groupHandleType.value == 'add') {
+        doCreateGroup({
+            title: newGroupName.value,
+            id: 0
+        })
+        getGroupList(1, 10000, true)
+    }
+
+
     //然后关闭弹窗
     showModal.value = false;
 };
@@ -250,7 +266,7 @@ async function docList(page: number = 1, pageSize: number = 10, isDesc: boolean 
     })
 }
 
-async function getGroupList(page: number = 1, pageSize: number = 10) {
+async function getGroupList(page: number = 1, pageSize: number = 10, refreshAll: boolean = false) {
     await myHttp.post('/api/doc-group/list', {
         page,
         pageSize,
@@ -264,7 +280,12 @@ async function getGroupList(page: number = 1, pageSize: number = 10) {
             message.error(response?.data?.msg)
             return
         }
+        if (refreshAll) {
+            groupList.value = [groupList.value[0]]
+        }
         groupList.value.push(...response.data?.data.list)
+
+
     }).catch((err: any) => {
         console.log(err)
     })
@@ -308,7 +329,7 @@ async function doDelGroup(groupObj: Group) {
     })
 }
 
-async function doAddGroup(groupObj: Group) {
+async function doCreateGroup(groupObj: Group) {
     await myHttp.post('/api/doc-group/create', {
         ...groupObj
     }).then((response: any) => {
