@@ -133,7 +133,7 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 
 	//下发token以及设置token过期时间
 	u.Token = utils.GenerateLoginToken(u.Id)
-	tokenExpire := model.CustomTime(time.Now().Add(time.Hour * 36))
+	tokenExpire := model.CustomTime(time.Now().Add(time.Hour * 24 * 7))
 	u.TokenExpire = &tokenExpire
 
 	//设置登录时间记录用户登录ip
