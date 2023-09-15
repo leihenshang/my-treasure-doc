@@ -13,3 +13,5 @@ config.toml
 
 # 编译文件
 treasure_user
+
+static/*.png

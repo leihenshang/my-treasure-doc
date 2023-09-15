@@ -11,6 +11,9 @@ import (
 
 func InitRoute(r *gin.Engine) {
 
+	//静态资源
+	r.Static("/static", "./static")
+
 	//测试连通性
 	base := r.Group("/")
 	{
