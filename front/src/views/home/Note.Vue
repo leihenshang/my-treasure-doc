@@ -192,7 +192,6 @@ const updateGroupName = () => {
             title: newGroupName.value,
             id: 0
         })
-        getGroupList(1, 10000, true)
     }
 
 
@@ -266,8 +265,8 @@ async function docList(page: number = 1, pageSize: number = 10, isDesc: boolean 
     })
 }
 
-async function getGroupList(page: number = 1, pageSize: number = 10, refreshAll: boolean = false) {
-    await myHttp.post('/api/doc-group/list', {
+function getGroupList(page: number = 1, pageSize: number = 10, refreshAll: boolean = false) {
+    myHttp.post('/api/doc-group/list', {
         page,
         pageSize,
     }).then((response: any) => {
@@ -291,8 +290,8 @@ async function getGroupList(page: number = 1, pageSize: number = 10, refreshAll:
     })
 }
 
-async function doUpdateGroup(groupObj: Group) {
-    await myHttp.post('/api/doc-group/update', {
+function doUpdateGroup(groupObj: Group) {
+    myHttp.post('/api/doc-group/update', {
         ...groupObj
     }).then((response: any) => {
         if (!response) {
@@ -310,8 +309,8 @@ async function doUpdateGroup(groupObj: Group) {
     })
 }
 
-async function doDelGroup(groupObj: Group) {
-    await myHttp.post('/api/doc-group/delete', {
+function doDelGroup(groupObj: Group) {
+    myHttp.post('/api/doc-group/delete', {
         ...groupObj
     }).then((response: any) => {
         if (!response) {
@@ -329,8 +328,8 @@ async function doDelGroup(groupObj: Group) {
     })
 }
 
-async function doCreateGroup(groupObj: Group) {
-    await myHttp.post('/api/doc-group/create', {
+function doCreateGroup(groupObj: Group) {
+    myHttp.post('/api/doc-group/create', {
         ...groupObj
     }).then((response: any) => {
         if (!response) {
@@ -342,7 +341,7 @@ async function doCreateGroup(groupObj: Group) {
             message.error(response?.data?.msg)
             return
         }
-
+        getGroupList(1, 10000, true)
     }).catch((err: any) => {
         console.log(err)
     })
