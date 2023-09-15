@@ -30,8 +30,8 @@ const route =  useRoute()
 
 const document = ref<DocumentObj>({
     id: 0,
-    title: getTodayStr() + "速记",
-    content: '# welcome to my-treasure-doc!',
+    title: getTodayStr() + " - 速记",
+    content: '## 输入你的想法！',
     groupId: Number(route.query.groupId?.toString()),
     isTop: 0
 })

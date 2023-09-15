@@ -92,12 +92,6 @@ const horizontalMenuOptions: MenuOption[] = [
 ]
 const menuOptions = [
   {
-    label: '笔记',
-    key: 'all-doc',
-    pathName: 'Note',
-    iconName: 'diary',
-  },
-  {
     label: '收藏',
     key: 'like',
     pathName: 'Collection',
@@ -108,7 +102,13 @@ const menuOptions = [
     key: 'plan',
     pathName: 'Plan',
     iconName: 'plan',
-  }
+  },
+  {
+    label: '笔记',
+    key: 'all-doc',
+    pathName: 'Note',
+    iconName: 'diary',
+  },
 ];
 
 
@@ -162,8 +162,11 @@ function renderMenuIcon(option: MenuOption) {
       background: $menuBackground;
 
       h3 {
-        text-align: left;
-        padding-left: 20px;
+        text-align: center;
+        height: 40px;
+        line-height: 40px;
+        color: rgb(115, 171, 231);
+        font-size: 24px;
       }
 
       .menu-menu ::v-deep(.n-menu-item.n-menu-item--selected) {
