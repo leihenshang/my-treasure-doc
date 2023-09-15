@@ -16,7 +16,7 @@ import 'cherry-markdown/dist/cherry-markdown.min.css'
 import { onMounted, ref, watch } from 'vue'
 import { myHttp } from "../../api/myAxios";
 import { useMessage } from 'naive-ui';
-import {useRoute} from 'vue-router';
+import { useRoute } from 'vue-router';
 
 type DocumentObj = {
     id: number,
@@ -26,12 +26,12 @@ type DocumentObj = {
     isTop: number
 }
 
-const route =  useRoute()
+const route = useRoute()
 
 const document = ref<DocumentObj>({
     id: 0,
     title: getTodayStr() + " - 速记",
-    content: '## 输入你的想法！',
+    content: '# 输入你的想法！',
     groupId: Number(route.query.groupId?.toString()),
     isTop: 0
 })
@@ -53,8 +53,25 @@ onMounted(() => {
                 }
             }
         },
+        fileUpload(file: File, callback: any) {
+            console.table(file, callback)
+            callback('/favicon.ico')
+        },
         toolbars: {
             theme: 'light'
+        },
+        engine: {
+            syntax: {
+                header: {
+                    /**
+                     * 标题的样式：
+                     *  - default       默认样式，标题前面有锚点
+                     *  - autonumber    标题前面有自增序号锚点
+                     *  - none          标题没有锚点
+                     */
+                    anchorStyle: 'autonumber',
+                },
+            }
         }
     });
 })
