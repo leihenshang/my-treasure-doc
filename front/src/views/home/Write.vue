@@ -53,9 +53,26 @@ onMounted(() => {
                 }
             }
         },
-        fileUpload(file: File, callback: any) {
-            console.table(file, callback)
-            callback('/favicon.ico')
+        fileUpload(file: File, fCallback: any) {
+            console.table(file, fCallback)
+            myHttp.postForm("api/file/upload", file).then((response: any) => {
+        if (!response) {
+            message.error("上传文件失败！")
+            return
+        }
+
+        if (response?.data?.code) {
+            message.error("上传失败:" + response?.data?.msg)
+            return
+        }
+
+        fCallback(response.data.data?.path)
+
+    }).catch((err: any) => {
+        console.log(err)
+    })
+
+           
         },
         toolbars: {
             theme: 'light'

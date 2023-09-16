@@ -1,5 +1,5 @@
 import axios from 'axios'
-import {useUserinfoStore} from '@/stores/user/userinfo'
+import { useUserinfoStore } from '@/stores/user/userinfo'
 
 const userStore = useUserinfoStore()
 
@@ -41,7 +41,8 @@ myAxios.interceptors.response.use(
 
 interface MyHttp {
     get: Function,
-    post: Function
+    post: Function,
+    postForm: Function,
 }
 
 const myHttp: MyHttp = {
@@ -52,7 +53,7 @@ const myHttp: MyHttp = {
                 method: 'get',
                 url: url,
                 params: data,
-                headers:{
+                headers: {
                     'X-Token': userStore.userinfo.token
                 }
             }
@@ -66,8 +67,23 @@ const myHttp: MyHttp = {
                 method: 'post',
                 url: url,
                 data: data,
-                headers:{
+                headers: {
                     'X-Token': userStore.userinfo.token
+                }
+            }
+        }
+        return myAxios(axiosOpt)
+    },
+    postForm: (url: string, file: File) => {
+        let axiosOpt = {
+            ...options,
+            ...{
+                method: 'post',
+                url: url,
+                data: { file },
+                headers: {
+                    'X-Token': userStore.userinfo.token,
+                    'Content-Type': 'multipart/form-data'
                 }
             }
         }

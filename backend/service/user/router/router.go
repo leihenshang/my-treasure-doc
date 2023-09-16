@@ -58,4 +58,10 @@ func InitRoute(r *gin.Engine) {
 		docGroupRoute.POST("/update", api.DocGroupUpdate)
 		docGroupRoute.POST("/delete", api.DocGroupDelete)
 	}
+
+	// file upload
+	fileGroupRoute := apiBase.Group("file").Use(auth.Auth())
+	{
+		fileGroupRoute.POST("upload", api.FileUpload)
+	}
 }
