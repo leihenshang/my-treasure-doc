@@ -23,6 +23,10 @@ func FileUpload(c *gin.Context) {
 		return
 	}
 
+	// todo 文件后缀名限制
+	// todo 文件大小限制
+	// todo 文件名字重新编码
+
 	fName := filepath.Join(dir, "static", fHandler.Filename)
 	targetFile, err := os.Create(fName)
 	if err != nil {
