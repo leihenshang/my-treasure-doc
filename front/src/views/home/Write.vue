@@ -1,7 +1,7 @@
 <template>
     <div class="edit-box">
         <div class="edit-title">
-            <n-input v-model:value="document.title" type="text" placeholder="标题" size="large" />
+            <n-input v-model:value="docObj.title" type="text" placeholder="标题" size="large" />
         </div>
         <div class="edit-content">
             <div id="markdown-container">
@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import Cherry from 'cherry-markdown/dist/cherry-markdown.core'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, onBeforeMount } from 'vue'
 import { myHttp } from "../../api/myAxios";
 import { useMessage } from 'naive-ui';
 import { useRoute } from 'vue-router';
@@ -28,7 +28,7 @@ type DocumentObj = {
 
 const route = useRoute()
 
-const document = ref<DocumentObj>({
+const docObj = ref<DocumentObj>({
     id: 0,
     title: getTodayStr() + " - 速记",
     content: '# 输入你的想法！',
@@ -40,16 +40,33 @@ const editor: any = ref(null)
 
 
 onMounted(() => {
+    let isCtrlPressed = false
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 's') {
+            if (isCtrlPressed) {
+                message.info('你按下了 "Ctrl + s" 组合键！');
+                event.preventDefault();
+            }
+        } else if (event.key === 'Control') {
+            isCtrlPressed = true;
+        } else if (event.key === 'Alt') {
+            // 可以添加额外的逻辑来处理 Alt + 其他键的组合
+        } else {
+            // 清除 isCtrlPressed 标志，以便下次按下 Ctrl 时重新开始
+            isCtrlPressed = false;
+        }
+    });
+
     editor.value = new Cherry({
         id: 'markdown-container',
-        value: document.value.content,
+        value: docObj.value.content,
         callback: {
             afterChange(mb: any, htmlVal: any) {
                 // console.log(htmlVal)
                 // console.log(mb)
                 // update content variable
                 if (mb.length > 0) {
-                    document.value.content = mb
+                    docObj.value.content = mb
                 }
             }
         },
@@ -114,7 +131,7 @@ function createDoc(doc: any) {
             return
         }
 
-        document.value.id = response.data.data.id
+        docObj.value.id = response.data.data.id
 
 
     }).catch((err: any) => {
@@ -154,7 +171,7 @@ function getTodayStr() {
     return todayStr
 }
 
-watch(document, async (newD) => {
+watch(docObj, async (newD) => {
     if (newD.id > 0) {
         updateDoc(newD)
     } else {
