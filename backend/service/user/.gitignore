@@ -14,4 +14,6 @@ config.toml
 # 编译文件
 treasure_user
 
-static/*.png
+# 静态文件
+static/*.*
+!static/README.MD

@@ -71,7 +71,7 @@ onMounted(() => {
             }
         },
         fileUpload(file: File, fCallback: any) {
-            // console.table(file, fCallback)
+            console.table(file, fCallback)
             myHttp.postForm("api/file/upload", file).then((response: any) => {
                 if (!response) {
                     message.error("上传文件失败！")
@@ -83,6 +83,7 @@ onMounted(() => {
                     return
                 }
 
+                console.log(response)
                 fCallback(response.data.data?.path)
 
             }).catch((err: any) => {
