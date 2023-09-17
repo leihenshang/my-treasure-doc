@@ -11,7 +11,7 @@ import { useMessage } from 'naive-ui';
 
 
 const message = useMessage()
-const editor = ref<any>(null)
+let editor: any
 const props = defineProps({
     content: String,
     isCreate: Boolean
@@ -23,20 +23,17 @@ const emit = defineEmits<{
 const docContent = ref<string | undefined>(props.content)
 
 watch(() => props.content, async (newD, oldD) => {
-    if (!props.isCreate && !editor.value && newD != oldD) {
-        docContent.value = newD
-        newEditor()
+    if ( newD != oldD) {
+        editor.setMarkdown(newD,1)
     }
 })
 
 onMounted(() => {
-    if (props.isCreate) {
-        newEditor()
-    }
+    newEditor()
 })
 
 function newEditor() {
-    editor.value = new Cherry({
+    editor = new Cherry({
         id: 'markdown-container',
         value: docContent.value,
         callback: {
