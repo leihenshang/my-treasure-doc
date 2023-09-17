@@ -4,8 +4,7 @@
             <n-input v-model:value="docObj.title" type="text" placeholder="标题" size="large" />
         </div>
         <div class="edit-content">
-            <div id="markdown-container">
-            </div>
+            <CherryMarkdown :content="docObj.content" @update="contentUpdate" :is-create="true"></CherryMarkdown>
         </div>
     </div>
 </template>
@@ -17,6 +16,7 @@ import { onMounted, ref, watch, onBeforeMount } from 'vue'
 import { myHttp } from "../../api/myAxios";
 import { useMessage } from 'naive-ui';
 import { useRoute } from 'vue-router';
+import CherryMarkdown from '@/components/CherryMarkdown.vue';
 
 type DocumentObj = {
     id: number,
@@ -36,8 +36,10 @@ const docObj = ref<DocumentObj>({
     isTop: 0
 })
 const message = useMessage()
-const editor: any = ref(null)
 
+function contentUpdate(content: string) {
+    docObj.value.content = content
+}
 
 onMounted(() => {
     let isCtrlPressed = false
@@ -54,57 +56,6 @@ onMounted(() => {
         } else {
             // 清除 isCtrlPressed 标志，以便下次按下 Ctrl 时重新开始
             isCtrlPressed = false;
-        }
-    });
-
-    editor.value = new Cherry({
-        id: 'markdown-container',
-        value: docObj.value.content,
-        callback: {
-            afterChange(mb: any, htmlVal: any) {
-                // console.log(htmlVal)
-                // console.log(mb)
-                // update content variable
-                if (mb.length > 0) {
-                    docObj.value.content = mb
-                }
-            }
-        },
-        fileUpload(file: File, fCallback: any) {
-            console.table(file, fCallback)
-            myHttp.postForm("api/file/upload", file).then((response: any) => {
-                if (!response) {
-                    message.error("上传文件失败！")
-                    return
-                }
-
-                if (response?.data?.code) {
-                    message.error("上传失败:" + response?.data?.msg)
-                    return
-                }
-
-                console.log(response)
-                fCallback(response.data.data?.path)
-
-            }).catch((err: any) => {
-                console.log(err)
-            })
-        },
-        toolbars: {
-            theme: 'light'
-        },
-        engine: {
-            syntax: {
-                header: {
-                    /**
-                     * 标题的样式：
-                     *  - default       默认样式，标题前面有锚点
-                     *  - autonumber    标题前面有自增序号锚点
-                     *  - none          标题没有锚点
-                     */
-                    anchorStyle: 'autonumber',
-                },
-            }
         }
     });
 })

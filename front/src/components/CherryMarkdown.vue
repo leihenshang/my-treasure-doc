@@ -5,7 +5,7 @@
 <script lang="ts" setup>
 import Cherry from 'cherry-markdown/dist/cherry-markdown.core'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
-import { onMounted, ref} from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { myHttp } from "@/api/myAxios";
 import { useMessage } from 'naive-ui';
 
@@ -13,7 +13,8 @@ import { useMessage } from 'naive-ui';
 const message = useMessage()
 const editor = ref<any>(null)
 const props = defineProps({
-    content: String
+    content: String,
+    isCreate: Boolean
 })
 const emit = defineEmits<{
     (event: 'update', content: string): void
@@ -21,7 +22,20 @@ const emit = defineEmits<{
 
 const docContent = ref<string | undefined>(props.content)
 
+watch(() => props.content, async (newD, oldD) => {
+    if (!props.isCreate && !editor.value && newD != oldD) {
+        docContent.value = newD
+        newEditor()
+    }
+})
+
 onMounted(() => {
+    if (props.isCreate) {
+        newEditor()
+    }
+})
+
+function newEditor() {
     editor.value = new Cherry({
         id: 'markdown-container',
         value: docContent.value,
@@ -68,13 +82,12 @@ onMounted(() => {
                      *  - autonumber    标题前面有自增序号锚点
                      *  - none          标题没有锚点
                      */
-                    anchorStyle: 'autonumber',
+                    anchorStyle: 'default',
                 },
             }
         }
     });
-
-})
+}
 
 
 

@@ -4,19 +4,18 @@
             <n-input v-model:value="document.title" type="text" placeholder="标题" size="large" />
         </div>
         <div class="edit-content">
-            <div id="markdown-container">
-            </div>
+            <CherryMarkdown :content="document.content" @update="contentUpdate"></CherryMarkdown>
         </div>
     </div>
 </template>
   
 <script lang="ts" setup>
-import Cherry from 'cherry-markdown/dist/cherry-markdown.core'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import { onMounted, ref, watch } from 'vue'
 import { myHttp } from "../../api/myAxios";
 import { useMessage } from 'naive-ui';
 import { useRoute, RouterLink } from 'vue-router';
+import CherryMarkdown from '@/components/CherryMarkdown.vue';
 
 type DocumentObj = {
     id: number,
@@ -27,18 +26,19 @@ type DocumentObj = {
 
 const route = useRoute()
 const message = useMessage()
-const editor: any = ref(null)
 const document = ref<DocumentObj>({
     id: 0,
     title: '',
     content: ''
 })
 
-// console.log(route.query.id)
-
 onMounted(() => {
     getDoc(Number(route.query?.id))
 })
+
+function contentUpdate(content: string) {
+    document.value.content = content
+}
 
 
 function getDoc(id: number) {
@@ -59,46 +59,6 @@ function getDoc(id: number) {
         }
 
         document.value = response?.data?.data as DocumentObj
-        if (document) {
-            editor.value = new Cherry({
-                id: 'markdown-container',
-                value: document.value.content,
-                callback: {
-                    afterChange(mb: any, htmlVal: any) {
-                        // console.log(htmlVal)
-                        // console.log(mb)
-                        // update content variable
-                        if (document.value) {
-                            document.value.content = mb
-                        }
-                    }
-                },
-                fileUpload(file: File, fCallback: any) {
-                    // console.table(file, fCallback)
-                    myHttp.postForm("api/file/upload", file).then((response: any) => {
-                        if (!response) {
-                            message.error("上传文件失败！")
-                            return
-                        }
-
-                        if (response?.data?.code) {
-                            message.error("上传失败:" + response?.data?.msg)
-                            return
-                        }
-
-                        // console.log(response)
-                        fCallback(response.data.data?.path)
-
-                    }).catch((err: any) => {
-                        console.log(err)
-                    })
-                },
-                toolbars: {
-                    theme: 'light'
-                }
-            });
-        }
-
     }).catch((err: any) => {
         console.log(err)
     })
