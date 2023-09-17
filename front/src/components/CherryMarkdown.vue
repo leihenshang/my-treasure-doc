@@ -5,28 +5,34 @@
 <script lang="ts" setup>
 import Cherry from 'cherry-markdown/dist/cherry-markdown.core'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
-import { onMounted, ref, defineProps } from 'vue'
+import { onMounted, ref} from 'vue'
 import { myHttp } from "@/api/myAxios";
 import { useMessage } from 'naive-ui';
+
 
 const message = useMessage()
 const editor = ref<any>(null)
 const props = defineProps({
     content: String
 })
-let docContent = ref<string | undefined>(props.content)
+const emit = defineEmits<{
+    (event: 'update', content: string): void
+}>()
+
+const docContent = ref<string | undefined>(props.content)
 
 onMounted(() => {
     editor.value = new Cherry({
         id: 'markdown-container',
-        value: props.content,
+        value: docContent.value,
         callback: {
             afterChange(mb: any, htmlVal: any) {
                 // console.log(htmlVal)
                 // console.log(mb)
                 // update content variable
                 if (mb.length > 0) {
-                    docContent = mb
+                    docContent.value = mb
+                    emit('update', mb)
                 }
             }
         },
