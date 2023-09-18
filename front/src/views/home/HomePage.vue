@@ -15,7 +15,6 @@
       </n-layout-sider>
       <!-- right sidebar -->
       <n-layout class="right">
-
         <router-view></router-view>
       </n-layout>
     </n-layout>

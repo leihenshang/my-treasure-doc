@@ -60,6 +60,9 @@
             <n-button @click="showModal = false">取消</n-button>
         </template>
     </n-modal>
+    <n-modal v-model:show="showModalEditor">
+    <div class="editorBox" style="width: 1200px;height: 700px;background-color: white;">hhhhhh</div>
+    </n-modal>
 </template>
 <script  lang="ts" setup>
 import { ref, reactive, onMounted, h, nextTick, computed } from 'vue'
@@ -69,13 +72,6 @@ import { useRouter, RouterLink } from 'vue-router';
 import SvgIcon from '@/components/public/SvgIcon.vue';
 
 const message = useMessage()
-const isFirst = ref<boolean>(false)
-
-interface DocItemList {
-    total: Number,
-    list: Array<any>
-}
-
 const groupList = ref<Group[]>([{ title: '全部', id: 0 }]);
 
 
@@ -141,6 +137,7 @@ const pagination = reactive({
 const searchData = ref<search>({});
 const selectedCollectionId = ref(0);
 const showModal = ref(false);
+const showModalEditor = ref(false);
 const newGroupName = ref('');
 const updateGroup = ref<Group | null>(null);
 const groupHandleType = ref('');
@@ -213,15 +210,7 @@ function handlePageChange(currentPage: any) {
     if (!loading.value) {
         loading.value = true
         docList(currentPage, 10, true);
-        console.log('handlePageChange')
     }
-}
-
-type RowData = {
-    key: number
-    name: string
-    age: string
-    address: string
 }
 
 function rowProps(row: any) {
@@ -229,7 +218,8 @@ function rowProps(row: any) {
         style: 'cursor: pointer;',
         onClick: () => {
             // message.info(JSON.stringify(row))
-            router.push({ path: '/Edit', query: { id: row.id } })
+            // router.push({ path: '/Edit', query: { id: row.id } })
+            showModalEditor.value = true
         }
     }
 }
