@@ -7,7 +7,7 @@
         :collapsed="collapsed" @collapse="collapsed = true" @expand="collapsed = false">
         <h3>treasure_doc</h3>
         <!-- user menu -->
-        <n-menu v-model:value="activeKey" mode="horizontal" :options="horizontalMenuOptions" @update:value="topMenuUpdate"
+        <n-menu v-model:value="activeKey" mode="horizontal" :options="horizontalMenuOptions" @update:value="topMenuUpdate" :icon-size="18" 
           ref="topMenuRef" />
         <n-menu class="menu-menu" :collapsed="collapsed" :collapsed-width="64" :collapsed-icon-size="22"
           :options="menuOptions" :indent="24" :render-label="renderMenuLabel" :default-value="route.path"
@@ -165,8 +165,8 @@ function renderMenuIcon(option: MenuOption) {
         text-align: center;
         height: 40px;
         line-height: 40px;
-        color: rgb(115, 171, 231);
-        font-size: 24px;
+        // color: rgb(115, 171, 231);
+        font-size: 18px;
       }
 
       .menu-menu ::v-deep(.n-menu-item.n-menu-item--selected) {
