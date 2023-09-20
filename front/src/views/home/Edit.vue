@@ -99,15 +99,14 @@ watch(document, async (newD, oldD) => {
   
 <style scoped lang='scss'>
 .edit-box {
-    margin: 10px 10px;
+    margin: 5px 5px;
     height: 100%;
 
     .edit-title {
-        margin: 0 0 10px 0;
+        margin: 0 0 5px 0;
     }
 
     .edit-content {
-        border: 1px dashed rgb(176, 170, 170);
         height: 100%;
     }
 }
