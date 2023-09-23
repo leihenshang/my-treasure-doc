@@ -90,3 +90,24 @@ func DocGroupDelete(c *gin.Context) {
 		response.Ok(c)
 	}
 }
+
+//DocGroupTree 文档组树
+func DocGroupTree(c *gin.Context) {
+	var req doc.GroupTreeRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.FailWithMessage(global.ErrResp(err), c)
+		return
+	}
+
+	u, err := auth.GetUserInfoByCtx(c)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	if res, ok := service.DocGroupTree(req, u.Id); ok != nil {
+		response.FailWithMessage(ok.Error(), c)
+	} else {
+		response.OkWithData(res, c)
+	}
+}

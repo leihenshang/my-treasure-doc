@@ -2,11 +2,11 @@ package service
 
 import (
 	"errors"
-	"fastduck/treasure-doc/service/admin/response"
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/model"
 	"fastduck/treasure-doc/service/user/request"
 	"fastduck/treasure-doc/service/user/request/doc"
+	"fastduck/treasure-doc/service/user/response"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -102,6 +102,26 @@ func DocGroupDelete(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 		errMsg := fmt.Sprintf("删除id 为 %d 的数据失败 %v ", r.Id, err)
 		global.ZAPSUGAR.Error(errMsg)
 		return errors.New("操作失败")
+	}
+
+	return
+}
+
+func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree []*response.DocTree, err error) {
+	docTree = make([]*response.DocTree, 0)
+	var list []*model.DocGroup
+	q := global.DB.Where("user_id = ?", userId).Where("p_id = ?", r.Pid)
+	if err = q.Find(&list).Error; err != nil {
+		global.ZAPSUGAR.Error(err)
+		return docTree, errors.New("查询分组信息失败")
+	}
+
+	for _, v := range list {
+		vv := v
+		docTree = append(docTree, &response.DocTree{
+			DocGroup: vv,
+			Children: nil,
+		})
 	}
 
 	return

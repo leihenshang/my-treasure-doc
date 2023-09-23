@@ -12,10 +12,12 @@
         <n-menu class="menu-menu" :collapsed="collapsed" :collapsed-width="64" :collapsed-icon-size="22"
           :options="menuOptions" :indent="24" :render-label="renderMenuLabel" :default-value="route.path"
           :render-icon="renderMenuIcon" />
+          <n-divider />
+        <n-tree block-line :data="data" :default-expanded-keys="defaultExpandedKeys" :checkable="false" expand-on-click
+          :selectable="false" />
       </n-layout-sider>
       <!-- right sidebar -->
       <n-layout class="right">
-
         <router-view></router-view>
       </n-layout>
     </n-layout>
@@ -23,9 +25,8 @@
 </template>
 
 <script lang="ts" setup>
-import Header from '../../components/Header.vue';
-import { h, ref, Component, computed, DefineComponent } from 'vue';
-import { MenuOption, messageDark, useMessage } from 'naive-ui';
+import { h, ref, Component, onMounted } from 'vue';
+import { MenuOption, TreeOption, useMessage, NButton, } from 'naive-ui';
 import { useRoute, RouterLink } from 'vue-router';
 import SvgIcon from '../../components/public/SvgIcon.vue';
 import { NIcon } from 'naive-ui';
@@ -39,12 +40,39 @@ import {
 } from '@vicons/ionicons5'
 import { myHttp } from '@/api/myAxios';
 import { router } from '@/router';
+import { repeat } from 'seemly'
 
 
 
 const route = useRoute();
 const topMenuRef = ref(null)
-const msg = useMessage()
+const message = useMessage()
+const data = ref<Array<any>>([])
+const defaultExpandedKeys = ref(['40', '41'])
+
+console.log(data.value)
+
+function renderSuffix({ option }: { option: TreeOption }) {
+  return h(
+    NButton,
+    { text: true, type: 'primary' },
+    { default: () => `Suffix-${option.level}` }
+  )
+}
+
+function renderPrefix({ option }: { option: TreeOption }) {
+  return h(
+    NButton,
+    { text: true, type: 'primary' },
+    { default: () => `Prefix-${option.level}` }
+  )
+}
+
+
+
+function renderLabel({ option }: { option: TreeOption }) {
+  return `${option.label} :)`
+}
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) })
@@ -147,6 +175,49 @@ function renderMenuLabel(option: MenuOption) {
 function renderMenuIcon(option: MenuOption) {
   return option.iconName && h(SvgIcon as Component, { iconName: option.iconName });
 }
+
+
+function getDocGroupTree(isAll: Number = 0, pId: Number = 0, withDoc: Number = 1) {
+  myHttp.get('/api/doc-group/tree', {
+    isAll,
+    pId,
+    withDoc
+  }).then((response: any) => {
+    if (!response) {
+      message.error("获取分组数据失败！")
+      return
+    }
+
+    if (response?.data?.code) {
+      message.error(response?.data?.msg)
+      return
+    }
+
+    console.log(response.data)
+    data.value = [];
+    for (const e of response.data?.data) {
+      data.value.push({
+        label: e.title,
+        key: e.id,
+        children: [],
+        suffix: () =>
+        h(
+          NButton,
+          { text: true, type: 'primary' },
+          { default: () => 'Suffix' }
+        ),
+      })
+    }
+
+  }).catch((err: any) => {
+    console.log(err)
+  })
+}
+
+onMounted(() => {
+  getDocGroupTree()
+})
+
 </script>
 
 <style scoped lang='scss'>
@@ -187,6 +258,9 @@ function renderMenuIcon(option: MenuOption) {
           }
         }
 
+      }
+      .n-tree {
+        margin-left: 15px
       }
     }
   }

@@ -14,3 +14,10 @@ type UpdateDocGroupRequest struct {
 	PId   int    `json:"pId" binding:""`          // 父级
 	Icon  string `json:"icon" binding:""`         // 图标
 }
+
+//GroupTreeRequest 文档分组树
+type GroupTreeRequest struct {
+	Pid     int `json:"pid" form:"pid"`         // 父级id
+	WithDoc int `json:"withDoc" form:"withDoc"` // 是否带文档 0-否，1-是
+	IsAll   int `json:"isAll" form:"isAll"`     // 是否返回全部 0-否，1-是
+}
