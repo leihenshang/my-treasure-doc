@@ -1,8 +1,12 @@
 package global
 
 import (
+	"errors"
 	"fastduck/treasure-doc/service/user/config"
+	"fastduck/treasure-doc/service/user/model"
 	"fmt"
+	enTranslations "github.com/go-playground/validator/v10/translations/en"
+	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
 	"gorm.io/gorm/schema"
 	"log"
 	"os"
@@ -17,8 +21,6 @@ import (
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
-	enTranslations "github.com/go-playground/validator/v10/translations/en"
-	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/go-redis/redis"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -37,7 +39,17 @@ var (
 	TRANS    ut.Translator
 )
 
-func GlobalInit() {
+var TableMigrate = []any{
+	&model.Doc{},
+	&model.DocGroup{},
+	&model.GlobalConf{},
+	&model.Team{},
+	&model.TeamUser{},
+	&model.User{},
+	&model.VerifyCode{},
+}
+
+func InitModule() {
 	fmt.Println("start global init")
 	initConf()
 	fmt.Println("初始化配置完成")
@@ -53,10 +65,10 @@ func GlobalInit() {
 	fmt.Println("初始化mysql完成")
 
 	//初始化验证器
-	if err := InitTrans("zh"); err != nil {
-		log.Fatalf("init trans failed, err:%v\n", err)
-		return
-	}
+	//if err := InitTrans("zh"); err != nil {
+	//	log.Fatalf("init trans failed, err:%v\n", err)
+	//	return
+	//}
 	fmt.Println("初始化validator完成")
 }
 
@@ -99,7 +111,8 @@ func initMysql() {
 	)
 
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: newLogger,
+		Logger:                                   newLogger,
+		DisableForeignKeyConstraintWhenMigrating: true,
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   tablePrefix,
 			SingularTable: true,
@@ -112,6 +125,7 @@ func initMysql() {
 		panic("初始化mysql失败")
 	}
 
+	migrateTable()
 }
 
 func initLog() {
@@ -228,9 +242,10 @@ func removeTopStruct(fields map[string]string) map[string]interface{} {
 	return res
 }
 
-//handler中调用的错误翻译方法
+// handler中调用的错误翻译方法
 func ErrResp(err error) string {
-	errs, ok := err.(validator.ValidationErrors)
+	var errs validator.ValidationErrors
+	ok := errors.As(err, &errs)
 	fmt.Println(reflect.TypeOf(err))
 	if !ok {
 		return err.Error()
@@ -243,4 +258,16 @@ func ErrResp(err error) string {
 	}
 
 	return "参数错误"
+}
+
+func migrateTable() {
+	fmt.Println("start migrate tables")
+	defer fmt.Println("end of migration tables")
+	if DB == nil {
+		log.Fatalf("the DB is not initialize")
+	}
+
+	if err := DB.AutoMigrate(TableMigrate...); err != nil {
+		log.Fatalf("failed to migrate tables,error:%v,table[%+v],", err, TableMigrate)
+	}
 }
