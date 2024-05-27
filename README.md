@@ -1,16 +1,66 @@
-# 宝藏文档(treasure-doc)
-## 概览
-treasure-doc 是一个记录笔记、文档、写作、灵感的有趣工具！
-它使用markdown来写作。
+# 宝藏文档(treasure-doc)-API
+
+## 概述
+
+宝藏文档的后端api
+
+## 使用到的库
+
+- gin framework
+- gorm
+- 配置文件
+- 日志处理
+- 缓存处理
+
+## 项目编译
+
+```bash
+//linux
+GOARCH=amd64 GOOS=linux CGO_ENABLED=0 go build -o treasure_user
+
+//windows
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build
 
 
-## 文件结构
-- front 前端文件
-- backend 后端文件
+//mac
+CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build
 
-## 鸣谢
+//减少包大小 -ldflags -s 去掉符号信息 -w 去掉调试信息 
+go build -ldflags "-s -w" -o main-ldflags main.go 
 
- <img src="./jetbrains.png" width = "200" height = "218.6" alt="图片名称" align=center />
+```
 
+## 目录说明
 
- 感谢[ JetBrains ](https://www.jetbrains.com/?from=apiDoc)提供的IDE支持
+```
+# 待更新
+```
+
+### 计划
+
+- [x] 加入 `gin` http框架,创建main.go
+- [x] 添加配置解析库 `viper` [github地址](https://github.com/spf13/viper)
+- [x] 添加日志库 `zap` [github地址](https://github.com/uber-go/zap)
+- [x] 添加orm库 `gorm` [github地址](https://github.com/go-gorm/gorm)
+- [x] 添加redis库 `go-redis` [github地址](https://github.com/go-redis/redis)
+
+### 其他
+
+```sh
+docker run  --rm \
+    -w "/app" \
+    --mount type=bind,source="D:\my-project\api-doc-go\backend",target=/app  \
+    -p 2021:2021  \
+    golang:alpine \
+    sh -c  "go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct && cd /app/user && go run main.go"
+```
+
+### 生成模型
+
+进入 service/mall/cli 目录
+
+1. 首先将config.example.toml改换成config.toml完善Mysql配置
+2. 然后执行 `go run . -gen`
+
+即可通过gin官方的gen工具生成模型到目录 `data/...` 下
+
