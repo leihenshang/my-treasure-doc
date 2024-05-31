@@ -2,19 +2,20 @@ package global
 
 import (
 	"errors"
-	"fastduck/treasure-doc/service/user/config"
-	"fastduck/treasure-doc/service/user/model"
 	"fmt"
-	enTranslations "github.com/go-playground/validator/v10/translations/en"
-	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
-	"gorm.io/gorm/schema"
 	"log"
 	"os"
-	"path"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	enTranslations "github.com/go-playground/validator/v10/translations/en"
+	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
+	"gorm.io/gorm/schema"
+
+	"fastduck/treasure-doc/service/user/config"
+	"fastduck/treasure-doc/service/user/model"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
@@ -49,19 +50,29 @@ var TableMigrate = []any{
 	&model.VerifyCode{},
 }
 
-func InitModule() {
-	fmt.Println("start global init")
-	initConf()
+func InitModule(cfgPath string) error {
+	if err := initConf(cfgPath); err != nil {
+		return err
+	}
 	fmt.Println("初始化配置完成")
-	initLog()
+
+	if err := initLog(); err != nil {
+		return err
+	}
 	fmt.Println("初始化日志完成")
 
 	if CONFIG.Redis.Enable {
-		initRedis()
+		err := initRedis()
+		if err != nil {
+			return err
+		}
 		fmt.Println("初始化redis完成")
 	}
 
-	initMysql()
+	err := initMysql()
+	if err != nil {
+		return err
+	}
 	fmt.Println("初始化mysql完成")
 
 	//初始化验证器
@@ -69,29 +80,42 @@ func InitModule() {
 	//	log.Fatalf("init trans failed, err:%v\n", err)
 	//	return
 	//}
-	fmt.Println("初始化validator完成")
+	//fmt.Println("初始化validator完成")
+	return migrateTable()
 }
 
-func initConf() {
-	//读取配置
-	configFile := config.ConfigFile
-	fmt.Println("load config file:", path.Join(".", configFile))
+func InitRestPwd(cfgPath string) error {
+	if err := initConf(cfgPath); err != nil {
+		return err
+	}
+	fmt.Println("初始化配置完成")
+	err := initMysql()
+	if err != nil {
+		return err
+	}
+	fmt.Println("初始化mysql完成")
+	fmt.Printf("\n")
+	return nil
+}
+
+func initConf(path string) error {
+	fmt.Println("load config file:", path)
 
 	VIPER = viper.New()
-	VIPER.SetConfigFile(configFile)
+	VIPER.SetConfigFile(path)
 	VIPER.AddConfigPath(".")
-	err := VIPER.ReadInConfig()
-	if err != nil {
-		panic(fmt.Errorf("Fatal error config file: %w \n", err))
+
+	if err := VIPER.ReadInConfig(); err != nil {
+		return fmt.Errorf("failed to load config: %w \n", err)
 	}
 
-	err = VIPER.Unmarshal(&CONFIG)
-	if err != nil {
-		panic("解析app配置失败")
+	if err := VIPER.Unmarshal(&CONFIG); err != nil {
+		return fmt.Errorf("failed to unmarshal config: %w \n", err)
 	}
+	return nil
 }
 
-func initMysql() {
+func initMysql() error {
 	mysqlPort := strconv.Itoa(CONFIG.Mysql.Port)
 	var err error
 	//初始化数据库
@@ -121,28 +145,27 @@ func initMysql() {
 		},
 	})
 	if err != nil {
-		fmt.Println(err.Error())
-		panic("初始化mysql失败")
+		return fmt.Errorf("faile to initialize mysql,%w", err)
 	}
 
-	migrateTable()
+	return nil
 }
 
-func initLog() {
-	initLogger()
+func initLog() error {
+	return initZapLogger()
 }
 
-func initRedis() {
-	//初始化redis
+func initRedis() error {
 	REDIS = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", CONFIG.Redis.Host, CONFIG.Redis.Port),
 		Password: CONFIG.Redis.Password, // no password set
 		DB:       CONFIG.Redis.DbId,     // use default DB)
 	})
 
-	if REDIS.Ping().Err() != nil {
-		panic("链接redis失败")
+	if err := REDIS.Ping().Err(); err != nil {
+		return fmt.Errorf("failed to initilize redis,%w", err)
 	}
+	return nil
 }
 
 // InitTrans 初始化翻译器
@@ -260,14 +283,16 @@ func ErrResp(err error) string {
 	return "参数错误"
 }
 
-func migrateTable() {
+func migrateTable() error {
 	fmt.Println("start migrate tables")
 	defer fmt.Println("end of migration tables")
 	if DB == nil {
-		log.Fatalf("the DB is not initialize")
+		return fmt.Errorf("the DB is not initialize")
 	}
 
 	if err := DB.AutoMigrate(TableMigrate...); err != nil {
-		log.Fatalf("failed to migrate tables,error:%v,table[%+v],", err, TableMigrate)
+		return fmt.Errorf("failed to migrate tables,error:%v,table[%+v]", err, TableMigrate)
 	}
+
+	return nil
 }

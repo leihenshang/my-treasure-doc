@@ -1,21 +1,22 @@
 package global
 
 import (
-	"fastduck/treasure-doc/service/user/utils"
 	"fmt"
 	"os"
 	"path"
 	"time"
+
+	"fastduck/treasure-doc/service/user/utils"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 )
 
-func initLogger() {
+func initZapLogger() error {
 	writeSyncyer, err := getLogWriter()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	encoder := getEncoder()
@@ -53,6 +54,8 @@ func initLogger() {
 
 	//ZAP SUGAR
 	ZAPSUGAR = ZAP.Sugar()
+
+	return nil
 }
 
 func getEncoder() zapcore.Encoder {

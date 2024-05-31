@@ -2,20 +2,32 @@ package main
 
 import (
 	"database/sql"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/router"
+	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
+
+	"fastduck/treasure-doc/service/user/config"
+	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/service/user/router"
 
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 )
 
-func main() {
+var cfgFile string
 
-	//全局初始化
-	global.InitModule()
+func init() {
+	flag.StringVar(&cfgFile, "cfg", config.DefaultCfg, "config file path")
+	flag.Parse()
+}
+
+func main() {
+	if err := global.InitModule(cfgFile); err != nil {
+		fmt.Printf("init module failed, err:%v\n", err)
+		os.Exit(1)
+	}
 
 	//同步写入日志
 	defer global.ZAP.Sync()

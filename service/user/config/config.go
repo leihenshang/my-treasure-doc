@@ -1,6 +1,6 @@
 package config
 
-const ConfigFile = "config.toml"
+const DefaultCfg = "config.toml"
 
 type Config struct {
 	App   App

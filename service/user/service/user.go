@@ -2,19 +2,21 @@ package service
 
 import (
 	"errors"
+	"fmt"
+	"regexp"
+	"time"
+	"unicode/utf8"
+
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/model"
 	"fastduck/treasure-doc/service/user/request/user"
 	"fastduck/treasure-doc/service/user/utils"
-	"fmt"
-	"regexp"
-	"time"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-//UserRegister 用户注册
+// UserRegister 用户注册
 func UserRegister(r user.UserRegisterRequest) (u model.User, err error) {
 
 	pwd, err := checkPasswordRule(r.Password, r.RePassword)
@@ -56,7 +58,7 @@ func UserRegister(r user.UserRegisterRequest) (u model.User, err error) {
 	return u, err
 }
 
-//checkAccountIsDuplicate 检查账号是否重复
+// checkAccountIsDuplicate 检查账号是否重复
 func checkAccountIsDuplicate(account string) bool {
 	var user *model.User
 	result := global.DB.Where("account = ?", account).First(&user)
@@ -67,7 +69,7 @@ func checkAccountIsDuplicate(account string) bool {
 	return false
 }
 
-//checkAccountRule 检查账号规则
+// checkAccountRule 检查账号规则
 func checkAccountRule(account string, accountLen int) (err error) {
 	if accountLen == 0 {
 		global.ZAPSUGAR.Fatal("accountLen is zero.")
@@ -87,7 +89,7 @@ func checkAccountRule(account string, accountLen int) (err error) {
 	return
 }
 
-//checkEmailIsDuplicate 检查邮箱是否重复
+// checkEmailIsDuplicate 检查邮箱是否重复
 func checkEmailIsDuplicate(email string) bool {
 	var user *model.User
 	result := global.DB.Where("email = ?", email).First(&user)
@@ -98,9 +100,9 @@ func checkEmailIsDuplicate(email string) bool {
 	return false
 }
 
-//checkPasswordRule 检查密码规则是否符合规则
+// checkPasswordRule 检查密码规则是否符合规则
 func checkPasswordRule(password string, repeatPassword string) (string, error) {
-	if len(password) < 8 {
+	if utf8.RuneCountInString(password) < 8 {
 		return "", errors.New("密码长度不能低于8位")
 	}
 
@@ -111,7 +113,7 @@ func checkPasswordRule(password string, repeatPassword string) (string, error) {
 	return password, nil
 }
 
-//UserLogin 用户登录
+// UserLogin 用户登录
 func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err error) {
 	if len(r.Password) == 0 || len(r.Account) == 0 {
 		return u, errors.New("密码或账号(邮箱)不能为空")
@@ -149,7 +151,7 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 	return u, err
 }
 
-//UserLogout 用户退出登陆
+// UserLogout 用户退出登陆
 func UserLogout(userId uint64) error {
 	var userInfo model.User
 	if errors.Is(global.DB.Where("id = ?", userId).First(&userInfo).Error, gorm.ErrRecordNotFound) {
@@ -167,7 +169,7 @@ func UserLogout(userId uint64) error {
 	return nil
 }
 
-//UserProfileUpdate 更新用户个人资料
+// UserProfileUpdate 更新用户个人资料
 func UserProfileUpdate(profile user.UserProfileUpdateRequest, userId uint64) (u model.User, err error) {
 	if errors.Is(global.DB.Where("id = ?", userId).First(&u).Error, gorm.ErrRecordNotFound) {
 		return u, errors.New("用户没有找到")
@@ -188,7 +190,7 @@ func UserProfileUpdate(profile user.UserProfileUpdateRequest, userId uint64) (u 
 	return u, nil
 }
 
-//GetUserByToken 通过token获取用户
+// GetUserByToken 通过token获取用户
 func GetUserByToken(token string) (u *model.User, err error) {
 
 	now := time.Now().Format("2006-01-02 15:04:05")
@@ -214,4 +216,29 @@ func GetUserByToken(token string) (u *model.User, err error) {
 	}
 
 	return
+}
+
+func ResetPwd(account string, pwd string) error {
+	if _, err := checkPasswordRule(pwd, pwd); err != nil {
+		return err
+	}
+
+	var u *model.User
+	result := global.DB.Where("account = ?", account).First(&u)
+	if result.RowsAffected <= 0 {
+		return errors.New(fmt.Sprintf("账号 %s 没有找到", account))
+	}
+
+	//对密码进行加密
+	encryptedPwd, err := utils.PasswordEncrypt(pwd)
+	if err != nil {
+		return errors.New("加密密码失败")
+	}
+	u.Password = encryptedPwd
+
+	if err := global.DB.Select("Password").Save(&u).Error; err != nil {
+		return errors.New("更新密码失败")
+	}
+
+	return nil
 }
