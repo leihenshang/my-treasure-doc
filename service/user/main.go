@@ -36,21 +36,18 @@ func main() {
 	}
 
 	r := gin.New()
-
 	//记录全部的访问日志
 	// r.Use(ginzap.Ginzap(global.ZAP, time.RFC3339, true))
-
 	//把gin致命错误写入日志
 	r.Use(ginzap.RecoveryWithZap(global.ZAP, true))
 	router.InitRoute(r)
-	addr := fmt.Sprintf(":%d", global.CONFIG.App.Port)
 	s := &http.Server{
-		Addr:           addr,
+		Addr:           fmt.Sprintf(":%d", global.CONFIG.App.Port),
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	global.ZAPSUGAR.Info("service is started!", "address", addr)
+	global.ZAPSUGAR.Info("service is started!", "address", s.Addr)
 	global.ZAPSUGAR.Error(s.ListenAndServe().Error())
 }
