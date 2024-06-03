@@ -50,28 +50,28 @@ var TableMigrate = []any{
 	&model.VerifyCode{},
 }
 
-func InitModule(cfgPath string) error {
-	if err := initConf(cfgPath); err != nil {
-		return err
+func InitModule(cfgPath string) (destructFunc func(), err error) {
+	if err = initConf(cfgPath); err != nil {
+		return
 	}
 	fmt.Println("初始化配置完成")
 
-	if err := initLog(); err != nil {
-		return err
+	if err = initLog(); err != nil {
+		return
 	}
 	fmt.Println("初始化日志完成")
 
 	if CONFIG.Redis.Enable {
-		err := initRedis()
+		err = initRedis()
 		if err != nil {
-			return err
+			return
 		}
 		fmt.Println("初始化redis完成")
 	}
 
-	err := initMysql()
+	err = initMysql()
 	if err != nil {
-		return err
+		return
 	}
 	fmt.Println("初始化mysql完成")
 
@@ -81,7 +81,32 @@ func InitModule(cfgPath string) error {
 	//	return
 	//}
 	//fmt.Println("初始化validator完成")
-	return migrateTable()
+
+	return destructModule(), migrateTable()
+}
+
+func destructModule() func() {
+	return func() {
+		if ZAP != nil {
+			if err := ZAP.Sync(); err != nil {
+				log.Printf("failed to sync ZAP log,error:%v \n", err)
+			}
+		}
+
+		if ZAPSUGAR != nil {
+			if err := ZAPSUGAR.Sync(); err != nil {
+				log.Printf("failed to sync ZAPSUGAR log,error:%v \n", err)
+			}
+		}
+
+		if DB != nil {
+			if db, err := DB.DB(); err != nil {
+				log.Printf("failed to get DB,error:%v \n", err)
+			} else if err = db.Close(); err != nil {
+				log.Printf("failed to close DB,error:%v \n", err)
+			}
+		}
+	}
 }
 
 func InitRestPwd(cfgPath string) error {
