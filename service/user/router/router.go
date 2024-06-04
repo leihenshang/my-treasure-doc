@@ -1,12 +1,12 @@
 package router
 
 import (
-	"fastduck/treasure-doc/service/user/api"
-	"fastduck/treasure-doc/service/user/middleware/auth"
-	"fastduck/treasure-doc/service/user/middleware/cors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"fastduck/treasure-doc/service/user/api"
+	"fastduck/treasure-doc/service/user/middleware"
 )
 
 func InitRoute(r *gin.Engine) {
@@ -34,14 +34,14 @@ func InitRoute(r *gin.Engine) {
 		userRoute.POST("/login", api.UserLogin)
 	}
 	//需要验证登录参数
-	userRoute.Use(auth.Auth())
+	userRoute.Use(middleware.Auth())
 	{
 		userRoute.POST("/logout", api.UserLogout)
 		userRoute.POST("/update-profile", api.UserProfileUpdate)
 	}
 
 	//doc
-	docRoute := apiBase.Group("doc").Use(auth.Auth(), cors.Cors())
+	docRoute := apiBase.Group("doc").Use(middleware.Auth(), middleware.Cors())
 	{
 		docRoute.POST("/create", api.DocCreate)
 		docRoute.POST("/detail", api.DocDetail)
@@ -51,7 +51,7 @@ func InitRoute(r *gin.Engine) {
 	}
 
 	//doc group
-	docGroupRoute := apiBase.Group("doc-group").Use(auth.Auth())
+	docGroupRoute := apiBase.Group("doc-group").Use(middleware.Auth())
 	{
 		docGroupRoute.POST("/create", api.DocGroupCreate)
 		docGroupRoute.POST("/list", api.DocGroupList)
@@ -61,7 +61,7 @@ func InitRoute(r *gin.Engine) {
 	}
 
 	// file upload
-	fileGroupRoute := apiBase.Group("file").Use(auth.Auth())
+	fileGroupRoute := apiBase.Group("file").Use(middleware.Auth())
 	{
 		fileGroupRoute.POST("upload", api.FileUpload)
 	}

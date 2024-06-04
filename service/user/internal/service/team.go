@@ -2,17 +2,18 @@ package service
 
 import (
 	"errors"
-	"fastduck/treasure-doc/service/admin/response"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/model"
-	"fastduck/treasure-doc/service/user/request"
-	"fastduck/treasure-doc/service/user/request/team"
 	"fmt"
+
+	"fastduck/treasure-doc/service/admin/response"
+	"fastduck/treasure-doc/service/user/data/model"
+	"fastduck/treasure-doc/service/user/data/request"
+	"fastduck/treasure-doc/service/user/data/request/team"
+	"fastduck/treasure-doc/service/user/global"
 
 	"gorm.io/gorm"
 )
 
-//TeamCreate 创建文档
+// TeamCreate 创建文档
 func TeamCreate(r team.CreateOrUpdateTeamRequest, userId uint64) (d *model.Team, err error) {
 	insertData := &model.Team{}
 
@@ -33,7 +34,7 @@ func TeamCreate(r team.CreateOrUpdateTeamRequest, userId uint64) (d *model.Team,
 	return
 }
 
-//checkTeamTitleRepeat 查询数据库检查文档标题是否重复
+// checkTeamTitleRepeat 查询数据库检查文档标题是否重复
 func checkTeamTitleRepeat(title string, userId uint64) (team *model.Team, err error) {
 	q := global.DB.Model(&model.Team{}).Where("title = ? AND user_id = ?", title, userId)
 	if err = q.First(&team).Error; err != nil {
@@ -45,14 +46,14 @@ func checkTeamTitleRepeat(title string, userId uint64) (team *model.Team, err er
 	return
 }
 
-//TeamDetail 文档详情
+// TeamDetail 文档详情
 func TeamDetail(r request.IdRequest, userId uint64) (d *model.Team, err error) {
 	q := global.DB.Model(&model.Team{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	err = q.First(&d).Error
 	return
 }
 
-//TeamList 文档列表
+// TeamList 文档列表
 func TeamList(r request.ListRequest, userId uint64) (res response.ListResponse, err error) {
 	offset := (r.Page - 1) * r.PageSize
 	if offset < 0 {
@@ -71,7 +72,7 @@ func TeamList(r request.ListRequest, userId uint64) (res response.ListResponse, 
 	return
 }
 
-//TeamUpdate 文档更新
+// TeamUpdate 文档更新
 func TeamUpdate(r team.CreateOrUpdateTeamRequest, userId uint64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
@@ -90,7 +91,7 @@ func TeamUpdate(r team.CreateOrUpdateTeamRequest, userId uint64) (err error) {
 	return
 }
 
-//TeamDelete 文档删除
+// TeamDelete 文档删除
 func TeamDelete(r team.CreateOrUpdateTeamRequest, userId uint64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)

@@ -1,17 +1,17 @@
 package api
 
 import (
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/middleware/auth"
-	"fastduck/treasure-doc/service/user/request"
-	"fastduck/treasure-doc/service/user/request/doc"
-	"fastduck/treasure-doc/service/user/response"
-	"fastduck/treasure-doc/service/user/service"
-
 	"github.com/gin-gonic/gin"
+
+	"fastduck/treasure-doc/service/user/data/request"
+	"fastduck/treasure-doc/service/user/data/request/doc"
+	"fastduck/treasure-doc/service/user/data/response"
+	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/service/user/internal/service"
+	"fastduck/treasure-doc/service/user/middleware"
 )
 
-//DocCreate 创建文档
+// DocCreate 创建文档
 func DocCreate(c *gin.Context) {
 	var req doc.CreateDocRequest
 	err := c.ShouldBindJSON(&req)
@@ -20,7 +20,7 @@ func DocCreate(c *gin.Context) {
 		return
 	}
 
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -33,7 +33,7 @@ func DocCreate(c *gin.Context) {
 	}
 }
 
-//DocDetail 文档详情
+// DocDetail 文档详情
 func DocDetail(c *gin.Context) {
 	req := request.IdRequest{}
 	err := c.ShouldBindJSON(&req)
@@ -41,7 +41,7 @@ func DocDetail(c *gin.Context) {
 		response.FailWithMessage(global.ErrResp(err), c)
 		return
 	}
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -54,7 +54,7 @@ func DocDetail(c *gin.Context) {
 
 }
 
-//DocList 文档列表
+// DocList 文档列表
 func DocList(c *gin.Context) {
 	var req request.ListRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -62,7 +62,7 @@ func DocList(c *gin.Context) {
 		return
 	}
 
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -74,14 +74,14 @@ func DocList(c *gin.Context) {
 	}
 }
 
-//DocUpdate 文档更新
+// DocUpdate 文档更新
 func DocUpdate(c *gin.Context) {
 	var req doc.UpdateDocRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
 		return
 	}
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -93,14 +93,14 @@ func DocUpdate(c *gin.Context) {
 	}
 }
 
-//DocDelete 文档删除
+// DocDelete 文档删除
 func DocDelete(c *gin.Context) {
 	var req doc.UpdateDocRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
 		return
 	}
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return

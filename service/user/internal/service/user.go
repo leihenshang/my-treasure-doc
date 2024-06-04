@@ -7,9 +7,9 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"fastduck/treasure-doc/service/user/data/model"
+	"fastduck/treasure-doc/service/user/data/request/user"
 	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/model"
-	"fastduck/treasure-doc/service/user/request/user"
 	"fastduck/treasure-doc/service/user/utils"
 
 	"go.uber.org/zap"

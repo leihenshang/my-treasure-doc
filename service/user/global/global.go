@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm/schema"
 
 	"fastduck/treasure-doc/service/user/config"
-	"fastduck/treasure-doc/service/user/model"
+	"fastduck/treasure-doc/service/user/data/model"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"

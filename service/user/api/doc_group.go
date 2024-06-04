@@ -1,17 +1,17 @@
 package api
 
 import (
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/middleware/auth"
-	"fastduck/treasure-doc/service/user/request"
-	"fastduck/treasure-doc/service/user/request/doc"
-	"fastduck/treasure-doc/service/user/response"
-	"fastduck/treasure-doc/service/user/service"
-
 	"github.com/gin-gonic/gin"
+
+	"fastduck/treasure-doc/service/user/data/request"
+	"fastduck/treasure-doc/service/user/data/request/doc"
+	"fastduck/treasure-doc/service/user/data/response"
+	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/service/user/internal/service"
+	"fastduck/treasure-doc/service/user/middleware"
 )
 
-//DocGroupCreate 创建文档分组
+// DocGroupCreate 创建文档分组
 func DocGroupCreate(c *gin.Context) {
 	var req doc.CreateDocGroupRequest
 	err := c.ShouldBindJSON(&req)
@@ -20,7 +20,7 @@ func DocGroupCreate(c *gin.Context) {
 		return
 	}
 
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -33,7 +33,7 @@ func DocGroupCreate(c *gin.Context) {
 	}
 }
 
-//DocGroupList 文档分组列表
+// DocGroupList 文档分组列表
 func DocGroupList(c *gin.Context) {
 	var req request.ListRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -41,7 +41,7 @@ func DocGroupList(c *gin.Context) {
 		return
 	}
 
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -53,14 +53,14 @@ func DocGroupList(c *gin.Context) {
 	}
 }
 
-//DocGroupUpdate 文档分组更新
+// DocGroupUpdate 文档分组更新
 func DocGroupUpdate(c *gin.Context) {
 	var req doc.UpdateDocGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
 		return
 	}
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -72,14 +72,14 @@ func DocGroupUpdate(c *gin.Context) {
 	}
 }
 
-//DocGroupDelete 文档分组删除
+// DocGroupDelete 文档分组删除
 func DocGroupDelete(c *gin.Context) {
 	var req doc.UpdateDocGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
 		return
 	}
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -91,7 +91,7 @@ func DocGroupDelete(c *gin.Context) {
 	}
 }
 
-//DocGroupTree 文档组树
+// DocGroupTree 文档组树
 func DocGroupTree(c *gin.Context) {
 	var req doc.GroupTreeRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -99,7 +99,7 @@ func DocGroupTree(c *gin.Context) {
 		return
 	}
 
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return

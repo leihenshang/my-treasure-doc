@@ -1,12 +1,13 @@
-package auth
+package middleware
 
 import (
 	"errors"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/model"
-	"fastduck/treasure-doc/service/user/response"
-	"fastduck/treasure-doc/service/user/service"
 	"net/http"
+
+	"fastduck/treasure-doc/service/user/data/model"
+	"fastduck/treasure-doc/service/user/data/response"
+	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/service/user/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +16,7 @@ const (
 	UserInfoKey = "userinfo"
 )
 
-//Auth 身份验证
+// Auth 身份验证
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authKey := c.GetHeader("X-Token")
@@ -52,7 +53,7 @@ func userAccessParamsCheck(c *gin.Context) {
 
 }
 
-//GetUserInfoByCtx 从上下文获取用户信息
+// GetUserInfoByCtx 从上下文获取用户信息
 func GetUserInfoByCtx(c *gin.Context) (u *model.User, err error) {
 	if v, exists := c.Get(UserInfoKey); !exists {
 		return nil, errors.New("从上下文中获取用户信息失败")

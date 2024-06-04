@@ -2,17 +2,18 @@ package service
 
 import (
 	"errors"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/model"
-	"fastduck/treasure-doc/service/user/request"
-	"fastduck/treasure-doc/service/user/request/doc"
-	"fastduck/treasure-doc/service/user/response"
 	"fmt"
+
+	"fastduck/treasure-doc/service/user/data/model"
+	"fastduck/treasure-doc/service/user/data/request"
+	"fastduck/treasure-doc/service/user/data/request/doc"
+	response2 "fastduck/treasure-doc/service/user/data/response"
+	"fastduck/treasure-doc/service/user/global"
 
 	"gorm.io/gorm"
 )
 
-//DocGroupCreate 创建文档分组
+// DocGroupCreate 创建文档分组
 func DocGroupCreate(r doc.CreateDocGroupRequest, userId uint64) (dg *model.DocGroup, err error) {
 	insertData := &model.DocGroup{
 		Title:  r.Title,
@@ -39,7 +40,7 @@ func DocGroupCreate(r doc.CreateDocGroupRequest, userId uint64) (dg *model.DocGr
 	return
 }
 
-//checkDocGroupTitleRepeat 查询数据库检查文档分组标题是否重复
+// checkDocGroupTitleRepeat 查询数据库检查文档分组标题是否重复
 func checkDocGroupTitleRepeat(title string, userId uint64) (dg *model.DocGroup, err error) {
 	q := global.DB.Model(&model.DocGroup{}).Where("title = ? AND user_id = ?", title, userId)
 	if err = q.First(&dg).Error; err != nil {
@@ -51,8 +52,8 @@ func checkDocGroupTitleRepeat(title string, userId uint64) (dg *model.DocGroup, 
 	return
 }
 
-//DocGroupList 文档分组列表
-func DocGroupList(r request.ListRequest, userId uint64) (res response.ListResponse, err error) {
+// DocGroupList 文档分组列表
+func DocGroupList(r request.ListRequest, userId uint64) (res response2.ListResponse, err error) {
 	offset := (r.Page - 1) * r.PageSize
 	if offset < 0 {
 		offset = 1
@@ -70,7 +71,7 @@ func DocGroupList(r request.ListRequest, userId uint64) (res response.ListRespon
 	return
 }
 
-//DocGroupUpdate 文档分组更新
+// DocGroupUpdate 文档分组更新
 func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
@@ -89,7 +90,7 @@ func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 	return
 }
 
-//DocGroupDelete 文档分组删除u
+// DocGroupDelete 文档分组删除u
 func DocGroupDelete(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
@@ -107,8 +108,8 @@ func DocGroupDelete(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 	return
 }
 
-func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree []*response.DocTree, err error) {
-	docTree = make([]*response.DocTree, 0)
+func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree []*response2.DocTree, err error) {
+	docTree = make([]*response2.DocTree, 0)
 	var list []*model.DocGroup
 	q := global.DB.Where("user_id = ?", userId).Where("p_id = ?", r.Pid)
 	if err = q.Find(&list).Error; err != nil {
@@ -118,7 +119,7 @@ func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree []*response.Do
 
 	for _, v := range list {
 		vv := v
-		docTree = append(docTree, &response.DocTree{
+		docTree = append(docTree, &response2.DocTree{
 			DocGroup: vv,
 			Children: nil,
 		})

@@ -1,16 +1,16 @@
 package api
 
 import (
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/middleware/auth"
-	"fastduck/treasure-doc/service/user/request/user"
-	"fastduck/treasure-doc/service/user/response"
-	"fastduck/treasure-doc/service/user/service"
-
 	"github.com/gin-gonic/gin"
+
+	"fastduck/treasure-doc/service/user/data/request/user"
+	"fastduck/treasure-doc/service/user/data/response"
+	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/service/user/internal/service"
+	"fastduck/treasure-doc/service/user/middleware"
 )
 
-//UserRegister 用户注册
+// UserRegister 用户注册
 func UserRegister(c *gin.Context) {
 	var reg user.UserRegisterRequest
 	err := c.ShouldBindJSON(&reg)
@@ -26,7 +26,7 @@ func UserRegister(c *gin.Context) {
 	}
 }
 
-//UserLogin 用户登录，账号字段支持填入账号和邮箱，因为都是唯一的
+// UserLogin 用户登录，账号字段支持填入账号和邮箱，因为都是唯一的
 func UserLogin(c *gin.Context) {
 	var login user.UserLoginRequest
 	err := c.ShouldBindJSON(&login)
@@ -42,9 +42,9 @@ func UserLogin(c *gin.Context) {
 	}
 }
 
-//UserLogout 用户退出登陆
+// UserLogout 用户退出登陆
 func UserLogout(c *gin.Context) {
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -57,7 +57,7 @@ func UserLogout(c *gin.Context) {
 	response.Ok(c)
 }
 
-//UserProfileUpdate 更新用户个人资料
+// UserProfileUpdate 更新用户个人资料
 func UserProfileUpdate(c *gin.Context) {
 	var profile user.UserProfileUpdateRequest
 	if err := c.ShouldBindJSON(&profile); err != nil {
@@ -65,7 +65,7 @@ func UserProfileUpdate(c *gin.Context) {
 		return
 	}
 
-	u, err := auth.GetUserInfoByCtx(c)
+	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return

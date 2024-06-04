@@ -1,6 +1,8 @@
 package response
 
-import "fastduck/treasure-doc/service/user/model"
+import (
+	"fastduck/treasure-doc/service/user/data/model"
+)
 
 type DocTree struct {
 	*model.DocGroup

@@ -2,17 +2,18 @@ package service
 
 import (
 	"errors"
-	"fastduck/treasure-doc/service/admin/response"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/model"
-	"fastduck/treasure-doc/service/user/request"
-	"fastduck/treasure-doc/service/user/request/doc"
 	"fmt"
+
+	"fastduck/treasure-doc/service/admin/response"
+	"fastduck/treasure-doc/service/user/data/model"
+	"fastduck/treasure-doc/service/user/data/request"
+	"fastduck/treasure-doc/service/user/data/request/doc"
+	"fastduck/treasure-doc/service/user/global"
 
 	"gorm.io/gorm"
 )
 
-//DocCreate 创建文档
+// DocCreate 创建文档
 func DocCreate(r doc.CreateDocRequest, userId uint64) (d *model.Doc, err error) {
 	insertData := &model.Doc{
 		UserId:  userId,
@@ -39,7 +40,7 @@ func DocCreate(r doc.CreateDocRequest, userId uint64) (d *model.Doc, err error) 
 	return insertData, nil
 }
 
-//checkDocTitleIsDuplicates 检查文档标题是否重复
+// checkDocTitleIsDuplicates 检查文档标题是否重复
 func checkDocTitleIsDuplicates(title string, userId uint64) (doc *model.Doc, err error) {
 	q := global.DB.Model(&model.Doc{}).Where("title = ? AND user_id = ?", title, userId)
 	if err = q.First(&doc).Error; err != nil {
@@ -51,14 +52,14 @@ func checkDocTitleIsDuplicates(title string, userId uint64) (doc *model.Doc, err
 	return
 }
 
-//DocDetail 文档详情
+// DocDetail 文档详情
 func DocDetail(r request.IdRequest, userId uint64) (d *model.Doc, err error) {
 	q := global.DB.Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	err = q.First(&d).Error
 	return
 }
 
-//DocList 文档列表
+// DocList 文档列表
 func DocList(r request.ListRequest, userId uint64) (res response.ListResponse, err error) {
 	offset := (r.Page - 1) * r.PageSize
 	if offset < 0 {
@@ -87,7 +88,7 @@ func DocList(r request.ListRequest, userId uint64) (res response.ListResponse, e
 	return
 }
 
-//DocUpdate 文档更新
+// DocUpdate 文档更新
 func DocUpdate(r doc.UpdateDocRequest, userId uint64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
@@ -116,7 +117,7 @@ func DocUpdate(r doc.UpdateDocRequest, userId uint64) (err error) {
 	return
 }
 
-//DocDelete 文档删除
+// DocDelete 文档删除
 func DocDelete(r doc.UpdateDocRequest, userId uint64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)

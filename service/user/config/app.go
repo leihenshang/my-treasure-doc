@@ -1,7 +1,7 @@
 package config
 
-const GIN_MODE_RELEASE = "release"
-const GIN_MODE_DEV = "dev"
+const GinModeRelease = "release"
+const GinModeDev = "dev"
 
 type App struct {
 	Host    string
@@ -11,9 +11,9 @@ type App struct {
 }
 
 func (app *App) IsRelease() bool {
-	return app.RunMode == GIN_MODE_RELEASE
+	return app.RunMode == GinModeRelease
 }
 
 func (app *App) IsDev() bool {
-	return app.RunMode == GIN_MODE_DEV
+	return app.RunMode == GinModeDev
 }

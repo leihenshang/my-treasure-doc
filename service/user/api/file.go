@@ -2,13 +2,15 @@ package api
 
 import (
 	"crypto/md5"
-	"fastduck/treasure-doc/service/user/response"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+
+	"fastduck/treasure-doc/service/user/data/response"
 )
 
 // FileUpload 文件上传

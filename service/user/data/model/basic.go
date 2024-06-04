@@ -7,10 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
-//CustomTime 自定义时间
+// CustomTime 自定义时间
 type CustomTime time.Time
 
-//TimeFormat 时间格式
+// TimeFormat 时间格式
 const TimeFormat = "2006-01-02 15:04:05"
 
 type BasicModel struct {
@@ -63,7 +63,7 @@ func (t CustomTime) String() string {
 	return time.Time(t).Format(TimeFormat)
 }
 
-//GetSelfLocalTime 获取自定义的时间
+// GetSelfLocalTime 获取自定义的时间
 func (CustomTime) GetSelfLocalTime(selfTime time.Time) string {
 	return CustomTime(selfTime).String()
 }
