@@ -1,16 +1,17 @@
+ARG work_dir=/app
+ARG binary_name=treasure_doc_go
+
 FROM golang:alpine as builder
+ARG work_dir
+ARG binary_name
 
-# set the work directory
-WORKDIR /app
+WORKDIR ${work_dir}
+COPY . ${work_dir}
 
-# set enviroment to enable the go module mode
 RUN go env -w GO111MODULE=on \
 && go env -w GOPROXY="https://goproxy.cn, direct"
 
-# copy project files from "context".
-COPY . /app/
-# compile
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/main /app/
+RUN CGO_ENABLED=0 GOOS=linux go build -o ${binary_name} ${work_dir}
 
 
 # ---------------------------------------------------------------
