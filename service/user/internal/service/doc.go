@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"fastduck/treasure-doc/service/admin/response"
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request"
 	"fastduck/treasure-doc/service/user/data/request/doc"
+	"fastduck/treasure-doc/service/user/data/response"
 	"fastduck/treasure-doc/service/user/global"
 
 	"gorm.io/gorm"
