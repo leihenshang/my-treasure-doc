@@ -47,14 +47,14 @@ func checkTeamTitleRepeat(title string, userId uint64) (team *model.Team, err er
 }
 
 // TeamDetail 文档详情
-func TeamDetail(r request.IdRequest, userId uint64) (d *model.Team, err error) {
-	q := global.DB.Model(&model.Team{}).Where("id = ? AND user_id = ?", r.Id, userId)
+func TeamDetail(r request.IDReq, userId uint64) (d *model.Team, err error) {
+	q := global.DB.Model(&model.Team{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
 	return
 }
 
 // TeamList 文档列表
-func TeamList(r request.ListRequest, userId uint64) (res response.ListResponse, err error) {
+func TeamList(r request.PaginationWithSort, userId uint64) (res response.ListResponse, err error) {
 	offset := (r.Page - 1) * r.PageSize
 	if offset < 0 {
 		offset = 1
@@ -62,13 +62,10 @@ func TeamList(r request.ListRequest, userId uint64) (res response.ListResponse, 
 
 	var list []model.Team
 	q := global.DB.Model(&model.Team{}).Where("user_id = ?", userId)
-	q.Count(&res.Total)
-	err = q.
-		Limit(r.PageSize).
-		Offset(offset).
-		Find(&list).
-		Error
+	q.Count(&res.Pagination.Total)
+	err = q.Limit(r.PageSize).Offset(offset).Find(&list).Error
 	res.List = list
+	res.Pagination = r
 	return
 }
 

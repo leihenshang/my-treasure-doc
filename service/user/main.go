@@ -11,7 +11,6 @@ import (
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/router"
 
-	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 )
 
@@ -39,7 +38,7 @@ func main() {
 	//记录全部的访问日志
 	// r.Use(ginzap.Ginzap(global.ZAP, time.RFC3339, true))
 	//把gin致命错误写入日志
-	r.Use(ginzap.RecoveryWithZap(global.ZAP, true))
+	//r.Use(ginzap.RecoveryWithZap(global.ZAP, true))
 	router.InitRoute(r)
 	s := &http.Server{
 		Addr:           fmt.Sprintf(":%d", global.CONFIG.App.Port),

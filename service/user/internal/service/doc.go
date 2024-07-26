@@ -53,38 +53,29 @@ func checkDocTitleIsDuplicates(title string, userId uint64) (doc *model.Doc, err
 }
 
 // DocDetail 文档详情
-func DocDetail(r request.IdRequest, userId uint64) (d *model.Doc, err error) {
-	q := global.DB.Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
+func DocDetail(r request.IDReq, userId uint64) (d *model.Doc, err error) {
+	q := global.DB.Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
 	return
 }
 
 // DocList 文档列表
-func DocList(r request.ListRequest, userId uint64) (res response.ListResponse, err error) {
-	offset := (r.Page - 1) * r.PageSize
-	if offset < 0 {
-		offset = 1
-	}
-
-	var list []model.Doc
+func DocList(r doc.ListDocRequest, userId uint64) (res response.ListResponse, err error) {
 	q := global.DB.Model(&model.Doc{}).Where("user_id = ?", userId)
 
 	if r.GroupId > 0 {
 		q = q.Where("group_id = ?", r.GroupId)
 	}
 
-	q.Count(&res.Total)
-
-	if r.IsDesc {
-		q = q.Order("id DESC")
+	q.Count(&r.Total)
+	if sortStr, err := r.PaginationWithSort.Sort(map[string]string{"createdAt": "created_at", "id": "id"}); err == nil {
+		q = q.Order(sortStr)
 	}
 
-	err = q.
-		Limit(r.PageSize).
-		Offset(offset).
-		Find(&list).
-		Error
+	var list []*model.Doc
+	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&list).Error
 	res.List = list
+	res.Pagination = r.PaginationWithSort
 	return
 }
 

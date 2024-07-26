@@ -35,7 +35,7 @@ func TeamCreate(c *gin.Context) {
 
 // TeamDetail 团队详情
 func TeamDetail(c *gin.Context) {
-	req := request.IdRequest{}
+	req := request.IDReq{}
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
@@ -56,7 +56,7 @@ func TeamDetail(c *gin.Context) {
 
 // TeamList 团队列表
 func TeamList(c *gin.Context) {
-	var req request.ListRequest
+	var req request.PaginationWithSort
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
 		return

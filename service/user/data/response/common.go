@@ -1,6 +1,7 @@
 package response
 
 import (
+	"fastduck/treasure-doc/service/user/data/request"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,8 +11,8 @@ const SUCCESS = 0
 const ERROR = 1
 
 type ListResponse struct {
-	Total int64       `json:"total"`
-	List  interface{} `json:"list"`
+	Pagination request.PaginationWithSort `json:"pagination"`
+	List       interface{}                `json:"list"`
 }
 
 type Response struct {

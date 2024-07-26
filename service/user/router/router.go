@@ -45,7 +45,7 @@ func InitRoute(r *gin.Engine) {
 	{
 		docRoute.POST("/create", api.DocCreate)
 		docRoute.POST("/detail", api.DocDetail)
-		docRoute.POST("/list", api.DocList)
+		docRoute.GET("/list", api.DocList)
 		docRoute.POST("/update", api.DocUpdate)
 		docRoute.POST("/delete", api.DocDelete)
 	}

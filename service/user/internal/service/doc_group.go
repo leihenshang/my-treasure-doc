@@ -53,7 +53,7 @@ func checkDocGroupTitleRepeat(title string, userId uint64) (dg *model.DocGroup, 
 }
 
 // DocGroupList 文档分组列表
-func DocGroupList(r request.ListRequest, userId uint64) (res response2.ListResponse, err error) {
+func DocGroupList(r request.PaginationWithSort, userId uint64) (res response2.ListResponse, err error) {
 	offset := (r.Page - 1) * r.PageSize
 	if offset < 0 {
 		offset = 1
@@ -61,13 +61,10 @@ func DocGroupList(r request.ListRequest, userId uint64) (res response2.ListRespo
 
 	var list []model.DocGroup
 	q := global.DB.Model(&model.DocGroup{}).Where("user_id = ?", userId)
-	q.Count(&res.Total)
-	err = q.
-		Limit(r.PageSize).
-		Offset(offset).
-		Find(&list).
-		Error
+	q.Count(&r.Total)
+	err = q.Limit(r.PageSize).Offset(offset).Find(&list).Error
 	res.List = list
+	res.Pagination = r
 	return
 }
 
