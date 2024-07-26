@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fastduck/treasure-doc/service/user/middleware"
 	"github.com/gin-gonic/gin"
 
 	"fastduck/treasure-doc/service/user/data/request"
@@ -8,7 +9,6 @@ import (
 	"fastduck/treasure-doc/service/user/data/response"
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/internal/service"
-	"fastduck/treasure-doc/service/user/middleware"
 )
 
 // DocGroupCreate 创建文档分组

@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"errors"
-	"net/http"
-
+	"fastduck/treasure-doc/service/user/config"
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/response"
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/internal/service"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,33 +16,60 @@ const (
 	UserInfoKey = "userinfo"
 )
 
+var mockUser = &model.User{
+	BasicModel: model.BasicModel{
+		Id: 9999999999,
+	},
+	Nickname:      "mockUser9999999999",
+	Account:       "mockUser9999999999",
+	Email:         "9999999999",
+	Password:      "9999999999",
+	UserType:      100,
+	UserStatus:    1,
+	Mobile:        "9999999999",
+	Avatar:        "",
+	Bio:           "mockUser9999999999",
+	Token:         "mockUser9999999999",
+	TokenExpire:   new(model.CustomTime),
+	LastLoginIp:   "",
+	LastLoginTime: nil,
+}
+
 // Auth 身份验证
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authKey := c.GetHeader("X-Token")
 		result := &response.Response{Code: response.ERROR}
-		if authKey == "" {
-			result.Msg = "参数错误"
-			c.AbortWithStatusJSON(http.StatusOK, result)
-			return
-		}
 
-		u, err := service.GetUserByToken(authKey)
-		if err != nil {
-			global.ZAPSUGAR.Error(err)
-			result.Msg = "查询用户信息失败"
-			c.AbortWithStatusJSON(http.StatusOK, result)
-			return
-		}
-		if u == nil {
-			global.ZAPSUGAR.Error("获取用户信息失败")
-			result.Msg = "获取用户信息失败"
-			c.AbortWithStatusJSON(http.StatusOK, result)
-			return
-		}
+		if config.GetConfig().Debug.EnableMockLogin {
+			if config.GetConfig().Debug.MockUserId > 0 {
+				mockUser.Id = uint64(config.GetConfig().Debug.MockUserId)
+			}
 
-		//把用户信息写入 context
-		c.Set("userinfo", u)
+			c.Set("userinfo", mockUser)
+		} else {
+			if authKey == "" {
+				result.Msg = "参数错误"
+				c.AbortWithStatusJSON(http.StatusOK, result)
+				return
+			}
+
+			u, err := service.GetUserByToken(authKey)
+			if err != nil {
+				global.ZAPSUGAR.Error(err)
+				result.Msg = "查询用户信息失败"
+				c.AbortWithStatusJSON(http.StatusOK, result)
+				return
+			}
+			if u == nil {
+				global.ZAPSUGAR.Error("获取用户信息失败")
+				result.Msg = "获取用户信息失败"
+				c.AbortWithStatusJSON(http.StatusOK, result)
+				return
+			}
+
+			c.Set("userinfo", u)
+		}
 
 		c.Next()
 	}

@@ -1,20 +1,17 @@
 package router
 
 import (
+	"fastduck/treasure-doc/service/user/middleware"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
 	"fastduck/treasure-doc/service/user/api"
-	"fastduck/treasure-doc/service/user/middleware"
 )
 
 func InitRoute(r *gin.Engine) {
-
-	//静态资源
 	r.Static("/static", "./static")
 
-	//测试连通性
 	base := r.Group("/")
 	{
 		base.GET("/ping", func(c *gin.Context) {
@@ -28,12 +25,11 @@ func InitRoute(r *gin.Engine) {
 
 	//user
 	userRoute := apiBase.Group("user")
-	//不需要验证登录参数
 	{
 		userRoute.POST("/reg", api.UserRegister)
 		userRoute.POST("/login", api.UserLogin)
 	}
-	//需要验证登录参数
+
 	userRoute.Use(middleware.Auth())
 	{
 		userRoute.POST("/logout", api.UserLogout)

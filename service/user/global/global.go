@@ -23,7 +23,6 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	"github.com/go-redis/redis"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -32,7 +31,6 @@ import (
 
 var (
 	CONFIG   *config.Config
-	VIPER    *viper.Viper
 	DB       *gorm.DB
 	ZAP      *zap.Logger
 	ZAPSUGAR *zap.SugaredLogger
@@ -51,10 +49,12 @@ var TableMigrate = []any{
 }
 
 func InitModule(cfgPath string) (destructFunc func(), err error) {
-	if err = initConf(cfgPath); err != nil {
+	if err = config.InitConf(cfgPath); err != nil {
 		return
 	}
 	fmt.Println("初始化配置完成")
+
+	CONFIG = config.GetConfig()
 
 	if err = initLog(); err != nil {
 		return
@@ -110,9 +110,10 @@ func destructModule() func() {
 }
 
 func InitRestPwd(cfgPath string) error {
-	if err := initConf(cfgPath); err != nil {
+	if err := config.InitConf(cfgPath); err != nil {
 		return err
 	}
+	CONFIG = config.GetConfig()
 	fmt.Println("初始化配置完成")
 	err := initMysql()
 	if err != nil {
@@ -120,23 +121,6 @@ func InitRestPwd(cfgPath string) error {
 	}
 	fmt.Println("初始化mysql完成")
 	fmt.Printf("\n")
-	return nil
-}
-
-func initConf(path string) error {
-	fmt.Println("load config file:", path)
-
-	VIPER = viper.New()
-	VIPER.SetConfigFile(path)
-	VIPER.AddConfigPath(".")
-
-	if err := VIPER.ReadInConfig(); err != nil {
-		return fmt.Errorf("failed to load config: %w \n", err)
-	}
-
-	if err := VIPER.Unmarshal(&CONFIG); err != nil {
-		return fmt.Errorf("failed to unmarshal config: %w \n", err)
-	}
 	return nil
 }
 
