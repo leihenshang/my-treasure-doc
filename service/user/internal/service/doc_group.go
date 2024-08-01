@@ -7,7 +7,7 @@ import (
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request"
 	"fastduck/treasure-doc/service/user/data/request/doc"
-	response2 "fastduck/treasure-doc/service/user/data/response"
+	resp "fastduck/treasure-doc/service/user/data/response"
 	"fastduck/treasure-doc/service/user/global"
 
 	"gorm.io/gorm"
@@ -16,20 +16,18 @@ import (
 // DocGroupCreate 创建文档分组
 func DocGroupCreate(r doc.CreateDocGroupRequest, userId uint64) (dg *model.DocGroup, err error) {
 	insertData := &model.DocGroup{
-		Title:  r.Title,
-		Icon:   r.Icon,
-		PId:    uint64(r.PId),
-		UserId: userId,
+		Title:    r.Title,
+		Icon:     r.Icon,
+		PId:      uint64(r.PId),
+		UserId:   userId,
+		Priority: r.Priority,
 	}
 
-	if existed, checkErr := checkDocGroupTitleRepeat(insertData.Title, userId); checkErr != nil {
-		global.ZAPSUGAR.Error(r, userId, "检查文档分组标题失败")
+	if existed, err := checkDocGroupTitleRepeat(insertData.Title, userId); err != nil {
+		global.ZAPSUGAR.Error(r, userId, err)
 		return nil, errors.New("检查文档分组标题失败")
-	} else {
-		fmt.Println(existed)
-		if existed != nil {
-			return nil, errors.New("文档分组标题已存在")
-		}
+	} else if existed != nil {
+		return nil, errors.New("文档分组标题已存在")
 	}
 
 	if err = global.DB.Create(insertData).Error; err != nil {
@@ -37,7 +35,7 @@ func DocGroupCreate(r doc.CreateDocGroupRequest, userId uint64) (dg *model.DocGr
 		return nil, errors.New("创建文档分组失败")
 	}
 
-	return
+	return insertData, nil
 }
 
 // checkDocGroupTitleRepeat 查询数据库检查文档分组标题是否重复
@@ -53,16 +51,11 @@ func checkDocGroupTitleRepeat(title string, userId uint64) (dg *model.DocGroup, 
 }
 
 // DocGroupList 文档分组列表
-func DocGroupList(r request.PaginationWithSort, userId uint64) (res response2.ListResponse, err error) {
-	offset := (r.Page - 1) * r.PageSize
-	if offset < 0 {
-		offset = 1
-	}
-
+func DocGroupList(r request.PaginationWithSort, userId uint64) (res resp.ListResponse, err error) {
 	var list []model.DocGroup
 	q := global.DB.Model(&model.DocGroup{}).Where("user_id = ?", userId)
 	q.Count(&r.Total)
-	err = q.Limit(r.PageSize).Offset(offset).Find(&list).Error
+	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&list).Error
 	res.List = list
 	res.Pagination = r
 	return
@@ -72,7 +65,6 @@ func DocGroupList(r request.PaginationWithSort, userId uint64) (res response2.Li
 func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
-		global.ZAPSUGAR.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
@@ -81,7 +73,7 @@ func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 	if err = q.Updates(u).Error; err != nil {
 		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
 		global.ZAPSUGAR.Error(errMsg)
-		return errors.New("操作失败")
+		return errors.New(errMsg)
 	}
 
 	return
@@ -105,22 +97,30 @@ func DocGroupDelete(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 	return
 }
 
-func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree []*response2.DocTree, err error) {
-	docTree = make([]*response2.DocTree, 0)
-	var list []*model.DocGroup
+func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree []*resp.DocTree, err error) {
+	docTree = make([]*resp.DocTree, 0)
+	var list model.DocGroups
 	q := global.DB.Where("user_id = ?", userId).Where("p_id = ?", r.Pid)
 	if err = q.Find(&list).Error; err != nil {
 		global.ZAPSUGAR.Error(err)
-		return docTree, errors.New("查询分组信息失败")
+		return nil, errors.New("查询分组信息失败")
 	}
 
+	var countList model.DocGroups
+	countQ := global.DB.Debug().Select("p_id,count(*) as children_count").Where("p_id IN (?)", list.GetIds()).Group("p_id").Find(&countList)
+	if err = countQ.Error; err != nil {
+		global.ZAPSUGAR.Error(err)
+		return nil, errors.New("查询分组统计信息失败")
+	}
+
+	countMap := countList.ToPidMap()
 	for _, v := range list {
-		vv := v
-		docTree = append(docTree, &response2.DocTree{
-			DocGroup: vv,
-			Children: nil,
+		if cnt, ok := countMap[v.Id]; ok {
+			v.ChildrenCount = cnt.ChildrenCount
+		}
+		docTree = append(docTree, &resp.DocTree{
+			DocGroup: v,
 		})
 	}
-
 	return
 }
