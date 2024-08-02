@@ -13,7 +13,7 @@ type Doc struct {
 	Priority      int    `gorm:"column:priority;type:int(255);default:0;NOT NULL" json:"priority"`         // 优先级
 	GroupId       int    `gorm:"column:group_id;type:int(11);default:0;NOT NULL" json:"groupId"`           // 分组id
 	ChildrenTotal int    `gorm:"-:migration" json:"childrenTotal,omitempty"`
-	Children      Docs   `gorm:"-:migration" json:"children,omitempty"`
+	Children      Docs   `gorm:"-:all" json:"children,omitempty"`
 }
 
 type Docs []*Doc
