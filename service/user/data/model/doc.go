@@ -12,7 +12,7 @@ type Doc struct {
 	IsTop         int    `gorm:"column:is_top;type:tinyint(4);default:0;NOT NULL" json:"isTop"`            // 是否置顶
 	Priority      int    `gorm:"column:priority;type:int(255);default:0;NOT NULL" json:"priority"`         // 优先级
 	GroupId       int    `gorm:"column:group_id;type:int(11);default:0;NOT NULL" json:"groupId"`           // 分组id
-	ChildrenTotal int    `gorm:"-:migration" json:"childrenTotal,omitempty"`
+	ChildrenTotal int    `gorm:"-:all" json:"childrenTotal,omitempty"`
 	Children      Docs   `gorm:"-:all" json:"children,omitempty"`
 }
 

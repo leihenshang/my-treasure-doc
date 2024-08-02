@@ -135,13 +135,11 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 
 	//下发token以及设置token过期时间
 	u.Token = utils.GenerateLoginToken(u.Id)
-	tokenExpire := model.CustomTime(time.Now().Add(time.Hour * 24 * 7))
-	u.TokenExpire = &tokenExpire
+	u.TokenExpire = time.Now().Add(time.Hour * 24 * 7)
 
 	//设置登录时间记录用户登录ip
 	u.LastLoginIp = clientIp
-	customTime := model.CustomTime(time.Now())
-	u.LastLoginTime = &customTime
+	u.LastLoginTime = time.Now()
 	if err := global.DB.Select("LastLoginIp", "LastLoginTime", "Token", "TokenExpire").Save(&u).Error; err != nil {
 		return u, errors.New("登录失败: 更新登录状态发生错误")
 	}
@@ -159,7 +157,7 @@ func UserLogout(userId uint64) error {
 	}
 
 	userInfo.Token = ""
-	userInfo.TokenExpire = nil
+	userInfo.TokenExpire = time.Time{}
 
 	if err := global.DB.Save(&userInfo).Error; err != nil {
 		global.ZAP.Error("退出登陆，更新信息失败", zap.Any("dbErr", err))

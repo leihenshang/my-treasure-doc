@@ -8,6 +8,7 @@ import (
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/internal/service"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,9 +31,9 @@ var mockUser = &model.User{
 	Avatar:        "",
 	Bio:           "mockUser9999999999",
 	Token:         "mockUser9999999999",
-	TokenExpire:   new(model.CustomTime),
+	TokenExpire:   time.Time{},
 	LastLoginIp:   "",
-	LastLoginTime: nil,
+	LastLoginTime: time.Time{},
 }
 
 // Auth 身份验证
