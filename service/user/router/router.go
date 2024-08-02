@@ -44,6 +44,7 @@ func InitRoute(r *gin.Engine) {
 		docRoute.GET("/list", api.DocList)
 		docRoute.POST("/update", api.DocUpdate)
 		docRoute.POST("/delete", api.DocDelete)
+		docRoute.GET("/tree", api.DocTree)
 	}
 
 	//doc group

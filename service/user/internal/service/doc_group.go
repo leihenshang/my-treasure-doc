@@ -107,7 +107,7 @@ func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree []*resp.DocTre
 	}
 
 	var countList model.DocGroups
-	countQ := global.DB.Debug().Select("p_id,count(*) as children_count").Where("p_id IN (?)", list.GetIds()).Group("p_id").Find(&countList)
+	countQ := global.DB.Select("p_id,count(*) as children_count").Where("p_id IN (?)", list.GetIds()).Group("p_id").Find(&countList)
 	if err = countQ.Error; err != nil {
 		global.ZAPSUGAR.Error(err)
 		return nil, errors.New("查询分组统计信息失败")

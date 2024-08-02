@@ -111,3 +111,24 @@ func DocDelete(c *gin.Context) {
 		response.Ok(c)
 	}
 }
+
+// DocTree 文档树
+func DocTree(c *gin.Context) {
+	var req doc.ListDocRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.FailWithMessage(global.ErrResp(err), c)
+		return
+	}
+
+	u, err := middleware.GetUserInfoByCtx(c)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	if res, ok := service.DocTree(req, u.Id); ok != nil {
+		response.FailWithMessage(ok.Error(), c)
+	} else {
+		response.OkWithData(res, c)
+	}
+}

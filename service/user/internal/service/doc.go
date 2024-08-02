@@ -19,6 +19,7 @@ func DocCreate(r doc.CreateDocRequest, userId uint64) (d *model.Doc, err error) 
 		UserId:  userId,
 		Title:   r.Title,
 		Content: r.Content,
+		Pid:     r.Pid,
 		GroupId: r.GroupId,
 		IsTop:   r.IsTop,
 	}
@@ -67,6 +68,10 @@ func DocList(r doc.ListDocRequest, userId uint64) (res response.ListResponse, er
 		q = q.Where("group_id = ?", r.GroupId)
 	}
 
+	if r.Pid > 0 {
+		q = q.Where("pid = ?", r.Pid)
+	}
+
 	q.Count(&r.Total)
 	if sortStr, err := r.PaginationWithSort.Sort(map[string]string{"createdAt": "created_at", "id": "id"}); err == nil {
 		q = q.Order(sortStr)
@@ -95,6 +100,10 @@ func DocUpdate(r doc.UpdateDocRequest, userId uint64) (err error) {
 	if r.Content != "" {
 		u["Content"] = r.Content
 	}
+	if r.Pid > 0 {
+		u["Pid"] = r.Pid
+	}
+
 	if r.GroupId > 0 {
 		u["GroupId"] = r.GroupId
 	}
@@ -123,5 +132,11 @@ func DocDelete(r doc.UpdateDocRequest, userId uint64) (err error) {
 		return errors.New("操作失败")
 	}
 
+	return
+}
+
+func DocTree(r doc.ListDocRequest, userId uint64) (res model.Docs, err error) {
+	q := global.DB.Model(&model.Doc{}).Select("id,pid,title").Where("user_id = ?", userId).Where("pid = ?", r.Pid)
+	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&res).Error
 	return
 }
