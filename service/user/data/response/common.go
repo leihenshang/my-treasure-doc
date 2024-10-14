@@ -11,8 +11,8 @@ const SUCCESS = 0
 const ERROR = 1
 
 type ListResponse struct {
-	Pagination request.PaginationWithSort `json:"pagination"`
-	List       interface{}                `json:"list"`
+	Pagination request.ListPagination `json:"pagination"`
+	List       interface{}            `json:"list"`
 }
 
 type Response struct {

@@ -9,20 +9,23 @@ type IDReq struct {
 	ID int `json:"id" form:"id"  xml:"id"`
 }
 
-type PaginationWithSort struct {
+type ListPagination struct {
 	Page     int   `json:"page" form:"page" xml:"page"`
 	PageSize int   `json:"pageSize" form:"pageSize" xml:"pageSize"`
 	Total    int64 `json:"total" form:"total" xml:"total"`
+}
+
+type ListSort struct {
 	// OrderBy orderBy: id_asc,name_desc
 	OrderBy string `json:"orderBy" form:"orderBy" xml:"orderBy"`
 }
 
-func (p PaginationWithSort) Sort(sortFields map[string]string) (string, error) {
+func (l ListSort) Sort(sortFields map[string]string) (string, error) {
 	if sortFields == nil {
 		return "", errors.New("sort field is empty")
 	}
 
-	sortSet := strings.Split(p.OrderBy, ",")
+	sortSet := strings.Split(l.OrderBy, ",")
 	var res []string
 	for _, s := range sortSet {
 		sortItem := strings.Split(s, "_")
@@ -58,7 +61,7 @@ func (o OrderByType) UpperString() string {
 	return strings.ToUpper(string(o))
 }
 
-func (p PaginationWithSort) Offset() int {
+func (p ListPagination) Offset() int {
 	offset := (p.Page - 1) * p.PageSize
 	if offset < 0 {
 		offset = 1

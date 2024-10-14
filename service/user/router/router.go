@@ -40,7 +40,7 @@ func InitRoute(r *gin.Engine) {
 	docRoute := apiBase.Group("doc").Use(middleware.Auth(), middleware.Cors())
 	{
 		docRoute.POST("/create", api.DocCreate)
-		docRoute.POST("/detail", api.DocDetail)
+		docRoute.GET("/detail", api.DocDetail)
 		docRoute.GET("/list", api.DocList)
 		docRoute.POST("/update", api.DocUpdate)
 		docRoute.POST("/delete", api.DocDelete)

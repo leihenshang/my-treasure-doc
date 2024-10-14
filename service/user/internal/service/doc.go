@@ -73,14 +73,14 @@ func DocList(r doc.ListDocRequest, userId uint64) (res response.ListResponse, er
 	}
 
 	q.Count(&r.Total)
-	if sortStr, err := r.PaginationWithSort.Sort(map[string]string{"createdAt": "created_at", "id": "id"}); err == nil {
+	if sortStr, err := r.ListSort.Sort(map[string]string{"createdAt": "created_at", "id": "id"}); err == nil {
 		q = q.Order(sortStr)
 	}
 
 	var list []*model.Doc
 	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&list).Error
 	res.List = list
-	res.Pagination = r.PaginationWithSort
+	res.Pagination = r.ListPagination
 	return
 }
 

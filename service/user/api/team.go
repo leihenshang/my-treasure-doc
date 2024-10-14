@@ -56,7 +56,7 @@ func TeamDetail(c *gin.Context) {
 
 // TeamList 团队列表
 func TeamList(c *gin.Context) {
-	var req request.PaginationWithSort
+	var req request.ListPagination
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
 		return

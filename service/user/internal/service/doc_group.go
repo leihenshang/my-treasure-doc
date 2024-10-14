@@ -51,7 +51,7 @@ func checkDocGroupTitleRepeat(title string, userId uint64) (dg *model.DocGroup, 
 }
 
 // DocGroupList 文档分组列表
-func DocGroupList(r request.PaginationWithSort, userId uint64) (res resp.ListResponse, err error) {
+func DocGroupList(r request.ListPagination, userId uint64) (res resp.ListResponse, err error) {
 	var list []model.DocGroup
 	q := global.DB.Model(&model.DocGroup{}).Where("user_id = ?", userId)
 	q.Count(&r.Total)
@@ -97,7 +97,7 @@ func DocGroupDelete(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 	return
 }
 
-func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree []*resp.DocTree, err error) {
+func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree resp.DocTrees, err error) {
 	docTree = make([]*resp.DocTree, 0)
 	var list model.DocGroups
 	q := global.DB.Where("user_id = ?", userId).Where("p_id = ?", r.Pid)
@@ -106,8 +106,32 @@ func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree []*resp.DocTre
 		return nil, errors.New("查询分组信息失败")
 	}
 
+	docTree, err = fillGroupDocCount(list)
+	docs, err := getDocByGroupIds(r.Pid)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, d := range docs {
+		docTree = append(docTree, &resp.DocTree{
+			DocGroup: &model.DocGroup{
+				BasicModel: model.BasicModel{
+					Id: d.Id,
+				},
+				Title:     d.Title,
+				Priority:  d.Priority,
+				GroupType: model.GroupTypeDoc,
+			},
+		})
+	}
+
+	return
+}
+
+func fillGroupDocCount(list model.DocGroups) (docTree resp.DocTrees, err error) {
 	var countList model.DocGroups
-	countQ := global.DB.Select("p_id,count(*) as children_count").Where("p_id IN (?)", list.GetIds()).Group("p_id").Find(&countList)
+	countQ := global.DB.Select("p_id,count(*) as children_count").
+		Where("p_id IN (?)", list.GetIds()).Group("p_id").Find(&countList)
 	if err = countQ.Error; err != nil {
 		global.ZAPSUGAR.Error(err)
 		return nil, errors.New("查询分组统计信息失败")
@@ -122,5 +146,11 @@ func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree []*resp.DocTre
 			DocGroup: v,
 		})
 	}
+
+	return
+}
+
+func getDocByGroupIds(groupId ...uint64) (res model.Docs, err error) {
+	err = global.DB.Where("group_id IN (?)", groupId).Order("id DESC").Find(&res).Error
 	return
 }

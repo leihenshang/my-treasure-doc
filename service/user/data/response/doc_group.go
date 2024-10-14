@@ -8,3 +8,5 @@ type DocTree struct {
 	*model.DocGroup
 	Children []*model.DocGroup
 }
+
+type DocTrees []*DocTree

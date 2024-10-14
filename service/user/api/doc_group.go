@@ -35,7 +35,7 @@ func DocGroupCreate(c *gin.Context) {
 
 // DocGroupList 文档分组列表
 func DocGroupList(c *gin.Context) {
-	var req request.PaginationWithSort
+	var req request.ListPagination
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
 		return

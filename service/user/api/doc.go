@@ -36,7 +36,7 @@ func DocCreate(c *gin.Context) {
 // DocDetail 文档详情
 func DocDetail(c *gin.Context) {
 	req := request.IDReq{}
-	err := c.ShouldBindJSON(&req)
+	err := c.ShouldBindQuery(&req)
 	if err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
 		return
