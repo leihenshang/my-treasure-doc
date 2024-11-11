@@ -112,6 +112,10 @@ func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree resp.DocTrees,
 		return nil, err
 	}
 
+	if !r.WithChildren {
+		return
+	}
+
 	for _, d := range docs {
 		docTree = append(docTree, &resp.DocTree{
 			DocGroup: &model.DocGroup{
