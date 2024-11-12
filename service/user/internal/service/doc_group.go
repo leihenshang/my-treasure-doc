@@ -105,17 +105,29 @@ func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree resp.DocTrees,
 		global.ZAPSUGAR.Error(err)
 		return nil, errors.New("查询分组信息失败")
 	}
-
-	docTree, err = fillGroupDocCount(list)
-	docs, err := getDocByGroupIds(r.Pid)
-	if err != nil {
-		return nil, err
+	for _, v := range list {
+		docTree = append(docTree, &resp.DocTree{
+			DocGroup: v,
+		})
 	}
-
 	if !r.WithChildren {
 		return
 	}
 
+	groupDocs, err := fillGroupDoc(r.Pid)
+	if err != nil {
+		global.ZAPSUGAR.Error(err)
+		return nil, err
+	}
+	docTree = append(docTree, groupDocs...)
+	return
+}
+
+func fillGroupDoc(pid int64) (docTree resp.DocTrees, err error) {
+	docs, err := getDocByGroupIds(pid)
+	if err != nil {
+		return nil, err
+	}
 	for _, d := range docs {
 		docTree = append(docTree, &resp.DocTree{
 			DocGroup: &model.DocGroup{
@@ -128,33 +140,10 @@ func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree resp.DocTrees,
 			},
 		})
 	}
-
 	return
 }
 
-func fillGroupDocCount(list model.DocGroups) (docTree resp.DocTrees, err error) {
-	var countList model.DocGroups
-	countQ := global.DB.Select("p_id,count(*) as children_count").
-		Where("p_id IN (?)", list.GetIds()).Group("p_id").Find(&countList)
-	if err = countQ.Error; err != nil {
-		global.ZAPSUGAR.Error(err)
-		return nil, errors.New("查询分组统计信息失败")
-	}
-
-	countMap := countList.ToPidMap()
-	for _, v := range list {
-		if cnt, ok := countMap[v.Id]; ok {
-			v.ChildrenCount = cnt.ChildrenCount
-		}
-		docTree = append(docTree, &resp.DocTree{
-			DocGroup: v,
-		})
-	}
-
-	return
-}
-
-func getDocByGroupIds(groupId ...uint64) (res model.Docs, err error) {
+func getDocByGroupIds(groupId ...int64) (res model.Docs, err error) {
 	err = global.DB.Where("group_id IN (?)", groupId).Order("id DESC").Find(&res).Error
 	return
 }

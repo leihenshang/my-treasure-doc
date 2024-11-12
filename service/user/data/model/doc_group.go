@@ -3,13 +3,12 @@ package model
 // DocGroup 文档分组
 type DocGroup struct {
 	BasicModel
-	UserId        uint64    `gorm:"column:user_id;default:0;NOT NULL" json:"userId"`    // 用户Id
-	Title         string    `gorm:"column:title;NOT NULL" json:"title"`                 // 组名
-	Icon          string    `gorm:"column:icon;NOT NULL" json:"icon"`                   // 图标
-	PId           uint64    `gorm:"column:p_id;default:0;NOT NULL" json:"pid"`          // 父级id
-	Priority      int       `gorm:"column:priority;default:0;NOT NULL" json:"priority"` // 优先级
-	ChildrenCount int       `gorm:"-:all" json:"childrenCount"`
-	GroupType     GroupType `gorm:"-:all" json:"groupType"`
+	UserId    uint64    `gorm:"column:user_id;default:0;NOT NULL" json:"userId"`    // 用户Id
+	Title     string    `gorm:"column:title;NOT NULL" json:"title"`                 // 组名
+	Icon      string    `gorm:"column:icon;NOT NULL" json:"icon"`                   // 图标
+	PId       uint64    `gorm:"column:p_id;default:0;NOT NULL" json:"pid"`          // 父级id
+	Priority  int       `gorm:"column:priority;default:0;NOT NULL" json:"priority"` // 优先级
+	GroupType GroupType `gorm:"-:all" json:"groupType"`
 }
 
 type GroupType string
