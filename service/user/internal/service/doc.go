@@ -19,7 +19,6 @@ func DocCreate(r doc.CreateDocRequest, userId int64) (d *model.Doc, err error) {
 		UserId:  userId,
 		Title:   r.Title,
 		Content: r.Content,
-		Pid:     r.Pid,
 		GroupId: r.GroupId,
 		IsTop:   r.IsTop,
 	}

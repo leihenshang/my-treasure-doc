@@ -7,10 +7,9 @@ import (
 	"fastduck/treasure-doc/service/user/data/response"
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/internal/service"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -31,9 +30,9 @@ var mockUser = &model.User{
 	Avatar:        "",
 	Bio:           "mockUser9999999999",
 	Token:         "mockUser9999999999",
-	TokenExpire:   time.Time{},
+	TokenExpire:   time.Now().Add(time.Hour * 72),
 	LastLoginIp:   "",
-	LastLoginTime: time.Time{},
+	LastLoginTime: time.Now(),
 }
 
 // Auth 身份验证

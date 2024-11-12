@@ -157,7 +157,7 @@ func UserLogout(userId int64) error {
 	}
 
 	userInfo.Token = ""
-	userInfo.TokenExpire = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	userInfo.TokenExpire = utils.GetZeroDateTime()
 
 	if err := global.DB.Save(&userInfo).Error; err != nil {
 		global.ZAP.Error("退出登陆，更新信息失败", zap.Any("dbErr", err))
