@@ -8,6 +8,7 @@ type DocGroup struct {
 	Icon      string    `gorm:"column:icon;NOT NULL" json:"icon"`                   // 图标
 	PId       int64     `gorm:"column:p_id;default:0;NOT NULL" json:"pid"`          // 父级id
 	Priority  int       `gorm:"column:priority;default:0;NOT NULL" json:"priority"` // 优先级
+	GroupPath string    `gorm:"column:group_path;default:'';NOT NULL" json:"groupPath"`
 	GroupType GroupType `gorm:"-:all" json:"groupType"`
 }
 

@@ -32,6 +32,15 @@ func DocCreate(r doc.CreateDocRequest, userId int64) (d *model.Doc, err error) {
 	//	}
 	//}
 
+	if insertData.GroupId > 0 {
+		groupList, err := getDocByGroupIds(insertData.GroupId)
+		if err != nil {
+			return nil, err
+		} else if len(groupList) == 0 {
+			return nil, errors.New("分组没有找到")
+		}
+	}
+
 	if err = global.DB.Create(insertData).Error; err != nil {
 		global.ZAPSUGAR.Error(r, err)
 		return nil, errors.New("创建文档失败")
@@ -81,6 +90,11 @@ func DocList(r doc.ListDocRequest, userId int64) (res response.ListResponse, err
 	res.List = list
 	res.Pagination = r.ListPagination
 	return
+}
+
+func fillGroupPath(docs model.Docs) model.Docs {
+	docs.GetGroupIds(true)
+	return docs
 }
 
 // DocUpdate 文档更新
