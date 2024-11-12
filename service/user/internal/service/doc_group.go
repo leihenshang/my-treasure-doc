@@ -14,11 +14,11 @@ import (
 )
 
 // DocGroupCreate 创建文档分组
-func DocGroupCreate(r doc.CreateDocGroupRequest, userId uint64) (dg *model.DocGroup, err error) {
+func DocGroupCreate(r doc.CreateDocGroupRequest, userId int64) (dg *model.DocGroup, err error) {
 	insertData := &model.DocGroup{
 		Title:    r.Title,
 		Icon:     r.Icon,
-		PId:      uint64(r.PId),
+		PId:      r.PId,
 		UserId:   userId,
 		Priority: r.Priority,
 	}
@@ -39,7 +39,7 @@ func DocGroupCreate(r doc.CreateDocGroupRequest, userId uint64) (dg *model.DocGr
 }
 
 // checkDocGroupTitleRepeat 查询数据库检查文档分组标题是否重复
-func checkDocGroupTitleRepeat(title string, userId uint64) (dg *model.DocGroup, err error) {
+func checkDocGroupTitleRepeat(title string, userId int64) (dg *model.DocGroup, err error) {
 	q := global.DB.Model(&model.DocGroup{}).Where("title = ? AND user_id = ?", title, userId)
 	if err = q.First(&dg).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -51,7 +51,7 @@ func checkDocGroupTitleRepeat(title string, userId uint64) (dg *model.DocGroup, 
 }
 
 // DocGroupList 文档分组列表
-func DocGroupList(r request.ListPagination, userId uint64) (res resp.ListResponse, err error) {
+func DocGroupList(r request.ListPagination, userId int64) (res resp.ListResponse, err error) {
 	var list []model.DocGroup
 	q := global.DB.Model(&model.DocGroup{}).Where("user_id = ?", userId)
 	q.Count(&r.Total)
@@ -62,7 +62,7 @@ func DocGroupList(r request.ListPagination, userId uint64) (res resp.ListRespons
 }
 
 // DocGroupUpdate 文档分组更新
-func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
+func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		return errors.New(errMsg)
@@ -80,7 +80,7 @@ func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 }
 
 // DocGroupDelete 文档分组删除u
-func DocGroupDelete(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
+func DocGroupDelete(r doc.UpdateDocGroupRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		global.ZAPSUGAR.Error(errMsg)
@@ -97,7 +97,7 @@ func DocGroupDelete(r doc.UpdateDocGroupRequest, userId uint64) (err error) {
 	return
 }
 
-func DocGroupTree(r doc.GroupTreeRequest, userId uint64) (docTree resp.DocTrees, err error) {
+func DocGroupTree(r doc.GroupTreeRequest, userId int64) (docTree resp.DocTrees, err error) {
 	docTree = make([]*resp.DocTree, 0)
 	var list model.DocGroups
 	q := global.DB.Where("user_id = ?", userId).Where("p_id = ?", r.Pid)

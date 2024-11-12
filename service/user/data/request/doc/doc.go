@@ -8,7 +8,7 @@ import (
 type CreateDocRequest struct {
 	Title   string `json:"title" binding:"min=1,max=250"` // 标题
 	Content string `json:"content" binding:""`            // 文档内容
-	Pid     uint64 `json:"pid" binding:""`
+	Pid     int64  `json:"pid" binding:""`
 	GroupId int    `json:"groupId" binding:""`
 	IsTop   int    `json:"isTop" binding:""` // 是否置顶
 }
@@ -16,7 +16,7 @@ type CreateDocRequest struct {
 // UpdateDocRequest 更新文档
 type UpdateDocRequest struct {
 	Id      int    `json:"id" binding:"required"`
-	Pid     uint64 `json:"pid" binding:""`
+	Pid     int64  `json:"pid" binding:""`
 	GroupId int    `json:"groupId" binding:""`
 	Title   string `json:"title" binding:"max=250"` // 标题
 	Content string `json:"content" binding:""`      // 文档内容

@@ -150,14 +150,14 @@ func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err erro
 }
 
 // UserLogout 用户退出登陆
-func UserLogout(userId uint64) error {
+func UserLogout(userId int64) error {
 	var userInfo model.User
 	if errors.Is(global.DB.Where("id = ?", userId).First(&userInfo).Error, gorm.ErrRecordNotFound) {
-		return nil
+		return errors.New("用户不存在")
 	}
 
 	userInfo.Token = ""
-	userInfo.TokenExpire = time.Time{}
+	userInfo.TokenExpire = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	if err := global.DB.Save(&userInfo).Error; err != nil {
 		global.ZAP.Error("退出登陆，更新信息失败", zap.Any("dbErr", err))
@@ -168,7 +168,7 @@ func UserLogout(userId uint64) error {
 }
 
 // UserProfileUpdate 更新用户个人资料
-func UserProfileUpdate(profile user.UserProfileUpdateRequest, userId uint64) (u model.User, err error) {
+func UserProfileUpdate(profile user.UserProfileUpdateRequest, userId int64) (u model.User, err error) {
 	if errors.Is(global.DB.Where("id = ?", userId).First(&u).Error, gorm.ErrRecordNotFound) {
 		return u, errors.New("用户没有找到")
 	}

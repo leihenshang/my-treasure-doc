@@ -14,7 +14,7 @@ import (
 )
 
 // TeamCreate 创建文档
-func TeamCreate(r team.CreateOrUpdateTeamRequest, userId uint64) (d *model.Team, err error) {
+func TeamCreate(r team.CreateOrUpdateTeamRequest, userId int64) (d *model.Team, err error) {
 	insertData := &model.Team{}
 
 	if existed, checkErr := checkTeamTitleRepeat(insertData.Name, userId); checkErr != nil {
@@ -35,7 +35,7 @@ func TeamCreate(r team.CreateOrUpdateTeamRequest, userId uint64) (d *model.Team,
 }
 
 // checkTeamTitleRepeat 查询数据库检查文档标题是否重复
-func checkTeamTitleRepeat(title string, userId uint64) (team *model.Team, err error) {
+func checkTeamTitleRepeat(title string, userId int64) (team *model.Team, err error) {
 	q := global.DB.Model(&model.Team{}).Where("title = ? AND user_id = ?", title, userId)
 	if err = q.First(&team).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -47,14 +47,14 @@ func checkTeamTitleRepeat(title string, userId uint64) (team *model.Team, err er
 }
 
 // TeamDetail 文档详情
-func TeamDetail(r request.IDReq, userId uint64) (d *model.Team, err error) {
+func TeamDetail(r request.IDReq, userId int64) (d *model.Team, err error) {
 	q := global.DB.Model(&model.Team{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
 	return
 }
 
 // TeamList 文档列表
-func TeamList(r request.ListPagination, userId uint64) (res response.ListResponse, err error) {
+func TeamList(r request.ListPagination, userId int64) (res response.ListResponse, err error) {
 	offset := (r.Page - 1) * r.PageSize
 	if offset < 0 {
 		offset = 1
@@ -70,7 +70,7 @@ func TeamList(r request.ListPagination, userId uint64) (res response.ListRespons
 }
 
 // TeamUpdate 文档更新
-func TeamUpdate(r team.CreateOrUpdateTeamRequest, userId uint64) (err error) {
+func TeamUpdate(r team.CreateOrUpdateTeamRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		global.ZAPSUGAR.Error(errMsg)
@@ -89,7 +89,7 @@ func TeamUpdate(r team.CreateOrUpdateTeamRequest, userId uint64) (err error) {
 }
 
 // TeamDelete 文档删除
-func TeamDelete(r team.CreateOrUpdateTeamRequest, userId uint64) (err error) {
+func TeamDelete(r team.CreateOrUpdateTeamRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		global.ZAPSUGAR.Error(errMsg)

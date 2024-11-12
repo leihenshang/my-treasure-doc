@@ -44,14 +44,14 @@ func Auth() gin.HandlerFunc {
 
 		if config.GetConfig().Debug.EnableMockLogin {
 			if config.GetConfig().Debug.MockUserId > 0 {
-				mockUser.Id = uint64(config.GetConfig().Debug.MockUserId)
+				mockUser.Id = config.GetConfig().Debug.MockUserId
 			}
 
 			c.Set("userinfo", mockUser)
 		} else {
 			if authKey == "" {
 				result.Msg = "参数错误"
-				c.AbortWithStatusJSON(http.StatusOK, result)
+				c.AbortWithStatusJSON(http.StatusUnauthorized, result)
 				return
 			}
 
@@ -59,13 +59,13 @@ func Auth() gin.HandlerFunc {
 			if err != nil {
 				global.ZAPSUGAR.Error(err)
 				result.Msg = "查询用户信息失败"
-				c.AbortWithStatusJSON(http.StatusOK, result)
+				c.AbortWithStatusJSON(http.StatusUnauthorized, result)
 				return
 			}
 			if u == nil {
 				global.ZAPSUGAR.Error("获取用户信息失败")
 				result.Msg = "获取用户信息失败"
-				c.AbortWithStatusJSON(http.StatusOK, result)
+				c.AbortWithStatusJSON(http.StatusUnauthorized, result)
 				return
 			}
 

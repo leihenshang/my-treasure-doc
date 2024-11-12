@@ -6,8 +6,8 @@ import (
 
 // VerifyCode [...]
 type VerifyCode struct {
-	ID         uint64    `gorm:"primaryKey;column:id;type:bigint(20) unsigned;not null" json:"-"`
-	UserID     uint64    `gorm:"column:user_id;type:bigint(20) unsigned;not null;default:0" json:"userId"` // 用户id
+	ID         int64     `gorm:"primaryKey;column:id;type:bigint(20) unsigned;not null" json:"-"`
+	UserID     int64     `gorm:"column:user_id;type:bigint(20) unsigned;not null;default:0" json:"userId"` // 用户id
 	Content    string    `gorm:"column:content;type:varchar(500)" json:"content"`                          // 内容
 	Title      string    `gorm:"column:title;type:varchar(100)" json:"title"`                              // 标题
 	ExpireTime time.Time `gorm:"column:expire_time;type:datetime;not null" json:"expireTime"`              // 过期时间
