@@ -33,7 +33,7 @@ func DocCreate(r doc.CreateDocRequest, userId int64) (d *model.Doc, err error) {
 	//}
 
 	if insertData.GroupId > 0 {
-		groupList, err := getDocByGroupIds(insertData.GroupId)
+		groupList, err := getDocGroupByIds(insertData.GroupId)
 		if err != nil {
 			return nil, err
 		} else if len(groupList) == 0 {

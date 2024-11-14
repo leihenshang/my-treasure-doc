@@ -144,6 +144,11 @@ func fillGroupDoc(pid int64) (docTree resp.DocTrees, err error) {
 }
 
 func getDocByGroupIds(groupId ...int64) (res model.Docs, err error) {
-	err = global.DB.Where("group_id IN (?)", groupId).Order("id DESC").Find(&res).Error
+	err = global.DB.Where("group_id IN (?)", groupId).Find(&res).Error
+	return
+}
+
+func getDocGroupByIds(groupId ...int64) (res model.DocGroups, err error) {
+	err = global.DB.Where("id IN (?)", groupId).Find(&res).Error
 	return
 }
