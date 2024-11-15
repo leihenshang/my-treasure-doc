@@ -87,12 +87,19 @@ func DocGroupDelete(r doc.UpdateDocGroupRequest, userId int64) (err error) {
 		return errors.New(errMsg)
 	}
 
-	q := global.DB.Where("id = ? AND user_id = ?", r.Id, userId)
+	tx := global.DB.Begin()
+	q := tx.Where("id = ? AND user_id = ?", r.Id, userId)
 	if err = q.Delete(&model.DocGroup{}).Error; err != nil {
-		errMsg := fmt.Sprintf("删除id 为 %d 的数据失败 %v ", r.Id, err)
-		global.ZAPSUGAR.Error(errMsg)
-		return errors.New("操作失败")
+		tx.Rollback()
+		return errors.New(fmt.Sprintf("删除id 为 %d 的数据失败 %v ", r.Id, err))
 	}
+	if err = q.Where("group_id = ? AND user_id = ?", r.Id, userId).Delete(&model.Doc{}).Error; err != nil {
+		tx.Rollback()
+		errMsg := fmt.Sprintf("删除id 为 %d 的分组下的文档失败 %v ", r.Id, err)
+		return errors.New(errMsg)
+	}
+
+	tx.Commit()
 
 	return
 }

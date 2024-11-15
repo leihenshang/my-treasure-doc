@@ -47,6 +47,16 @@ func InitRoute(r *gin.Engine) {
 		docRoute.GET("/tree", api.DocTree)
 	}
 
+	//note
+	noteRoute := apiBase.Group("note").Use(middleware.Auth(), middleware.Cors())
+	{
+		noteRoute.POST("/create", api.NoteCreate)
+		noteRoute.GET("/detail", api.NoteDetail)
+		noteRoute.GET("/list", api.NoteList)
+		noteRoute.POST("/update", api.NoteUpdate)
+		noteRoute.POST("/delete", api.NoteDelete)
+	}
+
 	//doc group
 	docGroupRoute := apiBase.Group("doc-group").Use(middleware.Auth())
 	{
