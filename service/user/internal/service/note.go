@@ -18,6 +18,7 @@ func NoteCreate(r note.CreateNoteRequest, userId int64) (d *model.Note, err erro
 		Content:  r.Content,
 		IsTop:    r.IsTop,
 		NoteType: r.NoteType,
+		Title:    r.Title,
 	}
 
 	if err = global.DB.Create(insertData).Error; err != nil {
@@ -63,6 +64,10 @@ func NoteUpdate(r note.UpdateNoteRequest, userId int64) (err error) {
 	if r.Content != "" {
 		u["Content"] = r.Content
 	}
+	if r.Title != "" {
+		u["Title"] = r.Title
+	}
+
 	if err = q.Updates(u).Error; err != nil {
 		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
 		global.ZAPSUGAR.Error(errMsg)
