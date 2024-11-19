@@ -68,6 +68,10 @@ func NoteUpdate(r note.UpdateNoteRequest, userId int64) (err error) {
 		u["Title"] = r.Title
 	}
 
+	if r.NoteType != "" {
+		u["NoteType"] = r.NoteType
+	}
+
 	u["IsTop"] = r.IsTop
 
 	if err = q.Updates(u).Error; err != nil {

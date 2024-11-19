@@ -18,13 +18,14 @@ type CreateNoteRequest struct {
 
 // UpdateNoteRequest 更新文档
 type UpdateNoteRequest struct {
-	Id       int    `json:"id" binding:"required"`
-	Title    string `json:"title" binding:"max=250"` // 标题
-	Content  string `json:"content" binding:""`      // 文档内容
-	IsTop    int    `json:"isTop" binding:""`        // 是否置顶
-	Color    string `json:"color" binding:""`
-	Icon     string `json:"icon" binding:""`
-	Priority int    `json:"priority" binding:""`
+	Id       int            `json:"id" binding:"required"`
+	Title    string         `json:"title" binding:"max=250"` // 标题
+	Content  string         `json:"content" binding:""`      // 文档内容
+	IsTop    int            `json:"isTop" binding:""`        // 是否置顶
+	Color    string         `json:"color" binding:""`
+	Icon     string         `json:"icon" binding:""`
+	Priority int            `json:"priority" binding:""`
+	NoteType model.NoteType `json:"noteType" binding:"required"` // 文档内容
 }
 
 type ListNoteRequest struct {
