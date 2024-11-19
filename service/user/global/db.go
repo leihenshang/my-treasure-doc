@@ -1,16 +1,18 @@
 package global
 
 import (
-	"fastduck/treasure-doc/service/user/data/model"
 	"fmt"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"gorm.io/gorm/schema"
 	"log"
 	"os"
 	"strconv"
 	"time"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
+
+	"fastduck/treasure-doc/service/user/data/model"
 )
 
 var TableMigrate = []any{

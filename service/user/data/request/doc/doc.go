@@ -10,7 +10,7 @@ type CreateDocRequest struct {
 	Content string `json:"content" binding:""`            // 文档内容
 	Pid     int64  `json:"pid" binding:""`
 	GroupId int64  `json:"groupId" binding:""`
-	IsTop   int    `json:"isTop" binding:""` // 是否置顶
+	IsTop   int    `json:"isTop" binding:""`
 }
 
 // UpdateDocRequest 更新文档
