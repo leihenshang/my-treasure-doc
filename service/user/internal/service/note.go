@@ -75,7 +75,10 @@ func NoteUpdate(r note.UpdateNoteRequest, userId int64) (err error) {
 		u["Title"] = r.Title
 	}
 
-	u["NoteType"] = r.NoteType
+	if r.NoteType != "" {
+		u["NoteType"] = r.NoteType
+	}
+
 	u["Content"] = r.Content
 	u["IsTop"] = r.IsTop
 	u["Color"] = r.Color

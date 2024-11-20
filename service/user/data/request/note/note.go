@@ -1,9 +1,10 @@
 package note
 
 import (
+	"strings"
+
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request"
-	"strings"
 )
 
 // CreateNoteRequest 创建文档
@@ -26,7 +27,7 @@ type UpdateNoteRequest struct {
 	Color    string         `json:"color" binding:""`
 	Icon     string         `json:"icon" binding:""`
 	Priority int            `json:"priority" binding:""`
-	NoteType model.NoteType `json:"noteType" binding:"required"` // 文档内容
+	NoteType model.NoteType `json:"noteType" binding:""` // 文档内容
 }
 
 type ListNoteRequest struct {
