@@ -31,15 +31,15 @@ func (l ListSort) Sort(sortFields map[string]string) (string, error) {
 		sortItem := strings.Split(s, "_")
 		if len(sortItem) != 2 {
 			return "", errors.New("sort error")
-		} else {
-			if !OrderByType(sortItem[1]).Check() {
-				return "", errors.New("order by type error,allow asc or desc only")
-			}
-			sortItem[1] = OrderByType(sortItem[1]).UpperString()
-			if v, ok := sortFields[sortItem[0]]; ok {
-				sortItem[0] = v
-				res = append(res, strings.Join(sortItem, " "))
-			}
+		}
+
+		if !OrderByType(sortItem[1]).Check() {
+			return "", errors.New("order by type error,allow asc or desc only")
+		}
+		sortItem[1] = OrderByType(sortItem[1]).UpperString()
+		if v, ok := sortFields[sortItem[0]]; ok {
+			sortItem[0] = v
+			res = append(res, strings.Join(sortItem, " "))
 		}
 	}
 
