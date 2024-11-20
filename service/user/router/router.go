@@ -1,8 +1,10 @@
 package router
 
 import (
-	"fastduck/treasure-doc/service/user/middleware"
 	"net/http"
+
+	"fastduck/treasure-doc/service/user/config"
+	"fastduck/treasure-doc/service/user/middleware"
 
 	"github.com/gin-gonic/gin"
 
@@ -10,16 +12,13 @@ import (
 )
 
 func InitRoute(r *gin.Engine) {
-	r.Static("/static", "./static")
+	r.Static("/public", config.FilePath)
 
-	base := r.Group("/")
-	{
-		base.GET("/ping", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"msg": "pong!",
-			})
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"msg": "pong!",
 		})
-	}
+	})
 
 	apiBase := r.Group("api")
 

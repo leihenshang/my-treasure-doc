@@ -16,4 +16,5 @@ treasure_user
 
 # 静态文件
 static/*.*
+public/statics/*.*
 !static/README.MD

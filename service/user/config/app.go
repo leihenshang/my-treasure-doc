@@ -3,6 +3,8 @@ package config
 const GinModeRelease = "release"
 const GinModeDev = "dev"
 
+const FilePath = "public"
+
 type App struct {
 	Host    string
 	Port    int
