@@ -43,8 +43,8 @@ func NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
 func NoteList(r note.ListNoteRequest, userId int64) (res response.ListResponse, err error) {
 	q := global.DB.Model(&model.Note{}).Where("user_id = ?", userId).Where("note_type IN ?", r.NoteTypes.GetNoteTypeList())
 	q.Count(&r.Total)
-	r.ListSort.OrderBy = "priority_desc,createAt_desc,id_asc"
-	if sortStr, err := r.ListSort.Sort(map[string]string{"priority": "priority", "createdAt": "createdAt", "id": "id"}); err == nil {
+	r.ListSort.OrderBy = "isTop_desc,priority_desc,createdAt_desc,id_asc"
+	if sortStr, err := r.ListSort.Sort(map[string]string{"isTop": "is_top", "priority": "priority", "createdAt": "created_at", "id": "id"}); err == nil {
 		q = q.Order(sortStr)
 	} else {
 		global.ZAPSUGAR.Error(r, err)
