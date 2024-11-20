@@ -38,7 +38,7 @@ func NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
 
 // NoteList 笔记列表
 func NoteList(r note.ListNoteRequest, userId int64) (res response.ListResponse, err error) {
-	q := global.DB.Model(&model.Note{}).Where("user_id = ?", userId).Where("note_type IN ?", r.GetNoteTypeList())
+	q := global.DB.Model(&model.Note{}).Where("user_id = ?", userId).Where("note_type IN ?", r.NoteTypes.GetNoteTypeList())
 	q.Count(&r.Total)
 	if sortStr, err := r.ListSort.Sort(map[string]string{"priority": "DESC", "createdAt": "DESC", "id": "ASC"}); err == nil {
 		q = q.Order(sortStr)

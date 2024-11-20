@@ -3,6 +3,7 @@ package note
 import (
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request"
+	"strings"
 )
 
 // CreateNoteRequest 创建文档
@@ -29,21 +30,22 @@ type UpdateNoteRequest struct {
 }
 
 type ListNoteRequest struct {
-	TreeHole bool `json:"treeHole"`
+	NoteTypes ReqNoteTypes `json:"noteTypes"`
 	request.ListPagination
 	request.ListSort
 }
 
-func (l ListNoteRequest) GetNoteTypeList() []model.NoteType {
-	if l.TreeHole {
-		return []model.NoteType{
+type ReqNoteTypes string
+
+func (r ReqNoteTypes) GetNoteTypeList() model.NoteTypes {
+	str := string(r)
+	res := strings.Split(strings.TrimSpace(str), ",")
+	if len(res) == 1 && res[0] == "" {
+		return model.NoteTypes{
 			model.NoteTypeBookmark,
-			model.NoteTypeTreeHole,
 			model.NoteTypeTreeNote,
 		}
 	}
-	return []model.NoteType{
-		model.NoteTypeBookmark,
-		model.NoteTypeTreeNote,
-	}
+
+	return res
 }

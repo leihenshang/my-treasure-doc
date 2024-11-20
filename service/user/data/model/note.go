@@ -13,6 +13,7 @@ type Note struct {
 }
 
 type NoteType string
+type NoteTypes []string
 
 const (
 	NoteTypeBookmark = `bookmark`
