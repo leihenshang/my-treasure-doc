@@ -61,18 +61,16 @@ func NoteUpdate(r note.UpdateNoteRequest, userId int64) (err error) {
 
 	q := global.DB.Model(&model.Note{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	u := map[string]interface{}{}
-	if r.Content != "" {
-		u["Content"] = r.Content
-	}
 	if r.Title != "" {
 		u["Title"] = r.Title
 	}
 
-	if r.NoteType != "" {
-		u["NoteType"] = r.NoteType
-	}
-
+	u["NoteType"] = r.NoteType
+	u["Content"] = r.Content
 	u["IsTop"] = r.IsTop
+	u["Color"] = r.Color
+	u["Icon"] = r.Icon
+	u["Priority"] = r.Priority
 
 	if err = q.Updates(u).Error; err != nil {
 		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
