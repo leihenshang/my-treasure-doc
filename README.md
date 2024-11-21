@@ -98,3 +98,13 @@ treasure-doc /bin/sh
 ```shell
 docker save -o treasure-doc.tar.gz treasure-doc
 ```
+
+```shell
+docker run -d --name treasure-doc \
+--restart=always \
+-p 2021:2021 \
+-v ${REPLACE}/treasure-doc/web:/app/web \
+-v ${REPLACE}/treasure-doc/files:/app/files \
+-v ${REPLACE}/treasure-doc/config.toml:/app/config.toml \
+treasure-doc
+```
