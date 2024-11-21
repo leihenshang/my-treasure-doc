@@ -12,7 +12,8 @@ import (
 )
 
 func InitRoute(r *gin.Engine) {
-	r.Static("/public", config.FilePath)
+	r.Static("/web", config.WebPath)
+	r.Static("/files", config.FilesPath)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

@@ -3,7 +3,8 @@ package config
 const GinModeRelease = "release"
 const GinModeDev = "dev"
 
-const FilePath = "public"
+const WebPath = "web"
+const FilesPath = "files"
 
 type App struct {
 	Host    string

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"crypto/md5"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -13,6 +12,8 @@ import (
 
 	"fastduck/treasure-doc/service/user/config"
 	"fastduck/treasure-doc/service/user/data/response"
+	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/service/user/utils"
 )
 
 // FileUpload 文件上传
@@ -30,13 +31,14 @@ func FileUpload(c *gin.Context) {
 		return
 	}
 
-	staticPath, err := checkSaveDir()
+	staticPath, err := utils.GenDir(getFilePath())
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		global.ZAPSUGAR.Errorf("failed to generate directory,error:%v", err)
+		response.FailWithMessage("创建目录失败", c)
 		return
 	}
 
-	md5Str, err := fileMd5(f)
+	md5Str, err := utils.FileMd5(f)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -67,34 +69,7 @@ func FileUpload(c *gin.Context) {
 }
 
 func getFilePath() string {
-	return filepath.Join(config.FilePath, "statics")
-}
-
-func checkSaveDir() (string, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", fmt.Errorf("获取根目录失败")
-	}
-
-	staticPath := filepath.Join(dir, getFilePath())
-	if _, err = os.Stat(staticPath); err != nil {
-		if os.IsNotExist(err) {
-			if err = os.Mkdir(staticPath, os.ModePerm); err != nil {
-				return "", err
-			}
-		}
-	}
-	return staticPath, nil
-}
-
-func fileMd5(f io.Reader) (md5Str string, err error) {
-	hash := md5.New()
-	if _, err = io.Copy(hash, f); err != nil {
-		err = fmt.Errorf("计算文件hash失败")
-		return
-	}
-	md5Str = fmt.Sprintf("%x", hash.Sum(nil))
-	return
+	return filepath.Join(config.FilesPath, "uploads")
 }
 
 func fileCheck(fHandler *multipart.FileHeader) (extension string, err error) {
@@ -105,7 +80,7 @@ func fileCheck(fHandler *multipart.FileHeader) (extension string, err error) {
 	}
 
 	// 文件后缀名限制
-	extension = getFileExtension(fHandler.Filename)
+	extension = utils.GetFileExtension(fHandler.Filename)
 	if extension == "" {
 		return extension, fmt.Errorf("获取文件后缀失败")
 	}
@@ -115,13 +90,4 @@ func fileCheck(fHandler *multipart.FileHeader) (extension string, err error) {
 	}
 
 	return extension, nil
-}
-
-func getFileExtension(fName string) string {
-	index := strings.LastIndex(fName, ".")
-	if index == -1 {
-		return ""
-	}
-
-	return fName[index+1:]
 }
