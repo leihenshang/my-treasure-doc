@@ -64,3 +64,37 @@ docker run  --rm \
 
 即可通过gin官方的gen工具生成模型到目录 `data/...` 下
 
+```shell
+docker build -t treasure-doc .
+
+docker rm -f treasure-doc
+```
+
+```shell
+docker run -d --name treasure-doc \
+--restart=always \
+-p 2021:2021 \
+-v /home/debian/project/treasure-doc/web:/app/web \
+-v /home/debian/project/treasure-doc/files:/app/files \
+-v /home/debian/project/treasure-doc/config.toml:/app/config.toml \
+treasure-doc
+
+docker run --rm --name treasure-doc \
+-p 2021:2021 \
+-v /home/debian/project/treasure-doc/web:/app/web \
+-v /home/debian/project/treasure-doc/files:/app/files \
+-v /home/debian/project/treasure-doc/config.toml:/app/config.toml \
+treasure-doc
+
+# 调试
+docker run --rm --name treasure-doc -it \
+-p 2021:2021 \
+-v /home/debian/project/treasure-doc/web:/app/web \
+-v /home/debian/project/treasure-doc/files:/app/files \
+-v /home/debian/project/treasure-doc/config.toml:/app/config.toml \
+treasure-doc /bin/sh 
+```
+
+```shell
+docker save -o treasure-doc.tar.gz treasure-doc
+```

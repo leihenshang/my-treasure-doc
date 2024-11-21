@@ -15,6 +15,10 @@ func InitRoute(r *gin.Engine) {
 	r.Static("/web", config.WebPath)
 	r.Static("/files", config.FilesPath)
 
+	r.Any("/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/web")
+	})
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"msg": "pong!",
