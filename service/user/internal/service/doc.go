@@ -80,6 +80,10 @@ func DocList(r doc.ListDocRequest, userId int64) (res response.ListResponse, err
 		q = q.Where("pid = ?", r.Pid)
 	}
 
+	if r.IsTop > 0 {
+		q = q.Where("is_top = ?", r.IsTop)
+	}
+
 	q.Count(&r.Total)
 	if sortStr, err := r.ListSort.Sort(map[string]string{"createdAt": "ASC", "id": "ASC"}); err == nil {
 		q = q.Order(sortStr)

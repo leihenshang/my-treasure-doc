@@ -26,6 +26,7 @@ type UpdateDocRequest struct {
 type ListDocRequest struct {
 	GroupId int `json:"groupId" binding:""`
 	Pid     int `json:"pid" form:"pid" binding:""`
+	IsTop   int `json:"isTop" binding:""`
 	request.ListPagination
 	request.ListSort
 }
