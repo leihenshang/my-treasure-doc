@@ -121,6 +121,8 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 		u["GroupId"] = r.GroupId
 	}
 
+	u["IsTop"] = r.IsTop
+
 	if err = q.Updates(u).Error; err != nil {
 		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
 		global.ZAPSUGAR.Error(errMsg)
