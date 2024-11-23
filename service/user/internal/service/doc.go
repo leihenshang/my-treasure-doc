@@ -85,7 +85,7 @@ func DocList(r doc.ListDocRequest, userId int64) (res response.ListResponse, err
 	}
 
 	q.Count(&r.Total)
-	if sortStr, err := r.ListSort.Sort(map[string]string{"createdAt": "ASC", "id": "ASC"}); err == nil {
+	if sortStr, err := r.ListSort.Sort(map[string]string{"createdAt": "created_at", "id": "id"}); err == nil {
 		q = q.Order(sortStr)
 	}
 

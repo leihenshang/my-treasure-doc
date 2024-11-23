@@ -6,8 +6,8 @@ import (
 
 // CreateDocRequest 创建文档
 type CreateDocRequest struct {
-	Title   string `json:"title" binding:"min=1,max=250"` // 标题
-	Content string `json:"content" binding:""`            // 文档内容
+	Title   string `json:"title" binding:"max=250"` // 标题
+	Content string `json:"content" binding:""`      // 文档内容
 	Pid     int64  `json:"pid" binding:""`
 	GroupId int64  `json:"groupId" binding:""`
 	IsTop   int    `json:"isTop" binding:""`
@@ -24,9 +24,9 @@ type UpdateDocRequest struct {
 }
 
 type ListDocRequest struct {
-	GroupId int `json:"groupId" binding:""`
+	GroupId int `json:"groupId" form:"groupId" binding:""`
 	Pid     int `json:"pid" form:"pid" binding:""`
-	IsTop   int `json:"isTop" binding:""`
+	IsTop   int `json:"isTop" form:"isTop" binding:""`
 	request.ListPagination
 	request.ListSort
 }
