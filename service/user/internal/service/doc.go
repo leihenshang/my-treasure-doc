@@ -63,7 +63,7 @@ func checkDocTitleIsDuplicates(title string, userId int64) (doc *model.Doc, err 
 
 // DocDetail 文档详情
 func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
-	q := global.DB.Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.ID, userId)
+	q := global.DB.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
 	return
 }
@@ -112,7 +112,7 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 		return errors.New(errMsg)
 	}
 
-	q := global.DB.Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
+	q := global.DB.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	u := map[string]interface{}{}
 	if r.Title != "" {
 		u["Title"] = r.Title
@@ -129,6 +129,11 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 	}
 
 	u["IsTop"] = r.IsTop
+
+	if r.IsRecover {
+		u["DeletedAt"] = nil
+		u["GroupId"] = 0
+	}
 
 	if err = q.Updates(u).Error; err != nil {
 		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
