@@ -92,7 +92,7 @@ func DocList(r doc.ListDocRequest, userId int64) (res response.ListResponse, err
 		q = q.Where("title LIKE ? OR content LIKE ?", likeStr, likeStr)
 	}
 
-	if r.ListPagination.PageSize >= 0 {
+	if r.ListPagination.PageSize > 0 {
 		q.Count(&r.Total)
 	}
 
