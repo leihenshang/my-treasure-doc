@@ -71,8 +71,11 @@ func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
 // DocList 文档列表
 func DocList(r doc.ListDocRequest, userId int64) (res response.ListResponse, err error) {
 	q := global.DB.Model(&model.Doc{}).Where("user_id = ?", userId)
-
-	if r.GroupId > 0 {
+	global.ZAPSUGAR.Infof(`requet:%+v`, r)
+	if r.RecycleBin == 1 {
+		q = q.Unscoped().Where("deleted_at is not null")
+	}
+	if r.GroupId >= 0 {
 		q = q.Where("group_id = ?", r.GroupId)
 	}
 
