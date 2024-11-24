@@ -70,12 +70,12 @@ func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
 
 // DocList 文档列表
 func DocList(r doc.ListDocRequest, userId int64) (res response.ListResponse, err error) {
-	q := global.DB.Model(&model.Doc{}).Where("user_id = ?", userId)
+	q := global.DB.Debug().Model(&model.Doc{}).Where("user_id = ?", userId)
 	global.ZAPSUGAR.Infof(`requet:%+v`, r)
 	if r.RecycleBin == 1 {
 		q = q.Unscoped().Where("deleted_at is not null")
 	}
-	if r.GroupId >= 0 {
+	if r.GroupId > 0 {
 		q = q.Where("group_id = ?", r.GroupId)
 	}
 
@@ -87,13 +87,26 @@ func DocList(r doc.ListDocRequest, userId int64) (res response.ListResponse, err
 		q = q.Where("is_top = ?", r.IsTop)
 	}
 
-	q.Count(&r.Total)
+	if r.Keyword != "" {
+		likeStr := fmt.Sprintf(`%%%s%%`, r.Keyword)
+		q = q.Where("title LIKE ? OR content LIKE ?", likeStr, likeStr)
+	}
+
+	if r.ListPagination.PageSize >= 0 {
+		q.Count(&r.Total)
+	}
+
 	if sortStr, err := r.ListSort.Sort(map[string]string{"createdAt": "created_at", "id": "id"}); err == nil {
 		q = q.Order(sortStr)
 	}
 
 	var list []*model.Doc
-	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&list).Error
+
+	if r.ListPagination.Page > 0 && r.ListPagination.PageSize > 0 {
+		q = q.Limit(r.PageSize).Offset(r.Offset())
+	}
+
+	err = q.Find(&list).Error
 	res.List = list
 	res.Pagination = r.ListPagination
 	return
