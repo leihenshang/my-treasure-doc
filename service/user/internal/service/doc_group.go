@@ -79,7 +79,7 @@ func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId int64) (err error) {
 	return
 }
 
-// DocGroupDelete 文档分组删除u
+// DocGroupDelete 文档分组删除
 func DocGroupDelete(r doc.UpdateDocGroupRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
@@ -91,9 +91,14 @@ func DocGroupDelete(r doc.UpdateDocGroupRequest, userId int64) (err error) {
 	q := tx.Where("id = ? AND user_id = ?", r.Id, userId)
 	if err = q.Delete(&model.DocGroup{}).Error; err != nil {
 		tx.Rollback()
-		return errors.New(fmt.Sprintf("删除id 为 %d 的数据失败 %v ", r.Id, err))
+		return fmt.Errorf("删除id 为 %d 的数据失败 %v ", r.Id, err)
 	}
-	if err = q.Where("group_id = ? AND user_id = ?", r.Id, userId).Delete(&model.Doc{}).Error; err != nil {
+	if err = tx.Where("group_id = ? AND user_id = ?", r.Id, userId).Delete(&model.Doc{}).Error; err != nil {
+		// if !errors.Is(err, gorm.ErrRecordNotFound) {
+		// 	tx.Rollback()
+		// 	errMsg := fmt.Sprintf("删除id 为 %d 的分组下的文档失败 %v ", r.Id, err)
+		// 	return errors.New(errMsg)
+		// }
 		tx.Rollback()
 		errMsg := fmt.Sprintf("删除id 为 %d 的分组下的文档失败 %v ", r.Id, err)
 		return errors.New(errMsg)
