@@ -3,7 +3,8 @@ ARG binary_name=treasure-doc
 ARG expose_port=2021
 ARG build_dir=service/user
 
-FROM golang:1.22.9-alpine3.20 AS builder
+# if docker image canot pull,refers https://cloud.tencent.com/developer/article/2454486
+FROM docker.linkedbus.com/golang:1.22.9-alpine3.20 AS builder
 ARG work_dir
 ARG binary_name
 ARG build_dir
@@ -13,13 +14,13 @@ COPY . ${work_dir}
 
 ENV GOPROXY=https://goproxy.cn,direct
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
-#    && apk add build-base \
-#   && apk --no-cache add ca-certificates \
-&&  CGO_ENABLED=0  go build -o ${work_dir}/${build_dir}/${binary_name} ${work_dir}/${build_dir}
+    #    && apk add build-base \
+    #   && apk --no-cache add ca-certificates \
+    &&  CGO_ENABLED=0  go build -o ${work_dir}/${build_dir}/${binary_name} ${work_dir}/${build_dir}
 
 
 # setup 2 build
-FROM alpine:latest AS prod
+FROM docker.linkedbus.com/alpine:latest AS prod
 ARG work_dir
 ARG binary_name
 ARG build_dir
