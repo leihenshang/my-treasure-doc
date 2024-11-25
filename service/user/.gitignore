@@ -15,8 +15,8 @@ config.toml
 treasure_user
 
 # 静态文件
-/web
+/web/*
 !web/README.MD
 
-/files
-!webfiles/README.MD
+/files/*
+!files/README.MD
