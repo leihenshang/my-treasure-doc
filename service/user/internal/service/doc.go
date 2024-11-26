@@ -119,13 +119,25 @@ func fillGroupPath(docs model.Docs) model.Docs {
 
 // DocUpdate 文档更新
 func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
+	errMsg := fmt.Errorf("id 为 %d 的数据没有找到", r.Id)
 	if r.Id <= 0 {
-		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		global.ZAPSUGAR.Error(errMsg)
-		return errors.New(errMsg)
+		return errMsg
 	}
 
-	q := global.DB.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
+	tx := global.DB.Begin()
+	q := tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
+	var oldDoc *model.Doc
+	if err = q.First(&oldDoc).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+		global.ZAPSUGAR.Error(errMsg)
+		tx.Rollback()
+		return errMsg
+	} else if err != nil {
+		global.ZAPSUGAR.Error(err)
+		tx.Rollback()
+		return errMsg
+	}
+
 	u := map[string]interface{}{}
 	if r.Title != "" {
 		u["Title"] = r.Title
@@ -148,12 +160,27 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 		u["GroupId"] = 0
 	}
 
-	if err = q.Updates(u).Error; err != nil {
-		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
+	if err = tx.Create(&model.DocHistory{
+		BasicModel: model.BasicModel{},
+		DocId:      oldDoc.Id,
+		UserId:     oldDoc.UserId,
+		Title:      oldDoc.Title,
+		Content:    oldDoc.Content,
+	}).Error; err != nil {
+		tx.Rollback()
+		errMsg = fmt.Errorf("保存id 为 %d 的历史数据失败 %v ", r.Id, err)
 		global.ZAPSUGAR.Error(errMsg)
 		return errors.New("操作失败")
 	}
 
+	if err = q.Updates(u).Error; err != nil {
+		errMsg = fmt.Errorf("修改id 为 %d 的数据失败 %v ", r.Id, err)
+		global.ZAPSUGAR.Error(errMsg)
+		tx.Rollback()
+		return errors.New("操作失败")
+	}
+
+	q.Commit()
 	return
 }
 
