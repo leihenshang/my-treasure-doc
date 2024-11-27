@@ -6,7 +6,7 @@ import (
 )
 
 type IDReq struct {
-	ID int `json:"id" form:"id"  xml:"id"`
+	ID int64 `json:"id" form:"id"  xml:"id"`
 }
 
 type ListPagination struct {

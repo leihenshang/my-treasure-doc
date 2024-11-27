@@ -5,7 +5,7 @@ import (
 )
 
 type ListDocHistoryRequest struct {
-	DocId int64 `json:"docId" binding:""`
+	DocId int64 `json:"docId" form:"docId" binding:""`
 	request.ListPagination
 	request.ListSort
 }

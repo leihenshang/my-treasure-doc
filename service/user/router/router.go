@@ -51,6 +51,14 @@ func InitRoute(r *gin.Engine) {
 		docRoute.GET("/tree", api.DocTree)
 	}
 
+	//doc-history
+	docHistoryRoute := apiBase.Group("doc-history").Use(middleware.Auth(), middleware.Cors())
+	{
+		docHistoryRoute.POST("/recover", api.DocHistoryRecover)
+		docHistoryRoute.GET("/detail", api.DocHistoryDetail)
+		docHistoryRoute.GET("/list", api.DocHistoryList)
+	}
+
 	//note
 	noteRoute := apiBase.Group("note").Use(middleware.Auth(), middleware.Cors())
 	{

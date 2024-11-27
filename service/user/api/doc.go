@@ -1,8 +1,9 @@
 package api
 
 import (
-	"fastduck/treasure-doc/service/user/middleware"
 	"github.com/gin-gonic/gin"
+
+	"fastduck/treasure-doc/service/user/middleware"
 
 	"fastduck/treasure-doc/service/user/data/request"
 	"fastduck/treasure-doc/service/user/data/request/doc"

@@ -19,7 +19,7 @@ func DocHistoryRecover(r request.IDReq, userId int64) (err error) {
 		return errors.New("文档历史没有找到")
 	}
 
-	dbDoc, err := DocDetail(r, userId)
+	dbDoc, err := DocDetail(request.IDReq{ID: history.DocId}, userId)
 	if err != nil {
 		return err
 	} else if dbDoc == nil {
@@ -27,7 +27,6 @@ func DocHistoryRecover(r request.IDReq, userId int64) (err error) {
 	}
 
 	tx := global.DB.Begin()
-
 	if err = tx.Create(&model.DocHistory{
 		BasicModel: model.BasicModel{},
 		DocId:      dbDoc.Id,
@@ -41,7 +40,7 @@ func DocHistoryRecover(r request.IDReq, userId int64) (err error) {
 		return errors.New("操作失败")
 	}
 
-	if err = tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.ID, userId).Updates(map[string]any{"Content": history.Content}).Error; err != nil {
+	if err = tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", history.DocId, userId).Updates(map[string]any{"Content": history.Content}).Error; err != nil {
 		errMsg := fmt.Errorf("修改id 为 %d 的数据失败 %v ", r.ID, err)
 		global.ZAPSUGAR.Error(errMsg)
 		tx.Rollback()
@@ -61,7 +60,7 @@ func DocHistoryDetail(r request.IDReq, userId int64) (d *model.DocHistory, err e
 
 // DocHistoryList 文档列表
 func DocHistoryList(r doc.ListDocHistoryRequest, userId int64) (res response.ListResponse, err error) {
-	q := global.DB.Debug().Model(&model.Doc{}).Where("user_id = ?", userId)
+	q := global.DB.Debug().Model(&model.DocHistory{}).Where("user_id = ?", userId)
 	global.ZAPSUGAR.Infof(`requet:%+v`, r)
 
 	if r.DocId > 0 {
@@ -76,7 +75,7 @@ func DocHistoryList(r doc.ListDocHistoryRequest, userId int64) (res response.Lis
 		q = q.Order(sortStr)
 	}
 
-	var list []*model.Doc
+	var list model.DocHistories
 	if r.ListPagination.Page > 0 && r.ListPagination.PageSize > 0 {
 		q = q.Limit(r.PageSize).Offset(r.Offset())
 	}
