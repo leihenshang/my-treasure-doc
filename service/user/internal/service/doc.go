@@ -180,7 +180,7 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 		return errors.New("操作失败")
 	}
 
-	q.Commit()
+	tx.Commit()
 	return
 }
 
