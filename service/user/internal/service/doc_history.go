@@ -60,7 +60,7 @@ func DocHistoryDetail(r request.IDReq, userId int64) (d *model.DocHistory, err e
 
 // DocHistoryList 文档列表
 func DocHistoryList(r doc.ListDocHistoryRequest, userId int64) (res response.ListResponse, err error) {
-	q := global.DB.Debug().Model(&model.DocHistory{}).Where("user_id = ?", userId)
+	q := global.DB.Model(&model.DocHistory{}).Where("user_id = ?", userId)
 	global.ZAPSUGAR.Infof(`requet:%+v`, r)
 
 	if r.DocId > 0 {
