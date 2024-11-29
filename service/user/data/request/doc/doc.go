@@ -22,6 +22,7 @@ type UpdateDocRequest struct {
 	Content   string `json:"content" binding:""`      // 文档内容
 	IsTop     int    `json:"isTop" binding:""`        // 是否置顶
 	IsRecover bool   `json:"isRecover" binding:""`
+	IsPin     int    `json:"isPin" binding:""`
 }
 
 type ListDocRequest struct {

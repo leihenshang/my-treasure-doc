@@ -63,8 +63,16 @@ func checkDocTitleIsDuplicates(title string, userId int64) (doc *model.Doc, err 
 
 // DocDetail 文档详情
 func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
-	q := global.DB.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.ID, userId)
+	q := global.DB.Unscoped().Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
+
+	note := &model.Note{}
+	if err := global.DB.Where("doc_id = ? AND user_id = ?", r.ID, userId).First(&note).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if note != nil {
+		d.IsPin = 1
+	}
 	return
 }
 
@@ -171,6 +179,27 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 		errMsg = fmt.Errorf("保存id 为 %d 的历史数据失败 %v ", r.Id, err)
 		global.ZAPSUGAR.Error(errMsg)
 		return errors.New("操作失败")
+	}
+
+	if r.IsPin == 1 {
+		if err = tx.Create(&model.Note{
+			BasicModel: model.BasicModel{},
+			UserId:     userId,
+			DocId:      r.Id,
+			NoteType:   model.NoteTypeDoc,
+		}).Error; err != nil {
+			tx.Rollback()
+			errMsg = fmt.Errorf("保存id 为 %d 的笔记失败 %v ", r.Id, err)
+			global.ZAPSUGAR.Error(errMsg)
+			return errors.New("操作失败")
+		}
+	} else if r.IsPin == 2 {
+		if err := tx.Unscoped().Where("doc_id = ? AND user_id = ?", r.Id, userId).Delete(&model.Note{}).Error; err != nil {
+			tx.Rollback()
+			errMsg := fmt.Sprintf("删除id 为 %d 的笔记数据失败 %v ", r.Id, err)
+			global.ZAPSUGAR.Error(errMsg)
+			return errors.New("操作失败")
+		}
 	}
 
 	if err = q.Updates(u).Error; err != nil {
