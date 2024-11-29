@@ -70,7 +70,7 @@ func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
 	}
 
 	note := &model.Note{}
-	if err := global.DB.Where("doc_id = ? AND user_id = ?", r.ID, userId).First(&note).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := global.DB.Where("doc_id = ? AND user_id = ?", r.ID, userId).First(&note).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 	if note != nil {
@@ -139,7 +139,7 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 	tx := global.DB.Begin()
 	q := tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	var oldDoc *model.Doc
-	if err = q.First(&oldDoc).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+	if err = q.First(&oldDoc).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		global.ZAPSUGAR.Error(errMsg)
 		tx.Rollback()
 		return errMsg

@@ -97,7 +97,7 @@ func FillDoc(notes model.Notes) error {
 	for _, n := range notes {
 		if d, ok := docMap[n.DocId]; ok {
 			n.Title = d.Title
-			n.Content = d.Content
+			//n.Content = d.Content
 		}
 	}
 
