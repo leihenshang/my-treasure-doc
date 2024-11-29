@@ -37,3 +37,11 @@ func (d Docs) GetGroupIds(unique bool) []int64 {
 	}
 	return groupIds
 }
+
+func (d Docs) ToMap() map[int64]*Doc {
+	m := make(map[int64]*Doc, len(d))
+	for _, doc := range d {
+		m[doc.Id] = doc
+	}
+	return m
+}

@@ -65,6 +65,9 @@ func checkDocTitleIsDuplicates(title string, userId int64) (doc *model.Doc, err 
 func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
 	q := global.DB.Unscoped().Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
+	if err != nil {
+		return
+	}
 
 	note := &model.Note{}
 	if err := global.DB.Where("doc_id = ? AND user_id = ?", r.ID, userId).First(&note).Error; !errors.Is(err, gorm.ErrRecordNotFound) {

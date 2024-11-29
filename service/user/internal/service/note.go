@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"gorm.io/gorm"
+
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request"
 	"fastduck/treasure-doc/service/user/data/request/note"
@@ -36,6 +38,19 @@ func NoteCreate(r note.CreateNoteRequest, userId int64) (d *model.Note, err erro
 func NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
 	q := global.DB.Model(&model.Note{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
+	if err != nil {
+		return
+	}
+
+	doc := &model.Doc{}
+	if d.NoteType == model.NoteTypeDoc {
+		if err := global.DB.Where("id = ? AND user_id = ?", d.DocId, userId).First(&doc).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+		d.Title = doc.Title
+		d.Content = doc.Content
+	}
+
 	return
 }
 
@@ -56,9 +71,37 @@ func NoteList(r note.ListNoteRequest, userId int64) (res response.ListResponse, 
 		global.ZAPSUGAR.Error(r, err)
 		return res, err
 	}
+
+	if err := FillDoc(list); err != nil {
+		global.ZAPSUGAR.Error(r, err)
+		return res, err
+	}
+
 	res.List = list
 	res.Pagination = r.ListPagination
 	return
+}
+
+func FillDoc(notes model.Notes) error {
+	if len(notes) == 0 {
+		return nil
+	}
+	var docs model.Docs
+	if err := global.DB.Where("id IN (?) AND user_id = ?", notes.GetDocIds(), notes[0].UserId).Find(&docs).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if len(docs) == 0 {
+		return nil
+	}
+	docMap := docs.ToMap()
+	for _, n := range notes {
+		if d, ok := docMap[n.DocId]; ok {
+			n.Title = d.Title
+			n.Content = d.Content
+		}
+	}
+
+	return nil
 }
 
 // NoteUpdate 笔记更新

@@ -15,7 +15,7 @@ type CreateDocRequest struct {
 
 // UpdateDocRequest 更新文档
 type UpdateDocRequest struct {
-	Id        int    `json:"id" binding:"required"`
+	Id        int64  `json:"id" binding:"required"`
 	Pid       int64  `json:"pid" binding:""`
 	GroupId   int    `json:"groupId" binding:""`
 	Title     string `json:"title" binding:"max=250"` // 标题
@@ -26,8 +26,8 @@ type UpdateDocRequest struct {
 }
 
 type ListDocRequest struct {
-	GroupId    int    `json:"groupId" form:"groupId" binding:""`
-	Pid        int    `json:"pid" form:"pid" binding:""`
+	GroupId    int64  `json:"groupId" form:"groupId" binding:""`
+	Pid        int64  `json:"pid" form:"pid" binding:""`
 	IsTop      int    `json:"isTop" form:"isTop" binding:""`
 	RecycleBin int    `json:"recycleBin" form:"recycleBin" binding:""`
 	Keyword    string `json:"keyword" form:"keyword" binding:""`
