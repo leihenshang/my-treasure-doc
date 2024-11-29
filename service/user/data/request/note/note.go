@@ -45,6 +45,7 @@ func (r ReqNoteTypes) GetNoteTypeList() model.NoteTypes {
 		return model.NoteTypes{
 			model.NoteTypeBookmark,
 			model.NoteTypeTreeNote,
+			model.NoteTypeDoc,
 		}
 	}
 

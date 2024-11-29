@@ -12,6 +12,7 @@ type Doc struct {
 	Priority  int    `gorm:"column:priority;type:int(255);default:0;NOT NULL" json:"priority"`         // 优先级
 	GroupId   int64  `gorm:"column:group_id;type:bigint(20);default:0;NOT NULL" json:"groupId"`        // 分组id
 	GroupPath string `gorm:"-:all" json:"groupPath"`
+	IsPin     int    `gorm:"-" json:"isPin"`
 }
 
 type Docs []*Doc
