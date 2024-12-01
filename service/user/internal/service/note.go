@@ -44,13 +44,15 @@ func NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
 
 	doc := &model.Doc{}
 	if d.NoteType == model.NoteTypeDoc {
-		if err := global.DB.Where("id = ? AND user_id = ?", d.DocId, userId).First(&doc).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, err
+		if err := global.DB.Where("id = ? AND user_id = ?", d.DocId, userId).First(&doc).Error; err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, err
+			} else {
+				d.Title = doc.Title
+				d.Content = doc.Content
+			}
 		}
-		d.Title = doc.Title
-		d.Content = doc.Content
 	}
-
 	return
 }
 
