@@ -69,12 +69,14 @@ func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
 		return
 	}
 
+	d.IsPin = 1
 	note := &model.Note{}
-	if err := global.DB.Where("doc_id = ? AND user_id = ?", r.ID, userId).First(&note).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
-	}
-	if note != nil {
-		d.IsPin = 1
+	if err := global.DB.Where("doc_id = ? AND user_id = ?", r.ID, userId).First(&note).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		} else {
+			d.IsPin = 0
+		}
 	}
 	return
 }
