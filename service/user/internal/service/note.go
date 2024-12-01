@@ -47,7 +47,7 @@ func NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
 		if err := global.DB.Where("id = ? AND user_id = ?", d.DocId, userId).First(&doc).Error; err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, err
-			} else {
+			} else if doc != nil {
 				d.Title = doc.Title
 				d.Content = doc.Content
 			}
