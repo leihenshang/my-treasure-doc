@@ -118,6 +118,7 @@ func DocGroupTree(r doc.GroupTreeRequest, userId int64) (docTree resp.DocTrees, 
 		return nil, errors.New("查询分组信息失败")
 	}
 	for _, v := range list {
+		v.GroupType = model.GroupTypeGroup
 		docTree = append(docTree, &resp.DocTree{
 			DocGroup: v,
 		})
