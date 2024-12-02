@@ -12,7 +12,7 @@ type CreateDocGroupRequest struct {
 type UpdateDocGroupRequest struct {
 	Id    int    `json:"id" binding:"required"`
 	Title string `json:"title" binding:"max=250"` // 标题
-	PId   int    `json:"pId" binding:""`          // 父级
+	PId   int64  `json:"pId" binding:""`          // 父级
 	Icon  string `json:"icon" binding:""`         // 图标
 }
 

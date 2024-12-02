@@ -3,6 +3,8 @@ package service
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request"
@@ -15,19 +17,41 @@ import (
 
 // DocGroupCreate 创建文档分组
 func DocGroupCreate(r doc.CreateDocGroupRequest, userId int64) (dg *model.DocGroup, err error) {
-	insertData := &model.DocGroup{
-		Title:    r.Title,
-		Icon:     r.Icon,
-		PId:      r.PId,
-		UserId:   userId,
-		Priority: r.Priority,
-	}
-
-	if existed, err := checkDocGroupTitleRepeat(insertData.Title, userId); err != nil {
+	if existed, err := checkDocGroupTitleRepeat(r.PId, r.Title, userId); err != nil {
 		global.ZAPSUGAR.Error(r, userId, err)
 		return nil, errors.New("检查文档分组标题失败")
 	} else if existed != nil {
 		return nil, errors.New("文档分组标题已存在")
+	}
+
+	parentGroup := &model.DocGroup{
+		BasicModel: model.BasicModel{
+			Id: r.PId,
+		},
+	}
+	if parentGroup.PId > 0 {
+		if err = global.DB.Where("id = ? AND user_id = ?", r.PId, userId).First(&parentGroup).Error; err != nil {
+			errorMsg := fmt.Errorf("查找父级分组失败")
+			global.ZAPSUGAR.Error(errorMsg, err)
+			return nil, errorMsg
+		}
+	} else {
+		parentGroup.GroupPath = strconv.FormatInt(r.PId, 10)
+	}
+
+	groupPath, err := genGroupPath(r.PId, userId)
+	if err != nil {
+		global.ZAPSUGAR.Error(r, userId, err)
+		return nil, err
+	}
+
+	insertData := &model.DocGroup{
+		Title:     r.Title,
+		Icon:      r.Icon,
+		PId:       r.PId,
+		UserId:    userId,
+		Priority:  r.Priority,
+		GroupPath: groupPath,
 	}
 
 	if err = global.DB.Create(insertData).Error; err != nil {
@@ -38,9 +62,29 @@ func DocGroupCreate(r doc.CreateDocGroupRequest, userId int64) (dg *model.DocGro
 	return insertData, nil
 }
 
+func genGroupPath(pid int64, userId int64) (string, error) {
+	parentGroup := &model.DocGroup{
+		BasicModel: model.BasicModel{
+			Id: pid,
+		},
+	}
+	if pid > 0 {
+		if err := global.DB.Where("id = ? AND user_id = ?", pid, userId).First(&parentGroup).Error; err != nil {
+			errorMsg := fmt.Errorf("查找父级分组失败")
+			global.ZAPSUGAR.Error(errorMsg, err)
+			return "", errorMsg
+		}
+	} else {
+		parentGroup.GroupPath = strconv.FormatInt(pid, 10)
+		return "0", nil
+	}
+
+	return strings.Join(append(strings.Split(parentGroup.GroupPath, ","), strconv.FormatInt(parentGroup.Id, 10)), ","), nil
+}
+
 // checkDocGroupTitleRepeat 查询数据库检查文档分组标题是否重复
-func checkDocGroupTitleRepeat(title string, userId int64) (dg *model.DocGroup, err error) {
-	q := global.DB.Model(&model.DocGroup{}).Where("title = ? AND user_id = ?", title, userId)
+func checkDocGroupTitleRepeat(pid int64, title string, userId int64) (dg *model.DocGroup, err error) {
+	q := global.DB.Model(&model.DocGroup{}).Where("title = ? AND user_id = ? AND p_id = ?", title, userId, pid)
 	if err = q.First(&dg).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -68,8 +112,14 @@ func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId int64) (err error) {
 		return errors.New(errMsg)
 	}
 
+	groupPath, err := genGroupPath(r.PId, userId)
+	if err != nil {
+		global.ZAPSUGAR.Error(r, userId, err)
+		return err
+	}
+
 	q := global.DB.Model(&model.DocGroup{}).Where("id = ? AND user_id = ?", r.Id, userId)
-	u := map[string]interface{}{"Title": r.Title, "PId": r.PId, "Icon": r.Icon}
+	u := map[string]interface{}{"Title": r.Title, "PId": r.PId, "Icon": r.Icon, "GroupPath": groupPath}
 	if err = q.Updates(u).Error; err != nil {
 		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
 		global.ZAPSUGAR.Error(errMsg)
