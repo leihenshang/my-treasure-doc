@@ -112,36 +112,51 @@ func DocGroupDelete(r doc.UpdateDocGroupRequest, userId int64) (err error) {
 func DocGroupTree(r doc.GroupTreeRequest, userId int64) (docTree resp.DocTrees, err error) {
 	docTree = make([]*resp.DocTree, 0)
 	var list model.DocGroups
-	q := global.DB.Where("user_id = ?", userId).Where("p_id = ?", r.Pid)
-	if err = q.Find(&list).Error; err != nil {
+	if err = global.DB.Debug().Where("user_id = ?", userId).Where("p_id = ?", r.Pid).Order("created_at ASC").Find(&list).Error; err != nil {
 		global.ZAPSUGAR.Error(err)
 		return nil, errors.New("查询分组信息失败")
 	}
+
+	var children model.DocGroups
+	if err = global.DB.Debug().Where("user_id = ?", userId).Where("p_id IN (?)", list.GetIds()).Find(&children).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			global.ZAPSUGAR.Error(err)
+			return nil, errors.New("查询分组信息失败")
+		}
+	}
+
+	childrenDoc, err := getDocByGroupIds(list.GetIds()...)
+	if err != nil {
+		return nil, err
+	}
+
+	childrenPidMap := children.ToPidMap()
+	docGroupIdMap := childrenDoc.ToGroupIdMap()
 	for _, v := range list {
+		if _, ok := childrenPidMap[v.Id]; ok {
+			v.IsLeaf = false
+		} else {
+			v.IsLeaf = true
+		}
+		if _, ok := docGroupIdMap[v.Id]; ok {
+			v.IsLeaf = false
+		}
 		v.GroupType = model.GroupTypeGroup
 		docTree = append(docTree, &resp.DocTree{
 			DocGroup: v,
 		})
 	}
-	if !r.WithChildren {
+
+	if !r.WithDoc {
 		return
 	}
 
-	groupDocs, err := fillGroupDoc(r.Pid)
+	currentDocs, err := getDocByGroupIds(r.Pid)
 	if err != nil {
-		global.ZAPSUGAR.Error(err)
 		return nil, err
 	}
-	docTree = append(docTree, groupDocs...)
-	return
-}
 
-func fillGroupDoc(pid int64) (docTree resp.DocTrees, err error) {
-	docs, err := getDocByGroupIds(pid)
-	if err != nil {
-		return nil, err
-	}
-	for _, d := range docs {
+	for _, d := range currentDocs {
 		docTree = append(docTree, &resp.DocTree{
 			DocGroup: &model.DocGroup{
 				BasicModel: model.BasicModel{
@@ -150,9 +165,11 @@ func fillGroupDoc(pid int64) (docTree resp.DocTrees, err error) {
 				Title:     d.Title,
 				Priority:  d.Priority,
 				GroupType: model.GroupTypeDoc,
+				IsLeaf:    true,
 			},
 		})
 	}
+
 	return
 }
 

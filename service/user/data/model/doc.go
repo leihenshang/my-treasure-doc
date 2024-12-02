@@ -45,3 +45,11 @@ func (d Docs) ToMap() map[int64]*Doc {
 	}
 	return m
 }
+
+func (d Docs) ToGroupIdMap() map[int64]*Doc {
+	m := make(map[int64]*Doc, len(d))
+	for _, doc := range d {
+		m[doc.GroupId] = doc
+	}
+	return m
+}

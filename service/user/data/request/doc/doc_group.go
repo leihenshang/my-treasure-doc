@@ -18,6 +18,6 @@ type UpdateDocGroupRequest struct {
 
 // GroupTreeRequest 文档分组树
 type GroupTreeRequest struct {
-	Pid          int64 `json:"pid" form:"pid"`                   // 父级id
-	WithChildren bool  `json:"withChildren" form:"withChildren"` // 是否返回子集
+	Pid     int64 `json:"pid" form:"pid"`         // 父级id
+	WithDoc bool  `json:"withDoc" form:"withDoc"` // 是否返回子集
 }

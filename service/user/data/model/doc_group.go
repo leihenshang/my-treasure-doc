@@ -10,6 +10,7 @@ type DocGroup struct {
 	Priority  int       `gorm:"column:priority;default:0;NOT NULL" json:"priority"` // 优先级
 	GroupPath string    `gorm:"column:group_path;default:'';NOT NULL" json:"groupPath"`
 	GroupType GroupType `gorm:"-:all" json:"groupType"`
+	IsLeaf    bool      `gorm:"-:all" json:"isLeaf"`
 }
 
 type GroupType string
