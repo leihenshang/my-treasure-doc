@@ -201,7 +201,8 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 				global.ZAPSUGAR.Error(errMsg)
 				return errors.New("操作失败")
 			}
-		} else {
+		} else if err != nil {
+			tx.Rollback()
 			global.ZAPSUGAR.Error(err)
 			return errors.New("操作失败")
 		}
