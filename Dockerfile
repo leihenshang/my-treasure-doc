@@ -4,8 +4,8 @@ ARG expose_port=2021
 ARG build_dir=service/user
 
 # if docker image canot pull,refers https://cloud.tencent.com/developer/article/2454486
-#docker.linkedbus.com/
-FROM docker.linkedbus.com/golang:1.22.9-alpine3.20 AS builder
+#backup image address: docker.linkedbus.com/
+FROM golang:1.22.9-alpine3.20 AS builder
 ARG work_dir
 ARG binary_name
 ARG build_dir
@@ -21,7 +21,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 
 
 # setup 2 build
-FROM docker.linkedbus.com/alpine:latest AS prod
+FROM alpine:latest AS prod
 ARG work_dir
 ARG binary_name
 ARG build_dir
