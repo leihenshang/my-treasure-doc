@@ -112,13 +112,13 @@ func DocGroupDelete(r doc.UpdateDocGroupRequest, userId int64) (err error) {
 func DocGroupTree(r doc.GroupTreeRequest, userId int64) (docTree resp.DocTrees, err error) {
 	docTree = make([]*resp.DocTree, 0)
 	var list model.DocGroups
-	if err = global.DB.Debug().Where("user_id = ?", userId).Where("p_id = ?", r.Pid).Order("created_at ASC").Find(&list).Error; err != nil {
+	if err = global.DB.Where("user_id = ?", userId).Where("p_id = ?", r.Pid).Order("created_at ASC").Find(&list).Error; err != nil {
 		global.ZAPSUGAR.Error(err)
 		return nil, errors.New("查询分组信息失败")
 	}
 
 	var children model.DocGroups
-	if err = global.DB.Debug().Where("user_id = ?", userId).Where("p_id IN (?)", list.GetIds()).Find(&children).Error; err != nil {
+	if err = global.DB.Where("user_id = ?", userId).Where("p_id IN (?)", list.GetIds()).Find(&children).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			global.ZAPSUGAR.Error(err)
 			return nil, errors.New("查询分组信息失败")
