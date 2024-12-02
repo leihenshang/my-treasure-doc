@@ -64,11 +64,7 @@ docker run  --rm \
 
 即可通过gin官方的gen工具生成模型到目录 `data/...` 下
 
-```shell
-docker build -t treasure-doc .
 
-docker rm -f treasure-doc
-```
 
 ```shell
 docker run -d --name treasure-doc \
@@ -96,11 +92,19 @@ treasure-doc /bin/sh
 ```
 
 ```shell
+
+docker build -t treasure-doc .
+
+docker rm -f treasure-doc
+
 docker save -o treasure-doc.tar.gz treasure-doc
 
 sudo docker tag docker.linkedbus.com/golang:1.22.9-alpine3.20 golang:1.22.9-alpine3.20
 
 sudo docker tag docker.linkedbus.com/alpine:latest alpine:latest
+
+
+sudo chmod 777 treasure-doc.tar.gz
 
 ```
 
