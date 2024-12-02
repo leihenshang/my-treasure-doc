@@ -8,9 +8,10 @@ type Doc struct {
 	DocStatus int    `gorm:"column:doc_status;type:tinyint(4);default:1;NOT NULL" json:"docStatus"`    // 1正常2审核中3禁用
 	ViewCount int    `gorm:"column:view_count;type:int(11);default:0;NOT NULL" json:"viewCount"`       // 查看次数
 	LikeCount int    `gorm:"column:like_count;type:int(11);default:0;NOT NULL" json:"likeCount"`       // 点赞次数
-	IsTop     int    `gorm:"column:is_top;type:tinyint(4);default:0;NOT NULL" json:"isTop"`            // 是否置顶
+	IsTop     int8   `gorm:"column:is_top;type:tinyint(4);default:0;NOT NULL" json:"isTop"`            // 是否置顶
 	Priority  int    `gorm:"column:priority;type:int(255);default:0;NOT NULL" json:"priority"`         // 优先级
 	GroupId   int64  `gorm:"column:group_id;type:bigint(20);default:0;NOT NULL" json:"groupId"`        // 分组id
+	ReadOnly  int8   `gorm:"column:read_only;type:tinyint(4);default:0;NOT NULL" json:"readOnly"`      // 分组id
 	GroupPath string `gorm:"-:all" json:"groupPath"`
 	IsPin     int    `gorm:"-" json:"isPin"`
 }

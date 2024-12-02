@@ -10,7 +10,7 @@ type CreateDocRequest struct {
 	Content string `json:"content" binding:""`      // 文档内容
 	Pid     int64  `json:"pid" binding:""`
 	GroupId int64  `json:"groupId" binding:""`
-	IsTop   int    `json:"isTop" binding:""`
+	IsTop   int8   `json:"isTop" binding:""`
 }
 
 // UpdateDocRequest 更新文档
@@ -20,9 +20,10 @@ type UpdateDocRequest struct {
 	GroupId   int    `json:"groupId" binding:""`
 	Title     string `json:"title" binding:"max=250"` // 标题
 	Content   string `json:"content" binding:""`      // 文档内容
-	IsTop     int    `json:"isTop" binding:""`        // 是否置顶
+	IsTop     int8   `json:"isTop" binding:""`        // 是否置顶
 	IsRecover bool   `json:"isRecover" binding:""`
-	IsPin     int    `json:"isPin" binding:""`
+	IsPin     int8   `json:"isPin" binding:""`
+	ReadOnly  int8   `json:"readOnly" binding:""`
 }
 
 type ListDocRequest struct {

@@ -167,11 +167,17 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 		u["GroupId"] = r.GroupId
 	}
 
-	u["IsTop"] = r.IsTop
+	if r.IsTop > 0 {
+		u["IsTop"] = r.IsTop
+	}
 
 	if r.IsRecover {
 		u["DeletedAt"] = nil
 		u["GroupId"] = 0
+	}
+
+	if r.ReadOnly > 0 {
+		u["ReadOnly"] = r.ReadOnly
 	}
 
 	if err = tx.Create(&model.DocHistory{
