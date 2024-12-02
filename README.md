@@ -97,6 +97,11 @@ treasure-doc /bin/sh
 
 ```shell
 docker save -o treasure-doc.tar.gz treasure-doc
+
+sudo docker tag docker.linkedbus.com/golang:1.22.9-alpine3.20 golang:1.22.9-alpine3.20
+
+sudo docker tag docker.linkedbus.com/alpine:latest alpine:latest
+
 ```
 
 ```shell
