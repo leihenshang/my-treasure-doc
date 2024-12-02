@@ -140,14 +140,16 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 	tx := global.DB.Begin()
 	q := tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	var oldDoc *model.Doc
-	if err = q.First(&oldDoc).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		global.ZAPSUGAR.Error(errMsg)
-		tx.Rollback()
-		return errMsg
-	} else if err != nil {
-		global.ZAPSUGAR.Error(err)
-		tx.Rollback()
-		return errMsg
+	if err = q.First(&oldDoc).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			global.ZAPSUGAR.Error(err)
+			tx.Rollback()
+			return errMsg
+		} else {
+			global.ZAPSUGAR.Error(errMsg)
+			tx.Rollback()
+			return errMsg
+		}
 	}
 
 	u := map[string]interface{}{}
@@ -186,19 +188,25 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 	}
 
 	if r.IsPin == 1 {
-		if err = tx.Create(&model.Note{
-			BasicModel: model.BasicModel{},
-			UserId:     userId,
-			DocId:      r.Id,
-			NoteType:   model.NoteTypeDoc,
-		}).Error; err != nil {
-			tx.Rollback()
-			errMsg = fmt.Errorf("保存id 为 %d 的笔记失败 %v ", r.Id, err)
-			global.ZAPSUGAR.Error(errMsg)
+		var dbNote *model.Note
+		if err := tx.Where("user_id = ? AND doc_id = ? AND note_type = ?", userId, r.Id, model.NoteTypeDoc).First(&dbNote).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+			if err = tx.Create(&model.Note{
+				BasicModel: model.BasicModel{},
+				UserId:     userId,
+				DocId:      r.Id,
+				NoteType:   model.NoteTypeDoc,
+			}).Error; err != nil {
+				tx.Rollback()
+				errMsg = fmt.Errorf("保存id 为 %d 的笔记失败 %v ", r.Id, err)
+				global.ZAPSUGAR.Error(errMsg)
+				return errors.New("操作失败")
+			}
+		} else {
+			global.ZAPSUGAR.Error(err)
 			return errors.New("操作失败")
 		}
 	} else if r.IsPin == 2 {
-		if err := tx.Unscoped().Where("doc_id = ? AND user_id = ?", r.Id, userId).Delete(&model.Note{}).Error; err != nil {
+		if err := tx.Unscoped().Where("doc_id = ? AND user_id = ? AND note_type = ?", r.Id, userId, model.NoteTypeDoc).Delete(&model.Note{}).Error; err != nil {
 			tx.Rollback()
 			errMsg := fmt.Sprintf("删除id 为 %d 的笔记数据失败 %v ", r.Id, err)
 			global.ZAPSUGAR.Error(errMsg)
