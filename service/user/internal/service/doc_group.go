@@ -39,30 +39,40 @@ func DocGroupCreate(r doc.CreateDocGroupRequest, userId int64) (dg *model.DocGro
 		parentGroup.GroupPath = strconv.FormatInt(r.PId, 10)
 	}
 
-	groupPath, err := genGroupPath(r.PId, userId)
-	if err != nil {
-		global.ZAPSUGAR.Error(r, userId, err)
-		return nil, err
-	}
-
 	insertData := &model.DocGroup{
-		Title:     r.Title,
-		Icon:      r.Icon,
-		PId:       r.PId,
-		UserId:    userId,
-		Priority:  r.Priority,
-		GroupPath: groupPath,
+		Title:    r.Title,
+		Icon:     r.Icon,
+		PId:      r.PId,
+		UserId:   userId,
+		Priority: r.Priority,
 	}
 
-	if err = global.DB.Create(insertData).Error; err != nil {
+	tx := global.DB.Begin()
+
+	if err = tx.Create(insertData).Error; err != nil {
 		global.ZAPSUGAR.Error(r, err)
+		tx.Rollback()
 		return nil, errors.New("创建文档分组失败")
 	}
 
+	groupPath, err := genGroupPath(insertData.Id, r.PId, userId)
+	if err != nil {
+		global.ZAPSUGAR.Error(r, userId, err)
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Model(&insertData).Update("GroupPath", groupPath).Error; err != nil {
+		global.ZAPSUGAR.Error(r, userId, err)
+		tx.Rollback()
+		return nil, err
+	}
+
+	tx.Commit()
 	return insertData, nil
 }
 
-func genGroupPath(pid int64, userId int64) (string, error) {
+func genGroupPath(id, pid int64, userId int64) (string, error) {
 	parentGroup := &model.DocGroup{
 		BasicModel: model.BasicModel{
 			Id: pid,
@@ -76,10 +86,11 @@ func genGroupPath(pid int64, userId int64) (string, error) {
 		}
 	} else {
 		parentGroup.GroupPath = strconv.FormatInt(pid, 10)
-		return "0", nil
+		return fmt.Sprintf("%d,%d", 0, id), nil
 	}
 
-	return strings.Join(append(strings.Split(parentGroup.GroupPath, ","), strconv.FormatInt(parentGroup.Id, 10)), ","), nil
+	paths := append(strings.Split(parentGroup.GroupPath, ","), fmt.Sprintf(`%d`, id))
+	return strings.Join(paths, ","), nil
 }
 
 // checkDocGroupTitleRepeat 查询数据库检查文档分组标题是否重复
@@ -112,7 +123,7 @@ func DocGroupUpdate(r doc.UpdateDocGroupRequest, userId int64) (err error) {
 		return errors.New(errMsg)
 	}
 
-	groupPath, err := genGroupPath(r.PId, userId)
+	groupPath, err := genGroupPath(r.Id, r.PId, userId)
 	if err != nil {
 		global.ZAPSUGAR.Error(r, userId, err)
 		return err

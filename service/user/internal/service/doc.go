@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request"
@@ -63,8 +64,7 @@ func checkDocTitleIsDuplicates(title string, userId int64) (doc *model.Doc, err 
 
 // DocDetail 文档详情
 func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
-	q := global.DB.Unscoped().Where("id = ? AND user_id = ?", r.ID, userId)
-	err = q.First(&d).Error
+	err = global.DB.Unscoped().Where("id = ? AND user_id = ?", r.ID, userId).First(&d).Error
 	if err != nil {
 		return
 	}
@@ -75,9 +75,26 @@ func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		} else {
-			d.IsPin = 0
+			d.IsPin = 2
 		}
 	}
+
+	var group *model.DocGroup
+	if err := global.DB.Where("user_id = ? AND id = ?", userId, d.GroupId).First(&group).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			global.ZAPSUGAR.Error(r, err)
+			return nil, err
+		}
+	} else {
+		var parentGroups model.DocGroups
+		if err := global.DB.Where("user_id = ? AND id IN (?)", userId, strings.Split(group.GroupPath, ",")).Order("created_at ASC").Find(&parentGroups).Error; err != nil {
+			global.ZAPSUGAR.Error(r, err)
+			return nil, err
+		} else {
+			d.GroupPath = parentGroups
+		}
+	}
+
 	return
 }
 
