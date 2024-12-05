@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request"
@@ -14,8 +15,21 @@ import (
 	"gorm.io/gorm"
 )
 
+type DocService struct{}
+
+var docService *DocService
+
+var docOnce = sync.Once{}
+
+func NewDocService() *DocService {
+	docOnce.Do(func() {
+		docService = &DocService{}
+	})
+	return docService
+}
+
 // DocCreate 创建文档
-func DocCreate(r doc.CreateDocRequest, userId int64) (d *model.Doc, err error) {
+func (doc *DocService) DocCreate(r doc.CreateDocRequest, userId int64) (d *model.Doc, err error) {
 	insertData := &model.Doc{
 		UserId:  userId,
 		Title:   r.Title,
@@ -63,7 +77,7 @@ func checkDocTitleIsDuplicates(title string, userId int64) (doc *model.Doc, err 
 }
 
 // DocDetail 文档详情
-func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
+func (doc *DocService) DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
 	err = global.Db.Unscoped().Where("id = ? AND user_id = ?", r.ID, userId).First(&d).Error
 	if err != nil {
 		return
@@ -99,7 +113,7 @@ func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
 }
 
 // DocList 文档列表
-func DocList(r doc.ListDocRequest, userId int64) (res response.ListResponse, err error) {
+func (doc *DocService) DocList(r doc.ListDocRequest, userId int64) (res response.ListResponse, err error) {
 	q := global.Db.Model(&model.Doc{}).Where("user_id = ?", userId)
 	if r.RecycleBin == 1 {
 		q = q.Unscoped().Where("deleted_at is not null")
@@ -147,7 +161,7 @@ func fillGroupPath(docs model.Docs) model.Docs {
 }
 
 // DocUpdate 文档更新
-func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
+func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 	errMsg := fmt.Errorf("id 为 %d 的数据没有找到", r.Id)
 	if r.Id <= 0 {
 		global.Log.Error(errMsg)
@@ -250,7 +264,7 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 }
 
 // DocDelete 文档删除
-func DocDelete(r doc.UpdateDocRequest, userId int64) (err error) {
+func (doc *DocService) DocDelete(r doc.UpdateDocRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
@@ -267,7 +281,7 @@ func DocDelete(r doc.UpdateDocRequest, userId int64) (err error) {
 	return
 }
 
-func DocTree(r doc.ListDocRequest, userId int64) (res model.Docs, err error) {
+func (doc *DocService) DocTree(r doc.ListDocRequest, userId int64) (res model.Docs, err error) {
 	q := global.Db.Model(&model.Doc{}).Select("id,pid,title").Where("user_id = ?", userId).Where("pid = ?", r.Pid)
 	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&res).Error
 	return

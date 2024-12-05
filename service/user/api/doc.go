@@ -12,8 +12,16 @@ import (
 	"fastduck/treasure-doc/service/user/internal/service"
 )
 
+type DocApi struct {
+	DocService *service.DocService
+}
+
+func NewDocApi() *DocApi {
+	return &DocApi{DocService: service.NewDocService()}
+}
+
 // DocCreate 创建文档
-func DocCreate(c *gin.Context) {
+func (d *DocApi) DocCreate(c *gin.Context) {
 	var req doc.CreateDocRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -27,7 +35,7 @@ func DocCreate(c *gin.Context) {
 		return
 	}
 
-	if d, ok := service.DocCreate(req, u.Id); ok != nil {
+	if d, ok := d.DocService.DocCreate(req, u.Id); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -35,7 +43,7 @@ func DocCreate(c *gin.Context) {
 }
 
 // DocDetail 文档详情
-func DocDetail(c *gin.Context) {
+func (d *DocApi) DocDetail(c *gin.Context) {
 	req := request.IDReq{}
 	err := c.ShouldBindQuery(&req)
 	if err != nil {
@@ -47,7 +55,7 @@ func DocDetail(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if d, ok := service.DocDetail(req, u.Id); ok != nil {
+	if d, ok := d.DocService.DocDetail(req, u.Id); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -56,7 +64,7 @@ func DocDetail(c *gin.Context) {
 }
 
 // DocList 文档列表
-func DocList(c *gin.Context) {
+func (d *DocApi) DocList(c *gin.Context) {
 	var req doc.ListDocRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
@@ -68,7 +76,7 @@ func DocList(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if d, ok := service.DocList(req, u.Id); ok != nil {
+	if d, ok := d.DocService.DocList(req, u.Id); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(d, c)
@@ -76,7 +84,7 @@ func DocList(c *gin.Context) {
 }
 
 // DocUpdate 文档更新
-func DocUpdate(c *gin.Context) {
+func (d *DocApi) DocUpdate(c *gin.Context) {
 	var req doc.UpdateDocRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
@@ -87,7 +95,7 @@ func DocUpdate(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if ok := service.DocUpdate(req, u.Id); ok != nil {
+	if ok := d.DocService.DocUpdate(req, u.Id); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.Ok(c)
@@ -95,7 +103,7 @@ func DocUpdate(c *gin.Context) {
 }
 
 // DocDelete 文档删除
-func DocDelete(c *gin.Context) {
+func (d *DocApi) DocDelete(c *gin.Context) {
 	var req doc.UpdateDocRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
@@ -106,7 +114,7 @@ func DocDelete(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if ok := service.DocDelete(req, u.Id); ok != nil {
+	if ok := d.DocService.DocDelete(req, u.Id); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.Ok(c)
@@ -114,7 +122,7 @@ func DocDelete(c *gin.Context) {
 }
 
 // DocTree 文档树
-func DocTree(c *gin.Context) {
+func (d *DocApi) DocTree(c *gin.Context) {
 	var req doc.ListDocRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.FailWithMessage(global.ErrResp(err), c)
@@ -127,7 +135,7 @@ func DocTree(c *gin.Context) {
 		return
 	}
 
-	if res, ok := service.DocTree(req, u.Id); ok != nil {
+	if res, ok := d.DocService.DocTree(req, u.Id); ok != nil {
 		response.FailWithMessage(ok.Error(), c)
 	} else {
 		response.OkWithData(res, c)

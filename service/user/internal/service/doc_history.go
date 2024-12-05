@@ -19,7 +19,7 @@ func DocHistoryRecover(r request.IDReq, userId int64) (err error) {
 		return errors.New("文档历史没有找到")
 	}
 
-	dbDoc, err := DocDetail(request.IDReq{ID: history.DocId}, userId)
+	dbDoc, err := docService.DocDetail(request.IDReq{ID: history.DocId}, userId)
 	if err != nil {
 		return err
 	} else if dbDoc == nil {
