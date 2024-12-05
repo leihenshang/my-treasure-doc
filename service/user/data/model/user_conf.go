@@ -5,7 +5,7 @@ type UserConf struct {
 	BasicModel
 	UserId int64  `gorm:"column:user_id;type:bigint(20) unsigned;default:0;NOT NULL" json:"userId"` // 用户id
 	Key    string `gorm:"column:key;type:varchar(64);default:'';NOT NULL" json:"key"`
-	Value  string `gorm:"column:value;type:text;default:'';NOT NULL" json:"value"`
+	Value  string `gorm:"column:value;type:text;NOT NULL" json:"value"`
 }
 
 func (m *UserConf) TableName() string {
