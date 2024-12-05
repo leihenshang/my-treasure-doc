@@ -25,7 +25,7 @@ func DocCreate(r doc.CreateDocRequest, userId int64) (d *model.Doc, err error) {
 	}
 
 	//if existed, checkErr := checkDocTitleIsDuplicates(insertData.Title, userId); checkErr != nil {
-	//	global.ZAPSUGAR.Error(r, userId, "检查文档标题失败")
+	//	global.Log.Error(r, userId, "检查文档标题失败")
 	//	return nil, errors.New("检查文档标题失败")
 	//} else {
 	//	if existed != nil {
@@ -42,8 +42,8 @@ func DocCreate(r doc.CreateDocRequest, userId int64) (d *model.Doc, err error) {
 		}
 	}
 
-	if err = global.DB.Create(insertData).Error; err != nil {
-		global.ZAPSUGAR.Error(r, err)
+	if err = global.Db.Create(insertData).Error; err != nil {
+		global.Log.Error(r, err)
 		return nil, errors.New("创建文档失败")
 	}
 
@@ -52,7 +52,7 @@ func DocCreate(r doc.CreateDocRequest, userId int64) (d *model.Doc, err error) {
 
 // checkDocTitleIsDuplicates 检查文档标题是否重复
 func checkDocTitleIsDuplicates(title string, userId int64) (doc *model.Doc, err error) {
-	q := global.DB.Model(&model.Doc{}).Where("title = ? AND user_id = ?", title, userId)
+	q := global.Db.Model(&model.Doc{}).Where("title = ? AND user_id = ?", title, userId)
 	if err = q.First(&doc).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -64,14 +64,14 @@ func checkDocTitleIsDuplicates(title string, userId int64) (doc *model.Doc, err 
 
 // DocDetail 文档详情
 func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
-	err = global.DB.Unscoped().Where("id = ? AND user_id = ?", r.ID, userId).First(&d).Error
+	err = global.Db.Unscoped().Where("id = ? AND user_id = ?", r.ID, userId).First(&d).Error
 	if err != nil {
 		return
 	}
 
 	d.IsPin = 1
 	note := &model.Note{}
-	if err := global.DB.Where("doc_id = ? AND user_id = ?", r.ID, userId).First(&note).Error; err != nil {
+	if err := global.Db.Where("doc_id = ? AND user_id = ?", r.ID, userId).First(&note).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		} else {
@@ -80,15 +80,15 @@ func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
 	}
 
 	var group *model.DocGroup
-	if err := global.DB.Where("user_id = ? AND id = ?", userId, d.GroupId).First(&group).Error; err != nil {
+	if err := global.Db.Where("user_id = ? AND id = ?", userId, d.GroupId).First(&group).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			global.ZAPSUGAR.Error(r, err)
+			global.Log.Error(r, err)
 			return nil, err
 		}
 	} else {
 		var parentGroups model.DocGroups
-		if err := global.DB.Where("user_id = ? AND id IN (?)", userId, strings.Split(group.GroupPath, ",")).Order("created_at ASC").Find(&parentGroups).Error; err != nil {
-			global.ZAPSUGAR.Error(r, err)
+		if err := global.Db.Where("user_id = ? AND id IN (?)", userId, strings.Split(group.GroupPath, ",")).Order("created_at ASC").Find(&parentGroups).Error; err != nil {
+			global.Log.Error(r, err)
 			return nil, err
 		} else {
 			d.GroupPath = parentGroups
@@ -100,7 +100,7 @@ func DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
 
 // DocList 文档列表
 func DocList(r doc.ListDocRequest, userId int64) (res response.ListResponse, err error) {
-	q := global.DB.Model(&model.Doc{}).Where("user_id = ?", userId)
+	q := global.Db.Model(&model.Doc{}).Where("user_id = ?", userId)
 	if r.RecycleBin == 1 {
 		q = q.Unscoped().Where("deleted_at is not null")
 	}
@@ -150,20 +150,20 @@ func fillGroupPath(docs model.Docs) model.Docs {
 func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 	errMsg := fmt.Errorf("id 为 %d 的数据没有找到", r.Id)
 	if r.Id <= 0 {
-		global.ZAPSUGAR.Error(errMsg)
+		global.Log.Error(errMsg)
 		return errMsg
 	}
 
-	tx := global.DB.Begin()
+	tx := global.Db.Begin()
 	q := tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	var oldDoc *model.Doc
 	if err = q.First(&oldDoc).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			global.ZAPSUGAR.Error(err)
+			global.Log.Error(err)
 			tx.Rollback()
 			return errMsg
 		} else {
-			global.ZAPSUGAR.Error(errMsg)
+			global.Log.Error(errMsg)
 			tx.Rollback()
 			return errMsg
 		}
@@ -206,7 +206,7 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 	}).Error; err != nil {
 		tx.Rollback()
 		errMsg = fmt.Errorf("保存id 为 %d 的历史数据失败 %v ", r.Id, err)
-		global.ZAPSUGAR.Error(errMsg)
+		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}
 
@@ -221,26 +221,26 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 			}).Error; err != nil {
 				tx.Rollback()
 				errMsg = fmt.Errorf("保存id 为 %d 的笔记失败 %v ", r.Id, err)
-				global.ZAPSUGAR.Error(errMsg)
+				global.Log.Error(errMsg)
 				return errors.New("操作失败")
 			}
 		} else if err != nil {
 			tx.Rollback()
-			global.ZAPSUGAR.Error(err)
+			global.Log.Error(err)
 			return errors.New("操作失败")
 		}
 	} else if r.IsPin == 2 {
 		if err := tx.Unscoped().Where("doc_id = ? AND user_id = ? AND note_type = ?", r.Id, userId, model.NoteTypeDoc).Delete(&model.Note{}).Error; err != nil {
 			tx.Rollback()
 			errMsg := fmt.Sprintf("删除id 为 %d 的笔记数据失败 %v ", r.Id, err)
-			global.ZAPSUGAR.Error(errMsg)
+			global.Log.Error(errMsg)
 			return errors.New("操作失败")
 		}
 	}
 
 	if err = q.Updates(u).Error; err != nil {
 		errMsg = fmt.Errorf("修改id 为 %d 的数据失败 %v ", r.Id, err)
-		global.ZAPSUGAR.Error(errMsg)
+		global.Log.Error(errMsg)
 		tx.Rollback()
 		return errors.New("操作失败")
 	}
@@ -253,14 +253,14 @@ func DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
 func DocDelete(r doc.UpdateDocRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
-		global.ZAPSUGAR.Error(errMsg)
+		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
-	q := global.DB.Where("id = ? AND user_id = ?", r.Id, userId)
+	q := global.Db.Where("id = ? AND user_id = ?", r.Id, userId)
 	if err = q.Delete(&model.Doc{}).Error; err != nil {
 		errMsg := fmt.Sprintf("删除id 为 %d 的数据失败 %v ", r.Id, err)
-		global.ZAPSUGAR.Error(errMsg)
+		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}
 
@@ -268,7 +268,7 @@ func DocDelete(r doc.UpdateDocRequest, userId int64) (err error) {
 }
 
 func DocTree(r doc.ListDocRequest, userId int64) (res model.Docs, err error) {
-	q := global.DB.Model(&model.Doc{}).Select("id,pid,title").Where("user_id = ?", userId).Where("pid = ?", r.Pid)
+	q := global.Db.Model(&model.Doc{}).Select("id,pid,title").Where("user_id = ?", userId).Where("pid = ?", r.Pid)
 	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&res).Error
 	return
 }

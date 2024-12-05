@@ -1,22 +1,24 @@
 package global
 
 import (
-	"fastduck/treasure-doc/service/user/config"
 	"fmt"
+	"log"
+
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"log"
+
+	"fastduck/treasure-doc/service/user/config"
 )
 
 var (
-	CONFIG   *config.Config
-	DB       *gorm.DB
-	ZAP      *zap.Logger
-	ZAPSUGAR *zap.SugaredLogger
-	REDIS    *redis.Client
-	TRANS    ut.Translator
+	Conf  *config.Config
+	Db    *gorm.DB
+	Zap   *zap.Logger
+	Log   *zap.SugaredLogger
+	Redis *redis.Client
+	Trans ut.Translator
 )
 
 func InitModule(cfgPath string) (destructFunc func(), err error) {
@@ -24,14 +26,14 @@ func InitModule(cfgPath string) (destructFunc func(), err error) {
 		return
 	}
 	fmt.Println("初始化配置完成")
-	CONFIG = config.GetConfig()
+	Conf = config.GetConfig()
 
 	if err = initLog(); err != nil {
 		return
 	}
 	fmt.Println("初始化日志完成")
 
-	if CONFIG.Redis.Enable {
+	if Conf.Redis.Enable {
 		if err = initRedis(); err != nil {
 			return
 		}
@@ -54,23 +56,23 @@ func InitModule(cfgPath string) (destructFunc func(), err error) {
 
 func destructModule() func() {
 	return func() {
-		if ZAP != nil {
-			if err := ZAP.Sync(); err != nil {
-				log.Printf("failed to sync ZAP log,error:%v \n", err)
+		if Zap != nil {
+			if err := Zap.Sync(); err != nil {
+				log.Printf("failed to sync Zap log,error:%v \n", err)
 			}
 		}
 
-		if ZAPSUGAR != nil {
-			if err := ZAPSUGAR.Sync(); err != nil {
-				log.Printf("failed to sync ZAPSUGAR log,error:%v \n", err)
+		if Log != nil {
+			if err := Log.Sync(); err != nil {
+				log.Printf("failed to sync Log log,error:%v \n", err)
 			}
 		}
 
-		if DB != nil {
-			if db, err := DB.DB(); err != nil {
-				log.Printf("failed to get DB,error:%v \n", err)
+		if Db != nil {
+			if db, err := Db.DB(); err != nil {
+				log.Printf("failed to get Db,error:%v \n", err)
 			} else if err = db.Close(); err != nil {
-				log.Printf("failed to close DB,error:%v \n", err)
+				log.Printf("failed to close Db,error:%v \n", err)
 			}
 		}
 	}
@@ -80,7 +82,7 @@ func InitRestPwd(cfgPath string) error {
 	if err := config.InitConf(cfgPath); err != nil {
 		return err
 	}
-	CONFIG = config.GetConfig()
+	Conf = config.GetConfig()
 	fmt.Println("初始化配置完成")
 	err := initMysql()
 	if err != nil {
@@ -96,13 +98,13 @@ func initLog() error {
 }
 
 func initRedis() error {
-	REDIS = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", CONFIG.Redis.Host, CONFIG.Redis.Port),
-		Password: CONFIG.Redis.Password, // no password set
-		DB:       CONFIG.Redis.DbId,     // use default DB)
+	Redis = redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", Conf.Redis.Host, Conf.Redis.Port),
+		Password: Conf.Redis.Password, // no password set
+		DB:       Conf.Redis.DbId,     // use default Db)
 	})
 
-	if err := REDIS.Ping().Err(); err != nil {
+	if err := Redis.Ping().Err(); err != nil {
 		return fmt.Errorf("failed to initilize redis,%w", err)
 	}
 	return nil

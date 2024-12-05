@@ -33,7 +33,7 @@ func FileUpload(c *gin.Context) {
 
 	staticPath, err := utils.GenDir(getFilePath())
 	if err != nil {
-		global.ZAPSUGAR.Errorf("failed to generate directory,error:%v", err)
+		global.Log.Errorf("failed to generate directory,error:%v", err)
 		response.FailWithMessage("创建目录失败", c)
 		return
 	}

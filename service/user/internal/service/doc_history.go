@@ -26,7 +26,7 @@ func DocHistoryRecover(r request.IDReq, userId int64) (err error) {
 		return errors.New("文档没有找到")
 	}
 
-	tx := global.DB.Begin()
+	tx := global.Db.Begin()
 	if err = tx.Create(&model.DocHistory{
 		BasicModel: model.BasicModel{},
 		DocId:      dbDoc.Id,
@@ -36,13 +36,13 @@ func DocHistoryRecover(r request.IDReq, userId int64) (err error) {
 	}).Error; err != nil {
 		tx.Rollback()
 		errMsg := fmt.Errorf("保存id 为 %d 的历史数据失败 %v ", r.ID, err)
-		global.ZAPSUGAR.Error(errMsg)
+		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}
 
 	if err = tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", history.DocId, userId).Updates(map[string]any{"Content": history.Content}).Error; err != nil {
 		errMsg := fmt.Errorf("修改id 为 %d 的数据失败 %v ", r.ID, err)
-		global.ZAPSUGAR.Error(errMsg)
+		global.Log.Error(errMsg)
 		tx.Rollback()
 		return errors.New("操作失败")
 	}
@@ -53,15 +53,15 @@ func DocHistoryRecover(r request.IDReq, userId int64) (err error) {
 
 // DocHistoryDetail 文档历史详情
 func DocHistoryDetail(r request.IDReq, userId int64) (d *model.DocHistory, err error) {
-	q := global.DB.Unscoped().Model(&model.DocHistory{}).Where("id = ? AND user_id = ?", r.ID, userId)
+	q := global.Db.Unscoped().Model(&model.DocHistory{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
 	return
 }
 
 // DocHistoryList 文档列表
 func DocHistoryList(r doc.ListDocHistoryRequest, userId int64) (res response.ListResponse, err error) {
-	q := global.DB.Model(&model.DocHistory{}).Where("user_id = ?", userId)
-	global.ZAPSUGAR.Infof(`requet:%+v`, r)
+	q := global.Db.Model(&model.DocHistory{}).Where("user_id = ?", userId)
+	global.Log.Infof(`requet:%+v`, r)
 
 	if r.DocId > 0 {
 		q = q.Where("doc_id = ?", r.DocId)

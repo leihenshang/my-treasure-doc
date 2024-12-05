@@ -56,13 +56,13 @@ func Auth() gin.HandlerFunc {
 
 			u, err := service.GetUserByToken(authKey)
 			if err != nil {
-				global.ZAPSUGAR.Error(err)
+				global.Log.Error(err)
 				result.Msg = "查询用户信息失败"
 				c.AbortWithStatusJSON(http.StatusUnauthorized, result)
 				return
 			}
 			if u == nil {
-				global.ZAPSUGAR.Error("获取用户信息失败")
+				global.Log.Error("获取用户信息失败")
 				result.Msg = "获取用户信息失败"
 				c.AbortWithStatusJSON(http.StatusUnauthorized, result)
 				return

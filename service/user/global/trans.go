@@ -31,19 +31,19 @@ func InitTrans(locale string) (err error) {
 	})
 
 	uni := ut.New(en.New(), zh.New())
-	TRANS, ok = uni.GetTranslator(locale)
+	Trans, ok = uni.GetTranslator(locale)
 	if !ok {
 		return fmt.Errorf("uni.GetTranslator(%s) failed", locale)
 	}
 
 	switch locale {
 	case "en":
-		err = enTranslations.RegisterDefaultTranslations(v, TRANS)
+		err = enTranslations.RegisterDefaultTranslations(v, Trans)
 	case "zh":
-		err = zhTranslations.RegisterDefaultTranslations(v, TRANS)
+		err = zhTranslations.RegisterDefaultTranslations(v, Trans)
 	default:
-		ZAPSUGAR.Error("failed to get translation from locale [%s],use default translation [en]", locale)
-		err = enTranslations.RegisterDefaultTranslations(v, TRANS)
+		Log.Error("failed to get translation from locale [%s],use default translation [en]", locale)
+		err = enTranslations.RegisterDefaultTranslations(v, Trans)
 	}
 	return
 
@@ -89,7 +89,7 @@ func ErrResp(err error) string {
 	if !errors.As(err, &errs) {
 		return err.Error()
 	}
-	errStruct := removeTopStruct(errs.Translate(TRANS))
+	errStruct := removeTopStruct(errs.Translate(Trans))
 	for _, v := range errStruct {
 		if val, ok := v.(string); ok {
 			return val

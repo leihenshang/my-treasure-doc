@@ -24,7 +24,7 @@ func initZapLogger() error {
 
 	var level zapcore.Level
 
-	switch CONFIG.Log.Level { // 初始化配置文件的Level
+	switch Conf.Log.Level { // 初始化配置文件的Level
 	case "debug":
 		level = zap.DebugLevel
 	case "info":
@@ -44,22 +44,22 @@ func initZapLogger() error {
 	}
 
 	if level == zap.DebugLevel || level == zap.ErrorLevel {
-		ZAP = zap.New(core, zap.AddStacktrace(level))
+		Zap = zap.New(core, zap.AddStacktrace(level))
 	} else {
-		ZAP = zap.New(core)
+		Zap = zap.New(core)
 	}
 
 	//显示行数
-	ZAP = ZAP.WithOptions(zap.AddCaller())
+	Zap = Zap.WithOptions(zap.AddCaller())
 
-	//ZAP SUGAR
-	ZAPSUGAR = ZAP.Sugar()
+	//Zap SUGAR
+	Log = Zap.Sugar()
 
 	return nil
 }
 
 func getEncoder() zapcore.Encoder {
-	if CONFIG.Log.Format == "json" {
+	if Conf.Log.Format == "json" {
 		return zapcore.NewJSONEncoder(getEncoderConf())
 	}
 	return zapcore.NewConsoleEncoder(getEncoderConf())
@@ -81,13 +81,13 @@ func getEncoderConf() (config zapcore.EncoderConfig) {
 	}
 	config.EncodeLevel = zapcore.LowercaseLevelEncoder
 	// switch {
-	// case global.CONFIG.Zap.EncodeLevel == "LowercaseLevelEncoder": // 小写编码器(默认)
+	// case global.Conf.Zap.EncodeLevel == "LowercaseLevelEncoder": // 小写编码器(默认)
 	// 	config.EncodeLevel = zapcore.LowercaseLevelEncoder
-	// case global.CONFIG.Zap.EncodeLevel == "LowercaseColorLevelEncoder": // 小写编码器带颜色
+	// case global.Conf.Zap.EncodeLevel == "LowercaseColorLevelEncoder": // 小写编码器带颜色
 	// 	config.EncodeLevel = zapcore.LowercaseColorLevelEncoder
-	// case global.CONFIG.Zap.EncodeLevel == "CapitalLevelEncoder": // 大写编码器
+	// case global.Conf.Zap.EncodeLevel == "CapitalLevelEncoder": // 大写编码器
 	// 	config.EncodeLevel = zapcore.CapitalLevelEncoder
-	// case global.CONFIG.Zap.EncodeLevel == "CapitalColorLevelEncoder": // 大写编码器带颜色
+	// case global.Conf.Zap.EncodeLevel == "CapitalColorLevelEncoder": // 大写编码器带颜色
 	// 	config.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	// default:
 	// 	config.EncodeLevel = zapcore.LowercaseLevelEncoder
@@ -96,7 +96,7 @@ func getEncoderConf() (config zapcore.EncoderConfig) {
 }
 
 func getLogWriter() (zapcore.WriteSyncer, error) {
-	logDir := CONFIG.Log.Directory
+	logDir := Conf.Log.Directory
 	var err error
 	if isExists, _ := utils.PathExists(logDir); !isExists {
 		fmt.Printf("创建日志目录 %v \n", logDir)
@@ -111,7 +111,7 @@ func getLogWriter() (zapcore.WriteSyncer, error) {
 		Compress:   false,
 	}
 
-	if CONFIG.Log.ShowInConsole {
+	if Conf.Log.ShowInConsole {
 		return zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(lumberJackLogger)), err
 	}
 

@@ -2,11 +2,12 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"sync"
+
+	"github.com/spf13/viper"
 )
 
-const DefaultCfg = "config.toml"
+const DefaultConfig = "config.toml"
 
 type Config struct {
 	App   App

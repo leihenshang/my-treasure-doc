@@ -11,7 +11,7 @@ import (
 	"fastduck/treasure-doc/service/user/api"
 )
 
-func InitRoute(r *gin.Engine) {
+func InitRouter(r *gin.Engine) {
 	r.Static("/web", config.WebPath)
 	r.Static("/files", config.FilesPath)
 

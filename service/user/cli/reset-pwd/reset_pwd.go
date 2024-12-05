@@ -19,7 +19,7 @@ var cfgPath string
 func init() {
 	flag.StringVar(&user, "u", "", "user account")
 	flag.StringVar(&pwd, "p", "", "user password")
-	flag.StringVar(&cfgPath, "cfg", config.DefaultCfg, "config file path")
+	flag.StringVar(&cfgPath, "cfg", config.DefaultConfig, "config file path")
 	flag.Parse()
 }
 

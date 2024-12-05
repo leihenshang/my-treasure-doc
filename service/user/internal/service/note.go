@@ -26,8 +26,8 @@ func NoteCreate(r note.CreateNoteRequest, userId int64) (d *model.Note, err erro
 		Icon:     r.Icon,
 	}
 
-	if err = global.DB.Create(insertData).Error; err != nil {
-		global.ZAPSUGAR.Error(r, err)
+	if err = global.Db.Create(insertData).Error; err != nil {
+		global.Log.Error(r, err)
 		return nil, errors.New("创建笔记失败")
 	}
 
@@ -36,7 +36,7 @@ func NoteCreate(r note.CreateNoteRequest, userId int64) (d *model.Note, err erro
 
 // NoteDetail 笔记详情
 func NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
-	q := global.DB.Model(&model.Note{}).Where("id = ? AND user_id = ?", r.ID, userId)
+	q := global.Db.Model(&model.Note{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
 	if err != nil {
 		return
@@ -44,7 +44,7 @@ func NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
 
 	doc := &model.Doc{}
 	if d.NoteType == model.NoteTypeDoc {
-		if err := global.DB.Where("id = ? AND user_id = ?", d.DocId, userId).First(&doc).Error; err != nil {
+		if err := global.Db.Where("id = ? AND user_id = ?", d.DocId, userId).First(&doc).Error; err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, err
 			} else if doc != nil {
@@ -58,24 +58,24 @@ func NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
 
 // NoteList 笔记列表
 func NoteList(r note.ListNoteRequest, userId int64) (res response.ListResponse, err error) {
-	q := global.DB.Model(&model.Note{}).Where("user_id = ?", userId).Where("note_type IN ?", r.NoteTypes.GetNoteTypeList())
+	q := global.Db.Model(&model.Note{}).Where("user_id = ?", userId).Where("note_type IN ?", r.NoteTypes.GetNoteTypeList())
 	q.Count(&r.Total)
 	r.ListSort.OrderBy = "isTop_desc,priority_desc,createdAt_desc,id_asc"
 	if sortStr, err := r.ListSort.Sort(map[string]string{"isTop": "is_top", "priority": "priority", "createdAt": "created_at", "id": "id"}); err == nil {
 		q = q.Order(sortStr)
 	} else {
-		global.ZAPSUGAR.Error(r, err)
+		global.Log.Error(r, err)
 	}
 
 	var list []*model.Note
 	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&list).Error
 	if err != nil {
-		global.ZAPSUGAR.Error(r, err)
+		global.Log.Error(r, err)
 		return res, err
 	}
 
 	if err := FillDoc(list); err != nil {
-		global.ZAPSUGAR.Error(r, err)
+		global.Log.Error(r, err)
 		return res, err
 	}
 
@@ -89,7 +89,7 @@ func FillDoc(notes model.Notes) error {
 		return nil
 	}
 	var docs model.Docs
-	if err := global.DB.Where("id IN (?) AND user_id = ?", notes.GetDocIds(), notes[0].UserId).Find(&docs).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := global.Db.Where("id IN (?) AND user_id = ?", notes.GetDocIds(), notes[0].UserId).Find(&docs).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 	if len(docs) == 0 {
@@ -110,11 +110,11 @@ func FillDoc(notes model.Notes) error {
 func NoteUpdate(r note.UpdateNoteRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
-		global.ZAPSUGAR.Error(errMsg)
+		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
-	q := global.DB.Model(&model.Note{}).Where("id = ? AND user_id = ?", r.Id, userId)
+	q := global.Db.Model(&model.Note{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	u := map[string]interface{}{}
 	if r.Title != "" {
 		u["Title"] = r.Title
@@ -132,7 +132,7 @@ func NoteUpdate(r note.UpdateNoteRequest, userId int64) (err error) {
 
 	if err = q.Updates(u).Error; err != nil {
 		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
-		global.ZAPSUGAR.Error(errMsg)
+		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}
 
@@ -143,14 +143,14 @@ func NoteUpdate(r note.UpdateNoteRequest, userId int64) (err error) {
 func NoteDelete(r note.UpdateNoteRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
-		global.ZAPSUGAR.Error(errMsg)
+		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
-	q := global.DB.Where("id = ? AND user_id = ?", r.Id, userId)
+	q := global.Db.Where("id = ? AND user_id = ?", r.Id, userId)
 	if err = q.Delete(&model.Note{}).Error; err != nil {
 		errMsg := fmt.Sprintf("删除id 为 %d 的数据失败 %v ", r.Id, err)
-		global.ZAPSUGAR.Error(errMsg)
+		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}
 

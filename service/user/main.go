@@ -3,10 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	ginzap "github.com/gin-contrib/zap"
 	"net/http"
 	"os"
 	"time"
+
+	ginzap "github.com/gin-contrib/zap"
 
 	"fastduck/treasure-doc/service/user/config"
 	"fastduck/treasure-doc/service/user/global"
@@ -15,39 +16,37 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var cfgFile string
+var configFile string
 
 func init() {
-	flag.StringVar(&cfgFile, "cfg", config.DefaultCfg, "config file path")
+	flag.StringVar(&configFile, "c", config.DefaultConfig, "config file path")
 	flag.Parse()
 }
 
 func main() {
-	if destructFunc, err := global.InitModule(cfgFile); err != nil {
-		fmt.Printf("init module failed, err:%v\n", err)
+	if destructFunc, err := global.InitModule(configFile); err != nil {
+		fmt.Printf("failed to init modules:%v\n", err)
 		os.Exit(1)
 	} else {
 		defer destructFunc()
 	}
 
-	if global.CONFIG.App.IsRelease() {
-		fmt.Println("设置模式为", gin.ReleaseMode)
+	if global.Conf.App.IsRelease() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	r := gin.New()
 	//记录全部的访问日志
-	r.Use(ginzap.Ginzap(global.ZAP, time.RFC3339, true))
 	//把gin致命错误写入日志
-	r.Use(ginzap.RecoveryWithZap(global.ZAP, true))
-	router.InitRoute(r)
+	r.Use(ginzap.Ginzap(global.Zap, time.RFC3339, true)).Use(ginzap.RecoveryWithZap(global.Zap, true))
+	router.InitRouter(r)
 	s := &http.Server{
-		Addr:           fmt.Sprintf(":%d", global.CONFIG.App.Port),
+		Addr:           fmt.Sprintf(":%d", global.Conf.App.Port),
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	global.ZAPSUGAR.Info("service is started!", "address", s.Addr)
-	global.ZAPSUGAR.Error(s.ListenAndServe().Error())
+	global.Log.Info("service is started!", "address", s.Addr)
+	global.Log.Error(s.ListenAndServe().Error())
 }
