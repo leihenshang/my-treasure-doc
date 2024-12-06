@@ -160,12 +160,14 @@ func fillGroupPath(docs model.Docs) model.Docs {
 	return docs
 }
 
+var RefreshDocError = errors.New("文档已更新，请刷新接口")
+
 // DocUpdate 文档更新
-func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (err error) {
+func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *model.Doc, err error) {
 	errMsg := fmt.Errorf("id 为 %d 的数据没有找到", r.Id)
 	if r.Id <= 0 {
 		global.Log.Error(errMsg)
-		return errMsg
+		return nil, errMsg
 	}
 
 	tx := global.Db.Begin()
@@ -175,12 +177,15 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (err erro
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			global.Log.Error(err)
 			tx.Rollback()
-			return errMsg
+			return nil, errMsg
 		} else {
 			global.Log.Error(errMsg)
 			tx.Rollback()
-			return errMsg
+			return nil, errMsg
 		}
+	}
+	if oldDoc.Version != r.Version {
+		return nil, RefreshDocError
 	}
 
 	u := map[string]interface{}{}
@@ -221,7 +226,7 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (err erro
 		tx.Rollback()
 		errMsg = fmt.Errorf("保存id 为 %d 的历史数据失败 %v ", r.Id, err)
 		global.Log.Error(errMsg)
-		return errors.New("操作失败")
+		return nil, errors.New("操作失败")
 	}
 
 	if r.IsPin == 1 {
@@ -236,31 +241,32 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (err erro
 				tx.Rollback()
 				errMsg = fmt.Errorf("保存id 为 %d 的笔记失败 %v ", r.Id, err)
 				global.Log.Error(errMsg)
-				return errors.New("操作失败")
+				return nil, errors.New("操作失败")
 			}
 		} else if err != nil {
 			tx.Rollback()
 			global.Log.Error(err)
-			return errors.New("操作失败")
+			return nil, errors.New("操作失败")
 		}
 	} else if r.IsPin == 2 {
 		if err := tx.Unscoped().Where("doc_id = ? AND user_id = ? AND note_type = ?", r.Id, userId, model.NoteTypeDoc).Delete(&model.Note{}).Error; err != nil {
 			tx.Rollback()
 			errMsg := fmt.Sprintf("删除id 为 %d 的笔记数据失败 %v ", r.Id, err)
 			global.Log.Error(errMsg)
-			return errors.New("操作失败")
+			return nil, errors.New("操作失败")
 		}
 	}
-
+	oldDoc.Version++
+	u["version"] = oldDoc.Version
 	if err = q.Updates(u).Error; err != nil {
 		errMsg = fmt.Errorf("修改id 为 %d 的数据失败 %v ", r.Id, err)
 		global.Log.Error(errMsg)
 		tx.Rollback()
-		return errors.New("操作失败")
+		return nil, errors.New("操作失败")
 	}
 
 	tx.Commit()
-	return
+	return oldDoc.HiddenUnnecessary(), nil
 }
 
 // DocDelete 文档删除

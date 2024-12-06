@@ -1,14 +1,12 @@
 package response
 
 import (
-	"fastduck/treasure-doc/service/user/data/request"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-)
 
-const SUCCESS = 0
-const ERROR = 1
+	"fastduck/treasure-doc/service/user/data/request"
+)
 
 type ListResponse struct {
 	Pagination request.ListPagination `json:"pagination"`
@@ -16,12 +14,12 @@ type ListResponse struct {
 }
 
 type Response struct {
-	Code int         `json:"code"`
+	Code ErrorCode   `json:"code"`
 	Msg  string      `json:"msg"`
 	Data interface{} `json:"data"`
 }
 
-func Result(code int, data interface{}, msg string, c *gin.Context) {
+func Result(code ErrorCode, data interface{}, msg string, c *gin.Context) {
 	c.JSON(http.StatusOK, Response{
 		code,
 		msg,
@@ -49,10 +47,16 @@ func Fail(c *gin.Context) {
 	Result(ERROR, map[string]interface{}{}, "操作失败", c)
 }
 
-func FailWithMessage(message string, c *gin.Context) {
-	Result(ERROR, map[string]interface{}{}, message, c)
+func FailWithMessage(c *gin.Context, message string, code ...ErrorCode) {
+	if len(code) == 0 {
+		Result(ERROR, map[string]interface{}{}, message, c)
+		return
+	}
+	Result(code[0], map[string]interface{}{}, message, c)
 }
 
 func FailWithDetailed(data interface{}, message string, c *gin.Context) {
 	Result(ERROR, data, message, c)
 }
+
+type ErrorCode int

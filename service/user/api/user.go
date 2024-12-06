@@ -24,12 +24,12 @@ func (u *UserApi) UserRegister(c *gin.Context) {
 	var reg user.UserRegisterRequest
 	err := c.ShouldBindJSON(&reg)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 
 	if u, ok := u.UserService.UserRegister(reg); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(u, c)
 	}
@@ -40,12 +40,12 @@ func (u *UserApi) UserLogin(c *gin.Context) {
 	var login user.UserLoginRequest
 	err := c.ShouldBindJSON(&login)
 	if err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	if u, ok := u.UserService.UserLogin(login, c.ClientIP()); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(u, c)
 	}
@@ -55,11 +55,11 @@ func (u *UserApi) UserLogin(c *gin.Context) {
 func (u *UserApi) UserLogout(c *gin.Context) {
 	loginUser, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if err := u.UserService.UserLogout(loginUser.Id, loginUser.Token); err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 
@@ -70,17 +70,17 @@ func (u *UserApi) UserLogout(c *gin.Context) {
 func (u *UserApi) UserProfileUpdate(c *gin.Context) {
 	var profile user.UserProfileUpdateRequest
 	if err := c.ShouldBindJSON(&profile); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	loginUser, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if _, err := u.UserService.UserProfileUpdate(profile, loginUser.Id); err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	} else {
 		response.Ok(c)

@@ -17,18 +17,18 @@ func NoteCreate(c *gin.Context) {
 	var req note.CreateNoteRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 
 	if d, ok := service.NoteCreate(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -39,16 +39,16 @@ func NoteDetail(c *gin.Context) {
 	req := request.IDReq{}
 	err := c.ShouldBindQuery(&req)
 	if err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if d, ok := service.NoteDetail(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -59,17 +59,17 @@ func NoteDetail(c *gin.Context) {
 func NoteList(c *gin.Context) {
 	var req note.ListNoteRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if d, ok := service.NoteList(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -79,16 +79,16 @@ func NoteList(c *gin.Context) {
 func NoteUpdate(c *gin.Context) {
 	var req note.UpdateNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if ok := service.NoteUpdate(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
 	}
@@ -98,16 +98,16 @@ func NoteUpdate(c *gin.Context) {
 func NoteDelete(c *gin.Context) {
 	var req note.UpdateNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if ok := service.NoteDelete(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
 	}

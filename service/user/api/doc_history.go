@@ -17,16 +17,16 @@ func DocHistoryDetail(c *gin.Context) {
 	req := request.IDReq{}
 	err := c.ShouldBindQuery(&req)
 	if err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if d, ok := service.DocHistoryDetail(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -37,17 +37,17 @@ func DocHistoryDetail(c *gin.Context) {
 func DocHistoryList(c *gin.Context) {
 	var req doc.ListDocHistoryRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if d, ok := service.DocHistoryList(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -57,16 +57,16 @@ func DocHistoryList(c *gin.Context) {
 func DocHistoryRecover(c *gin.Context) {
 	req := request.IDReq{}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if ok := service.DocHistoryRecover(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
 	}

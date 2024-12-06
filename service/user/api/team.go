@@ -16,18 +16,18 @@ func TeamCreate(c *gin.Context) {
 	var req team.CreateOrUpdateTeamRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 
 	if d, ok := service.TeamCreate(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -38,16 +38,16 @@ func TeamDetail(c *gin.Context) {
 	req := request.IDReq{}
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if d, ok := service.TeamDetail(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -58,17 +58,17 @@ func TeamDetail(c *gin.Context) {
 func TeamList(c *gin.Context) {
 	var req request.ListPagination
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if d, ok := service.TeamList(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -78,16 +78,16 @@ func TeamList(c *gin.Context) {
 func TeamUpdate(c *gin.Context) {
 	var req team.CreateOrUpdateTeamRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if ok := service.TeamUpdate(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
 	}
@@ -97,16 +97,16 @@ func TeamUpdate(c *gin.Context) {
 func TeamDelete(c *gin.Context) {
 	var req team.CreateOrUpdateTeamRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if ok := service.TeamDelete(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
 	}

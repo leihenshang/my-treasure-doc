@@ -17,18 +17,18 @@ func DocGroupCreate(c *gin.Context) {
 	var req doc.CreateDocGroupRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 
 	if d, ok := service.DocGroupCreate(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -38,17 +38,17 @@ func DocGroupCreate(c *gin.Context) {
 func DocGroupList(c *gin.Context) {
 	var req request.ListPagination
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if d, ok := service.DocGroupList(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -58,16 +58,16 @@ func DocGroupList(c *gin.Context) {
 func DocGroupUpdate(c *gin.Context) {
 	var req doc.UpdateDocGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if ok := service.DocGroupUpdate(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
 	}
@@ -77,16 +77,16 @@ func DocGroupUpdate(c *gin.Context) {
 func DocGroupDelete(c *gin.Context) {
 	var req doc.UpdateDocGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if ok := service.DocGroupDelete(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
 	}
@@ -96,18 +96,18 @@ func DocGroupDelete(c *gin.Context) {
 func DocGroupTree(c *gin.Context) {
 	var req doc.GroupTreeRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 
 	if res, ok := service.DocGroupTree(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(res, c)
 	}

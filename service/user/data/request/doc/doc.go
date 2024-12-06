@@ -24,6 +24,7 @@ type UpdateDocRequest struct {
 	IsRecover bool   `json:"isRecover" binding:""`
 	IsPin     int8   `json:"isPin" binding:""`
 	ReadOnly  int8   `json:"readOnly" binding:""`
+	Version   int    `json:"version" binding:"required"`
 }
 
 type ListDocRequest struct {

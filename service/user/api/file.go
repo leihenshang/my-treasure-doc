@@ -27,20 +27,20 @@ func FileUpload(c *gin.Context) {
 
 	extension, err := fileCheck(fHandler)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 
 	staticPath, err := utils.GenDir(getFilePath())
 	if err != nil {
 		global.Log.Errorf("failed to generate directory,error:%v", err)
-		response.FailWithMessage("创建目录失败", c)
+		response.FailWithMessage(c, "创建目录失败")
 		return
 	}
 
 	md5Str, err := utils.FileMd5(f)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	targetFileName := md5Str + "." + extension
@@ -48,18 +48,18 @@ func FileUpload(c *gin.Context) {
 	//重置文件指针，解决io.Copy一次后再次Copy文件为空的问题
 	_, err = f.Seek(0, 0)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	targetFile, err := os.Create(filepath.Join(staticPath, targetFileName))
 	if err != nil {
-		response.FailWithMessage("保存文件失败", c)
+		response.FailWithMessage(c, "保存文件失败")
 		return
 	}
 	defer targetFile.Close()
 	_, err = io.Copy(targetFile, f)
 	if err != nil {
-		response.FailWithMessage("复制文件到目标失败", c)
+		response.FailWithMessage(c, "复制文件到目标失败")
 		return
 	}
 

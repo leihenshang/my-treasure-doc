@@ -12,13 +12,14 @@ type Doc struct {
 	Priority  int       `gorm:"column:priority;type:int(255);default:0;NOT NULL" json:"priority"`         // 优先级
 	GroupId   int64     `gorm:"column:group_id;type:bigint(20);default:0;NOT NULL" json:"groupId"`        // 分组id
 	ReadOnly  int8      `gorm:"column:read_only;type:tinyint(4);default:0;NOT NULL" json:"readOnly"`      // 分组id
+	Version   int       `gorm:"column:version;type:int(11);default:0;NOT NULL" json:"version"`            // 点赞次数
 	GroupPath DocGroups `gorm:"-:all" json:"groupPath"`
 	IsPin     int       `gorm:"-" json:"isPin"`
 }
 
 type Docs []*Doc
 
-func (m *Doc) TableName() string {
+func (d *Doc) TableName() string {
 	return "td_doc"
 }
 
@@ -53,4 +54,9 @@ func (d Docs) ToGroupIdMap() map[int64]*Doc {
 		m[doc.GroupId] = doc
 	}
 	return m
+}
+
+func (d *Doc) HiddenUnnecessary() *Doc {
+	d.Content = ""
+	return d
 }

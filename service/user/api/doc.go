@@ -1,6 +1,8 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/gin-gonic/gin"
 
 	"fastduck/treasure-doc/service/user/middleware"
@@ -25,18 +27,18 @@ func (d *DocApi) DocCreate(c *gin.Context) {
 	var req doc.CreateDocRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 
 	if d, ok := d.DocService.DocCreate(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -47,16 +49,16 @@ func (d *DocApi) DocDetail(c *gin.Context) {
 	req := request.IDReq{}
 	err := c.ShouldBindQuery(&req)
 	if err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if d, ok := d.DocService.DocDetail(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -67,17 +69,17 @@ func (d *DocApi) DocDetail(c *gin.Context) {
 func (d *DocApi) DocList(c *gin.Context) {
 	var req doc.ListDocRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if d, ok := d.DocService.DocList(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(d, c)
 	}
@@ -87,16 +89,20 @@ func (d *DocApi) DocList(c *gin.Context) {
 func (d *DocApi) DocUpdate(c *gin.Context) {
 	var req doc.UpdateDocRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := d.DocService.DocUpdate(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+	if err = d.DocService.DocUpdate(req, u.Id); err != nil {
+		if errors.Is(err, service.RefreshDocError) {
+			response.FailWithMessage(c, err.Error(), response.DocIsEdited)
+			return
+		}
+		response.FailWithMessage(c, err.Error())
 	} else {
 		response.Ok(c)
 	}
@@ -106,16 +112,16 @@ func (d *DocApi) DocUpdate(c *gin.Context) {
 func (d *DocApi) DocDelete(c *gin.Context) {
 	var req doc.UpdateDocRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 	if ok := d.DocService.DocDelete(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
 	}
@@ -125,18 +131,18 @@ func (d *DocApi) DocDelete(c *gin.Context) {
 func (d *DocApi) DocTree(c *gin.Context) {
 	var req doc.ListDocRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.FailWithMessage(global.ErrResp(err), c)
+		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
 
 	u, err := middleware.GetUserInfoByCtx(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.FailWithMessage(c, err.Error())
 		return
 	}
 
 	if res, ok := d.DocService.DocTree(req, u.Id); ok != nil {
-		response.FailWithMessage(ok.Error(), c)
+		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(res, c)
 	}
