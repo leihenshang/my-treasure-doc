@@ -30,7 +30,7 @@ func DocGroupCreate(c *gin.Context) {
 	if d, ok := service.DocGroupCreate(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 }
 
@@ -50,7 +50,7 @@ func DocGroupList(c *gin.Context) {
 	if d, ok := service.DocGroupList(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 }
 
@@ -109,6 +109,6 @@ func DocGroupTree(c *gin.Context) {
 	if res, ok := service.DocGroupTree(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(res, c)
+		response.OkWithData(c, res)
 	}
 }

@@ -28,7 +28,7 @@ func DocHistoryDetail(c *gin.Context) {
 	if d, ok := service.DocHistoryDetail(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 
 }
@@ -49,7 +49,7 @@ func DocHistoryList(c *gin.Context) {
 	if d, ok := service.DocHistoryList(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 }
 

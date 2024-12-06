@@ -29,7 +29,7 @@ func TeamCreate(c *gin.Context) {
 	if d, ok := service.TeamCreate(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 }
 
@@ -49,7 +49,7 @@ func TeamDetail(c *gin.Context) {
 	if d, ok := service.TeamDetail(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 
 }
@@ -70,7 +70,7 @@ func TeamList(c *gin.Context) {
 	if d, ok := service.TeamList(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 }
 

@@ -65,7 +65,7 @@ func FileUpload(c *gin.Context) {
 
 	pathMap := make(map[string]string)
 	pathMap["path"] = filepath.Join("/", getFilePath(), targetFileName)
-	response.OkWithData(pathMap, c)
+	response.OkWithData(c, pathMap)
 }
 
 func getFilePath() string {

@@ -30,7 +30,7 @@ func NoteCreate(c *gin.Context) {
 	if d, ok := service.NoteCreate(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 }
 
@@ -50,7 +50,7 @@ func NoteDetail(c *gin.Context) {
 	if d, ok := service.NoteDetail(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 
 }
@@ -71,7 +71,7 @@ func NoteList(c *gin.Context) {
 	if d, ok := service.NoteList(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 }
 

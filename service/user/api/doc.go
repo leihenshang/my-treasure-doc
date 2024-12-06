@@ -40,7 +40,7 @@ func (d *DocApi) DocCreate(c *gin.Context) {
 	if d, ok := d.DocService.DocCreate(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 }
 
@@ -60,7 +60,7 @@ func (d *DocApi) DocDetail(c *gin.Context) {
 	if d, ok := d.DocService.DocDetail(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 
 }
@@ -81,7 +81,7 @@ func (d *DocApi) DocList(c *gin.Context) {
 	if d, ok := d.DocService.DocList(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(d, c)
+		response.OkWithData(c, d)
 	}
 }
 
@@ -97,14 +97,14 @@ func (d *DocApi) DocUpdate(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if err = d.DocService.DocUpdate(req, u.Id); err != nil {
+	if newDoc, err := d.DocService.DocUpdate(req, u.Id); err != nil {
 		if errors.Is(err, service.RefreshDocError) {
 			response.FailWithMessage(c, err.Error(), response.DocIsEdited)
 			return
 		}
 		response.FailWithMessage(c, err.Error())
 	} else {
-		response.Ok(c)
+		response.OkWithData(c, newDoc)
 	}
 }
 
@@ -144,6 +144,6 @@ func (d *DocApi) DocTree(c *gin.Context) {
 	if res, ok := d.DocService.DocTree(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(res, c)
+		response.OkWithData(c, res)
 	}
 }

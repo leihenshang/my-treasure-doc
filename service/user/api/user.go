@@ -31,7 +31,7 @@ func (u *UserApi) UserRegister(c *gin.Context) {
 	if u, ok := u.UserService.UserRegister(reg); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(u, c)
+		response.OkWithData(c, u)
 	}
 }
 
@@ -47,7 +47,7 @@ func (u *UserApi) UserLogin(c *gin.Context) {
 	if u, ok := u.UserService.UserLogin(login, c.ClientIP()); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(u, c)
+		response.OkWithData(c, u)
 	}
 }
 
