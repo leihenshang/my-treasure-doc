@@ -66,10 +66,6 @@ func Auth() gin.HandlerFunc {
 
 }
 
-func userAccessParamsCheck(c *gin.Context) {
-
-}
-
 // GetUserInfoByCtx 从上下文获取用户信息
 func GetUserInfoByCtx(c *gin.Context) (u *model.User, err error) {
 	if v, exists := c.Get(UserInfoKey); !exists {
