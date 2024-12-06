@@ -51,34 +51,38 @@ func InitRouter(r *gin.Engine) {
 	//doc-history
 	docHistoryRoute := apiBase.Group("doc-history").Use(middleware.Auth(), middleware.Cors())
 	{
-		docHistoryRoute.POST("/recover", api.DocHistoryRecover)
-		docHistoryRoute.GET("/detail", api.DocHistoryDetail)
-		docHistoryRoute.GET("/list", api.DocHistoryList)
+		docHistoryApi := api.NewDocHistoryApi()
+		docHistoryRoute.POST("/recover", docHistoryApi.DocHistoryRecover)
+		docHistoryRoute.GET("/detail", docHistoryApi.DocHistoryDetail)
+		docHistoryRoute.GET("/list", docHistoryApi.DocHistoryList)
 	}
 
 	//note
 	noteRoute := apiBase.Group("note").Use(middleware.Auth(), middleware.Cors())
 	{
-		noteRoute.POST("/create", api.NoteCreate)
-		noteRoute.GET("/detail", api.NoteDetail)
-		noteRoute.GET("/list", api.NoteList)
-		noteRoute.POST("/update", api.NoteUpdate)
-		noteRoute.POST("/delete", api.NoteDelete)
+		noteApi := api.NewNoteApi()
+		noteRoute.POST("/create", noteApi.NoteCreate)
+		noteRoute.GET("/detail", noteApi.NoteDetail)
+		noteRoute.GET("/list", noteApi.NoteList)
+		noteRoute.POST("/update", noteApi.NoteUpdate)
+		noteRoute.POST("/delete", noteApi.NoteDelete)
 	}
 
 	//doc group
 	docGroupRoute := apiBase.Group("doc-group").Use(middleware.Auth())
 	{
-		docGroupRoute.POST("/create", api.DocGroupCreate)
-		docGroupRoute.POST("/list", api.DocGroupList)
-		docGroupRoute.POST("/update", api.DocGroupUpdate)
-		docGroupRoute.POST("/delete", api.DocGroupDelete)
-		docGroupRoute.GET("/tree", api.DocGroupTree)
+		docGroupApi := api.NewDocGroupApi()
+		docGroupRoute.POST("/create", docGroupApi.DocGroupCreate)
+		docGroupRoute.POST("/list", docGroupApi.DocGroupList)
+		docGroupRoute.POST("/update", docGroupApi.DocGroupUpdate)
+		docGroupRoute.POST("/delete", docGroupApi.DocGroupDelete)
+		docGroupRoute.GET("/tree", docGroupApi.DocGroupTree)
 	}
 
 	// file upload
 	fileGroupRoute := apiBase.Group("file").Use(middleware.Auth())
 	{
-		fileGroupRoute.POST("upload", api.FileUpload)
+		fileApi := api.NewFileApi()
+		fileGroupRoute.POST("upload", fileApi.FileUpload)
 	}
 }

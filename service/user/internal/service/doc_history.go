@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request"
@@ -11,8 +12,21 @@ import (
 	"fastduck/treasure-doc/service/user/global"
 )
 
-func DocHistoryRecover(r request.IDReq, userId int64) (err error) {
-	history, err := DocHistoryDetail(r, userId)
+type DocHistoryService struct{}
+
+var docHistoryService *DocHistoryService
+
+var docHistoryOnce = sync.Once{}
+
+func NewDocHistoryService() *DocHistoryService {
+	docHistoryOnce.Do(func() {
+		docHistoryService = &DocHistoryService{}
+	})
+	return docHistoryService
+}
+
+func (dh *DocHistoryService) DocHistoryRecover(r request.IDReq, userId int64) (err error) {
+	history, err := docHistoryService.DocHistoryDetail(r, userId)
 	if err != nil {
 		return err
 	} else if history == nil {
@@ -52,14 +66,14 @@ func DocHistoryRecover(r request.IDReq, userId int64) (err error) {
 }
 
 // DocHistoryDetail 文档历史详情
-func DocHistoryDetail(r request.IDReq, userId int64) (d *model.DocHistory, err error) {
+func (dh *DocHistoryService) DocHistoryDetail(r request.IDReq, userId int64) (d *model.DocHistory, err error) {
 	q := global.Db.Unscoped().Model(&model.DocHistory{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
 	return
 }
 
 // DocHistoryList 文档列表
-func DocHistoryList(r doc.ListDocHistoryRequest, userId int64) (res response.ListResponse, err error) {
+func (dh *DocHistoryService) DocHistoryList(r doc.ListDocHistoryRequest, userId int64) (res response.ListResponse, err error) {
 	q := global.Db.Model(&model.DocHistory{}).Where("user_id = ?", userId)
 	global.Log.Infof(`requet:%+v`, r)
 

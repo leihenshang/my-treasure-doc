@@ -16,8 +16,15 @@ import (
 	"fastduck/treasure-doc/service/user/utils"
 )
 
+type FileApi struct {
+}
+
+func NewFileApi() *FileApi {
+	return &FileApi{}
+}
+
 // FileUpload 文件上传
-func FileUpload(c *gin.Context) {
+func (fa *FileApi) FileUpload(c *gin.Context) {
 	f, fHandler, fErr := c.Request.FormFile("file")
 	if fErr != nil {
 		response.Fail(c)

@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"gorm.io/gorm"
 
@@ -13,8 +14,21 @@ import (
 	"fastduck/treasure-doc/service/user/global"
 )
 
+type NoteService struct{}
+
+var noteService *NoteService
+
+var noteOnce = sync.Once{}
+
+func NewNoteService() *NoteService {
+	noteOnce.Do(func() {
+		noteService = &NoteService{}
+	})
+	return noteService
+}
+
 // NoteCreate 创建笔记
-func NoteCreate(r note.CreateNoteRequest, userId int64) (d *model.Note, err error) {
+func (n *NoteService) NoteCreate(r note.CreateNoteRequest, userId int64) (d *model.Note, err error) {
 	insertData := &model.Note{
 		UserId:   userId,
 		Content:  r.Content,
@@ -35,7 +49,7 @@ func NoteCreate(r note.CreateNoteRequest, userId int64) (d *model.Note, err erro
 }
 
 // NoteDetail 笔记详情
-func NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
+func (n *NoteService) NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
 	q := global.Db.Model(&model.Note{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
 	if err != nil {
@@ -57,7 +71,7 @@ func NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
 }
 
 // NoteList 笔记列表
-func NoteList(r note.ListNoteRequest, userId int64) (res response.ListResponse, err error) {
+func (n *NoteService) NoteList(r note.ListNoteRequest, userId int64) (res response.ListResponse, err error) {
 	q := global.Db.Model(&model.Note{}).Where("user_id = ?", userId).Where("note_type IN ?", r.NoteTypes.GetNoteTypeList())
 	q.Count(&r.Total)
 	r.ListSort.OrderBy = "isTop_desc,priority_desc,createdAt_desc,id_asc"
@@ -107,7 +121,7 @@ func FillDoc(notes model.Notes) error {
 }
 
 // NoteUpdate 笔记更新
-func NoteUpdate(r note.UpdateNoteRequest, userId int64) (err error) {
+func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
@@ -140,7 +154,7 @@ func NoteUpdate(r note.UpdateNoteRequest, userId int64) (err error) {
 }
 
 // NoteDelete 笔记删除
-func NoteDelete(r note.UpdateNoteRequest, userId int64) (err error) {
+func (n *NoteService) NoteDelete(r note.UpdateNoteRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)

@@ -12,8 +12,16 @@ import (
 	"fastduck/treasure-doc/service/user/internal/service"
 )
 
+type DocGroupApi struct {
+	DocGroupService *service.DocGroupService
+}
+
+func NewDocGroupApi() *DocGroupApi {
+	return &DocGroupApi{DocGroupService: service.NewDocGroupService()}
+}
+
 // DocGroupCreate 创建文档分组
-func DocGroupCreate(c *gin.Context) {
+func (d *DocGroupApi) DocGroupCreate(c *gin.Context) {
 	var req doc.CreateDocGroupRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -27,15 +35,15 @@ func DocGroupCreate(c *gin.Context) {
 		return
 	}
 
-	if d, ok := service.DocGroupCreate(req, u.Id); ok != nil {
+	if group, ok := d.DocGroupService.DocGroupCreate(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(c, d)
+		response.OkWithData(c, group)
 	}
 }
 
 // DocGroupList 文档分组列表
-func DocGroupList(c *gin.Context) {
+func (d *DocGroupApi) DocGroupList(c *gin.Context) {
 	var req request.ListPagination
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -47,15 +55,15 @@ func DocGroupList(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if d, ok := service.DocGroupList(req, u.Id); ok != nil {
+	if group, ok := d.DocGroupService.DocGroupList(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(c, d)
+		response.OkWithData(c, group)
 	}
 }
 
 // DocGroupUpdate 文档分组更新
-func DocGroupUpdate(c *gin.Context) {
+func (d *DocGroupApi) DocGroupUpdate(c *gin.Context) {
 	var req doc.UpdateDocGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -66,7 +74,7 @@ func DocGroupUpdate(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := service.DocGroupUpdate(req, u.Id); ok != nil {
+	if ok := d.DocGroupService.DocGroupUpdate(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
@@ -74,7 +82,7 @@ func DocGroupUpdate(c *gin.Context) {
 }
 
 // DocGroupDelete 文档分组删除
-func DocGroupDelete(c *gin.Context) {
+func (d *DocGroupApi) DocGroupDelete(c *gin.Context) {
 	var req doc.UpdateDocGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -85,7 +93,7 @@ func DocGroupDelete(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := service.DocGroupDelete(req, u.Id); ok != nil {
+	if ok := d.DocGroupService.DocGroupDelete(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
@@ -93,7 +101,7 @@ func DocGroupDelete(c *gin.Context) {
 }
 
 // DocGroupTree 文档组树
-func DocGroupTree(c *gin.Context) {
+func (d *DocGroupApi) DocGroupTree(c *gin.Context) {
 	var req doc.GroupTreeRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -106,7 +114,7 @@ func DocGroupTree(c *gin.Context) {
 		return
 	}
 
-	if res, ok := service.DocGroupTree(req, u.Id); ok != nil {
+	if res, ok := d.DocGroupService.DocGroupTree(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, res)

@@ -12,8 +12,16 @@ import (
 	"fastduck/treasure-doc/service/user/internal/service"
 )
 
+type NoteApi struct {
+	NoteService *service.NoteService
+}
+
+func NewNoteApi() *NoteApi {
+	return &NoteApi{NoteService: service.NewNoteService()}
+}
+
 // NoteCreate 创建文档
-func NoteCreate(c *gin.Context) {
+func (n *NoteApi) NoteCreate(c *gin.Context) {
 	var req note.CreateNoteRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -27,7 +35,7 @@ func NoteCreate(c *gin.Context) {
 		return
 	}
 
-	if d, ok := service.NoteCreate(req, u.Id); ok != nil {
+	if d, ok := n.NoteService.NoteCreate(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, d)
@@ -35,7 +43,7 @@ func NoteCreate(c *gin.Context) {
 }
 
 // NoteDetail 文档详情
-func NoteDetail(c *gin.Context) {
+func (n *NoteApi) NoteDetail(c *gin.Context) {
 	req := request.IDReq{}
 	err := c.ShouldBindQuery(&req)
 	if err != nil {
@@ -47,7 +55,7 @@ func NoteDetail(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if d, ok := service.NoteDetail(req, u.Id); ok != nil {
+	if d, ok := n.NoteService.NoteDetail(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, d)
@@ -56,7 +64,7 @@ func NoteDetail(c *gin.Context) {
 }
 
 // NoteList 文档列表
-func NoteList(c *gin.Context) {
+func (n *NoteApi) NoteList(c *gin.Context) {
 	var req note.ListNoteRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -68,7 +76,7 @@ func NoteList(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if d, ok := service.NoteList(req, u.Id); ok != nil {
+	if d, ok := n.NoteService.NoteList(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, d)
@@ -76,7 +84,7 @@ func NoteList(c *gin.Context) {
 }
 
 // NoteUpdate 文档更新
-func NoteUpdate(c *gin.Context) {
+func (n *NoteApi) NoteUpdate(c *gin.Context) {
 	var req note.UpdateNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -87,7 +95,7 @@ func NoteUpdate(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := service.NoteUpdate(req, u.Id); ok != nil {
+	if ok := n.NoteService.NoteUpdate(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
@@ -95,7 +103,7 @@ func NoteUpdate(c *gin.Context) {
 }
 
 // NoteDelete 文档删除
-func NoteDelete(c *gin.Context) {
+func (n *NoteApi) NoteDelete(c *gin.Context) {
 	var req note.UpdateNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -106,7 +114,7 @@ func NoteDelete(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := service.NoteDelete(req, u.Id); ok != nil {
+	if ok := n.NoteService.NoteDelete(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)

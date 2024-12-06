@@ -12,8 +12,16 @@ import (
 	"fastduck/treasure-doc/service/user/internal/service"
 )
 
+type DocHistoryApi struct {
+	DocHistoryService *service.DocHistoryService
+}
+
+func NewDocHistoryApi() *DocHistoryApi {
+	return &DocHistoryApi{DocHistoryService: service.NewDocHistoryService()}
+}
+
 // DocHistoryDetail 文档详情
-func DocHistoryDetail(c *gin.Context) {
+func (h *DocHistoryApi) DocHistoryDetail(c *gin.Context) {
 	req := request.IDReq{}
 	err := c.ShouldBindQuery(&req)
 	if err != nil {
@@ -25,7 +33,7 @@ func DocHistoryDetail(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if d, ok := service.DocHistoryDetail(req, u.Id); ok != nil {
+	if d, ok := h.DocHistoryService.DocHistoryDetail(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, d)
@@ -34,7 +42,7 @@ func DocHistoryDetail(c *gin.Context) {
 }
 
 // DocHistoryList 文档列表
-func DocHistoryList(c *gin.Context) {
+func (h *DocHistoryApi) DocHistoryList(c *gin.Context) {
 	var req doc.ListDocHistoryRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -46,7 +54,7 @@ func DocHistoryList(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if d, ok := service.DocHistoryList(req, u.Id); ok != nil {
+	if d, ok := h.DocHistoryService.DocHistoryList(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, d)
@@ -54,7 +62,7 @@ func DocHistoryList(c *gin.Context) {
 }
 
 // DocHistoryRecover 文档更新
-func DocHistoryRecover(c *gin.Context) {
+func (h *DocHistoryApi) DocHistoryRecover(c *gin.Context) {
 	req := request.IDReq{}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -65,7 +73,7 @@ func DocHistoryRecover(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := service.DocHistoryRecover(req, u.Id); ok != nil {
+	if ok := h.DocHistoryService.DocHistoryRecover(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
