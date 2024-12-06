@@ -150,7 +150,7 @@ func (user *UserService) UserLogin(r user.UserLoginRequest, clientIp string) (u 
 
 	tx := global.Db.Begin()
 	if len(userTokens) == 3 {
-		if err = tx.Delete(&userTokens[0]).Error; err != nil {
+		if err = tx.Debug().Delete(&userTokens[0]).Error; err != nil {
 			global.Log.Errorf("failed to delete user token:%v", err)
 			tx.Rollback()
 			return nil, errors.New("删除用户token失败")
@@ -227,9 +227,11 @@ func (user *UserService) UserProfileUpdate(profile user.UserProfileUpdateRequest
 // GetUserByToken 通过token获取用户
 func GetUserByToken(token string) (u *model.User, err error) {
 	now := time.Now()
-	err = global.Db.Debug().Select("td_user.user_type,td_user.user_status,td_user.token_expire,td_user.token,"+
+	err = global.Db.Debug().Select("td_user.user_type,td_user.user_status,"+
 		"td_user.nickname,td_user.mobile,td_user.id,td_user.email,td_user.bio,td_user.avatar,td_user.account",
-	).Joins("inner join td_user_token on td_user_token.user_id = td_user.id AND td_user_token.token = ? AND td_user_token.token_expire > ?", token, now).First(&u).Error
+	).Joins("inner join td_user_token "+
+		"on td_user_token.user_id = td_user.id AND td_user_token.token = ? "+
+		"AND td_user_token.token_expire > ? AND td_user_token.deleted_at IS NULL", token, now).First(&u).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		global.Log.Errorf("token : %s ,expire_time: %s  not found\n", token, now)
 		return nil, errors.New("用户信息没有找到")
