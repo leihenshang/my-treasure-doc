@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -12,35 +13,42 @@ import (
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/utils"
 
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-// UserRegister 用户注册
-func UserRegister(r user.UserRegisterRequest) (u model.User, err error) {
+type UserService struct{}
 
+var userService *UserService
+
+var userOnce = sync.Once{}
+
+func NewUserService() *UserService {
+	userOnce.Do(func() {
+		userService = &UserService{}
+	})
+	return userService
+}
+
+// UserRegister 用户注册
+func (user *UserService) UserRegister(r user.UserRegisterRequest) (u model.User, err error) {
 	pwd, err := checkPasswordRule(r.Password, r.RePassword)
 	if err != nil {
 		return u, err
 	}
 
-	//对密码进行加密
 	encryptedPwd, err := utils.PasswordEncrypt(pwd)
 	if err != nil {
 		return u, errors.New("加密密码失败")
 	}
 
-	//检查账号格式
 	if err := checkAccountRule(r.Account, 8); err != nil {
 		return u, err
 	}
 
-	//检查账号是否重复
 	if checkAccountIsDuplicate(r.Account) {
 		return u, errors.New("账号重复")
 	}
 
-	//检查邮箱是否重复
 	if checkEmailIsDuplicate(r.Email) {
 		return u, errors.New("邮箱重复")
 	}
@@ -53,20 +61,20 @@ func UserRegister(r user.UserRegisterRequest) (u model.User, err error) {
 	u.Email = r.Email
 	u.Password = encryptedPwd
 	err = global.Db.Create(&u).Error
-	//返回数据不显示密码
 	u.Password = ""
 	return u, err
 }
 
 // checkAccountIsDuplicate 检查账号是否重复
 func checkAccountIsDuplicate(account string) bool {
-	var user *model.User
-	result := global.Db.Where("account = ?", account).First(&user)
-	if result.RowsAffected > 0 {
-		return true
+	var u *model.User
+	err := global.Db.Where("account = ?", account).First(&u).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return false
+	} else {
+		global.Log.Errorf("failed to get user:%v", err)
 	}
-
-	return false
+	return true
 }
 
 // checkAccountRule 检查账号规则
@@ -91,13 +99,15 @@ func checkAccountRule(account string, accountLen int) (err error) {
 
 // checkEmailIsDuplicate 检查邮箱是否重复
 func checkEmailIsDuplicate(email string) bool {
-	var user *model.User
-	result := global.Db.Where("email = ?", email).First(&user)
-	if result.RowsAffected > 0 {
-		return true
+	var u *model.User
+	err := global.Db.Where("email = ?", email).First(&u).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return false
+	} else {
+		global.Log.Errorf("failed to get user from email:%v", err)
 	}
 
-	return false
+	return true
 }
 
 // checkPasswordRule 检查密码规则是否符合规则
@@ -114,61 +124,87 @@ func checkPasswordRule(password string, repeatPassword string) (string, error) {
 }
 
 // UserLogin 用户登录
-func UserLogin(r user.UserLoginRequest, clientIp string) (u model.User, err error) {
+func (user *UserService) UserLogin(r user.UserLoginRequest, clientIp string) (u *model.User, err error) {
 	if len(r.Password) == 0 || len(r.Account) == 0 {
-		return u, errors.New("密码或账号(邮箱)不能为空")
+		return nil, errors.New("密码或账号(邮箱)不能为空")
 	}
 
-	result := global.Db.Where("account = ? OR email = ?", r.Account, r.Account).First(&u)
-	if result.RowsAffected <= 0 {
-		return u, errors.New(fmt.Sprintf("账号 %s 没有找到", r.Account))
+	err = global.Db.Where("account = ? OR email = ?", r.Account, r.Account).First(&u).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errors.New(fmt.Sprintf("账号 %s 没有找到", r.Account))
 	}
 
-	//检查账号状态
 	if u.UserStatus != model.UserStatusAvailable {
-		return u, errors.New("账号不可用或未激活")
+		return nil, errors.New("账号不可用或未激活")
 	}
 
-	if utils.PasswordCompare(u.Password, r.Password) == false {
-		return u, errors.New("账号或密码错误")
+	if !utils.PasswordCompare(u.Password, r.Password) {
+		return nil, errors.New("账号或密码错误")
 	}
 
-	//下发token以及设置token过期时间
-	u.Token = utils.GenerateLoginToken(u.Id)
-	u.TokenExpire = time.Now().Add(time.Hour * 24 * 7)
-
-	//设置登录时间记录用户登录ip
-	u.LastLoginIp = clientIp
-	u.LastLoginTime = time.Now()
-	if err := global.Db.Select("LastLoginIp", "LastLoginTime", "Token", "TokenExpire").Save(&u).Error; err != nil {
-		return u, errors.New("登录失败: 更新登录状态发生错误")
+	var userTokens model.UserTokens
+	if err = global.Db.Where("user_id = ?", u.Id).Order("created_at ASC").Find(&userTokens).Error; err != nil {
+		global.Log.Errorf("failed to get user token:%v", err)
+		return nil, errors.New("获取用户token失败")
 	}
 
-	//密码置空
-	u.Password = ""
+	tx := global.Db.Begin()
+	if len(userTokens) == 3 {
+		if err = tx.Delete(&userTokens[0]).Error; err != nil {
+			global.Log.Errorf("failed to delete user token:%v", err)
+			tx.Rollback()
+			return nil, errors.New("删除用户token失败")
+		}
+	}
+
+	userToken := &model.UserToken{
+		Token:       utils.GenerateLoginToken(u.Id),
+		TokenExpire: time.Now().Add(time.Hour * 24 * 7),
+		LoginIp:     clientIp,
+		LoginTime:   time.Now(),
+		UserId:      u.Id,
+	}
+
+	if err = tx.Save(&userToken).Error; err != nil {
+		global.Log.Errorf("failed to save user token:%v", err)
+		tx.Rollback()
+		return nil, errors.New("保存用户token失败")
+	}
+
+	tx.Commit()
+	u.HiddenPwd().Token = userToken.Token
 	return u, err
 }
 
 // UserLogout 用户退出登陆
-func UserLogout(userId int64) error {
+func (user *UserService) UserLogout(userId int64, token string) error {
 	var userInfo model.User
-	if errors.Is(global.Db.Where("id = ?", userId).First(&userInfo).Error, gorm.ErrRecordNotFound) {
+	if err := global.Db.Where("id = ?", userId).First(&userInfo).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		return errors.New("用户不存在")
+	} else if err != nil {
+		global.Log.Errorf("user logout error:%v", err)
+		return errors.New("查询用户信息失败")
 	}
 
-	userInfo.Token = ""
-	userInfo.TokenExpire = utils.GetZeroDateTime()
-
-	if err := global.Db.Save(&userInfo).Error; err != nil {
-		global.Zap.Error("退出登陆，更新信息失败", zap.Any("dbErr", err))
-		return errors.New("更新信息失败")
+	tx := global.Db.Begin()
+	if err := tx.Where("user_id = ? AND token = ?", userId, token).Update("login_out_time", time.Now()).Error; err != nil {
+		global.Log.Errorf("failed to update user token login out time:%v", err)
+		tx.Rollback()
+		return errors.New("更新用户token信息失败")
 	}
+
+	if err := tx.Where("user_id = ? AND token = ?", userId, token).Delete(&model.UserToken{}).Error; err != nil {
+		global.Log.Errorf("failed to delete user token:%v", err)
+		tx.Rollback()
+		return errors.New("删除用户token信息失败")
+	}
+	tx.Commit()
 
 	return nil
 }
 
 // UserProfileUpdate 更新用户个人资料
-func UserProfileUpdate(profile user.UserProfileUpdateRequest, userId int64) (u model.User, err error) {
+func (user *UserService) UserProfileUpdate(profile user.UserProfileUpdateRequest, userId int64) (u model.User, err error) {
 	if errors.Is(global.Db.Where("id = ?", userId).First(&u).Error, gorm.ErrRecordNotFound) {
 		return u, errors.New("用户没有找到")
 	}
@@ -190,29 +226,15 @@ func UserProfileUpdate(profile user.UserProfileUpdateRequest, userId int64) (u m
 
 // GetUserByToken 通过token获取用户
 func GetUserByToken(token string) (u *model.User, err error) {
-
-	now := time.Now().Format("2006-01-02 15:04:05")
-	err = global.Db.Model(&model.User{}).Select(
-		"user_type",
-		"user_status",
-		"token_expire",
-		"token",
-		"nickname",
-		"mobile",
-		"id",
-		"email",
-		"bio",
-		"avatar",
-		"account",
-	).
-		Where("token = ? AND token_expire > ?", token, now).
-		First(&u).
-		Error
+	now := time.Now()
+	err = global.Db.Debug().Select("td_user.user_type,td_user.user_status,td_user.token_expire,td_user.token,"+
+		"td_user.nickname,td_user.mobile,td_user.id,td_user.email,td_user.bio,td_user.avatar,td_user.account",
+	).Joins("inner join td_user_token on td_user_token.user_id = td_user.id AND td_user_token.token = ? AND td_user_token.token_expire > ?", token, now).First(&u).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		global.Log.Errorf("用户 token : %s ,expire_time: %s \n", token, now)
+		global.Log.Errorf("token : %s ,expire_time: %s  not found\n", token, now)
 		return nil, errors.New("用户信息没有找到")
 	}
-
+	u.Token = token
 	return
 }
 

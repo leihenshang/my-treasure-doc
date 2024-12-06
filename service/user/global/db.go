@@ -26,6 +26,7 @@ var TableMigrate = []any{
 	&model.Note{},
 	&model.DocHistory{},
 	&model.UserConf{},
+	&model.UserToken{},
 }
 
 func initMysql() error {

@@ -2,14 +2,15 @@ package middleware
 
 import (
 	"errors"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
 	"fastduck/treasure-doc/service/user/config"
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/response"
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/internal/service"
-	"github.com/gin-gonic/gin"
-	"net/http"
-	"time"
 )
 
 const (
@@ -20,19 +21,16 @@ var mockUser = &model.User{
 	BasicModel: model.BasicModel{
 		Id: 9999999999,
 	},
-	Nickname:      "mockUser9999999999",
-	Account:       "mockUser9999999999",
-	Email:         "9999999999",
-	Password:      "9999999999",
-	UserType:      100,
-	UserStatus:    1,
-	Mobile:        "9999999999",
-	Avatar:        "",
-	Bio:           "mockUser9999999999",
-	Token:         "mockUser9999999999",
-	TokenExpire:   time.Now().Add(time.Hour * 72),
-	LastLoginIp:   "",
-	LastLoginTime: time.Now(),
+	Nickname:   "mockUser9999999999",
+	Account:    "mockUser9999999999",
+	Email:      "9999999999",
+	Password:   "9999999999",
+	UserType:   100,
+	UserStatus: 1,
+	Mobile:     "9999999999",
+	Avatar:     "",
+	Bio:        "mockUser9999999999",
+	Token:      "mockUser9999999999",
 }
 
 // Auth 身份验证
@@ -45,7 +43,6 @@ func Auth() gin.HandlerFunc {
 			if config.GetConfig().Debug.MockUserId > 0 {
 				mockUser.Id = config.GetConfig().Debug.MockUserId
 			}
-
 			c.Set("userinfo", mockUser)
 		} else {
 			if authKey == "" {
@@ -61,13 +58,6 @@ func Auth() gin.HandlerFunc {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, result)
 				return
 			}
-			if u == nil {
-				global.Log.Error("获取用户信息失败")
-				result.Msg = "获取用户信息失败"
-				c.AbortWithStatusJSON(http.StatusUnauthorized, result)
-				return
-			}
-
 			c.Set("userinfo", u)
 		}
 
