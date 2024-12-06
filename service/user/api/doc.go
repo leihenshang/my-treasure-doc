@@ -98,7 +98,7 @@ func (d *DocApi) DocUpdate(c *gin.Context) {
 		return
 	}
 	if newDoc, err := d.DocService.DocUpdate(req, u.Id); err != nil {
-		if errors.Is(err, service.RefreshDocError) {
+		if errors.Is(err, service.ErrorDocIsEdited) {
 			response.FailWithMessage(c, err.Error(), response.DocIsEdited)
 			return
 		}

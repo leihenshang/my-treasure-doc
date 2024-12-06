@@ -160,7 +160,7 @@ func fillGroupPath(docs model.Docs) model.Docs {
 	return docs
 }
 
-var RefreshDocError = errors.New("文档已更新，请刷新接口")
+var ErrorDocIsEdited = errors.New("数据已在其他位置更新,请刷新后再试~")
 
 // DocUpdate 文档更新
 func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *model.Doc, err error) {
@@ -184,8 +184,8 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *
 			return nil, errMsg
 		}
 	}
-	if oldDoc.Version != r.Version {
-		return nil, RefreshDocError
+	if oldDoc.Version != *r.Version {
+		return nil, ErrorDocIsEdited
 	}
 
 	u := map[string]interface{}{}
