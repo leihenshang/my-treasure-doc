@@ -187,13 +187,14 @@ func (user *UserService) UserLogout(userId int64, token string) error {
 	}
 
 	tx := global.Db.Begin()
-	if err := tx.Where("user_id = ? AND token = ?", userId, token).Update("login_out_time", time.Now()).Error; err != nil {
+	userToken := &model.UserToken{}
+	if err := tx.Model(&userToken).Where("user_id = ? AND token = ?", userId, token).Update("login_out_time", time.Now()).Error; err != nil {
 		global.Log.Errorf("failed to update user token login out time:%v", err)
 		tx.Rollback()
 		return errors.New("更新用户token信息失败")
 	}
 
-	if err := tx.Where("user_id = ? AND token = ?", userId, token).Delete(&model.UserToken{}).Error; err != nil {
+	if err := tx.Model(&userToken).Where("user_id = ? AND token = ?", userId, token).Delete(&model.UserToken{}).Error; err != nil {
 		global.Log.Errorf("failed to delete user token:%v", err)
 		tx.Rollback()
 		return errors.New("删除用户token信息失败")
