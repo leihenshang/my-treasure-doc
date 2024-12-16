@@ -25,6 +25,11 @@ type UpdateDocRequest struct {
 	Version   *int   `json:"version" binding:"required"`
 }
 
+// DeleteDocRequest 更新文档
+type DeleteDocRequest struct {
+	Id int64 `json:"id" binding:"required"`
+}
+
 type ListDocRequest struct {
 	GroupId    int64  `json:"groupId" form:"groupId" binding:""`
 	IsTop      int    `json:"isTop" form:"isTop" binding:""`

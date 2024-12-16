@@ -110,7 +110,7 @@ func (d *DocApi) DocUpdate(c *gin.Context) {
 
 // DocDelete 文档删除
 func (d *DocApi) DocDelete(c *gin.Context) {
-	var req doc.UpdateDocRequest
+	var req doc.DeleteDocRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return

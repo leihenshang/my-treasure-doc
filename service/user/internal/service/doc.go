@@ -263,7 +263,7 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *
 }
 
 // DocDelete 文档删除
-func (doc *DocService) DocDelete(r doc.UpdateDocRequest, userId int64) (err error) {
+func (doc *DocService) DocDelete(r doc.DeleteDocRequest, userId int64) (err error) {
 	if r.Id <= 0 {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
