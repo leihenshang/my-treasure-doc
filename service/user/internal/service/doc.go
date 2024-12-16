@@ -122,10 +122,6 @@ func (doc *DocService) DocList(r doc.ListDocRequest, userId int64) (res response
 		q = q.Where("group_id = ?", r.GroupId)
 	}
 
-	if r.Pid > 0 {
-		q = q.Where("pid = ?", r.Pid)
-	}
-
 	if r.IsTop > 0 {
 		q = q.Where("is_top = ?", r.IsTop)
 	}
@@ -195,11 +191,8 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *
 	if r.Content != "" {
 		u["Content"] = r.Content
 	}
-	if r.Pid > 0 {
-		u["Pid"] = r.Pid
-	}
 
-	if r.GroupId > 0 {
+	if r.GroupId >= 0 {
 		u["GroupId"] = r.GroupId
 	}
 
@@ -288,7 +281,7 @@ func (doc *DocService) DocDelete(r doc.UpdateDocRequest, userId int64) (err erro
 }
 
 func (doc *DocService) DocTree(r doc.ListDocRequest, userId int64) (res model.Docs, err error) {
-	q := global.Db.Model(&model.Doc{}).Select("id,pid,title").Where("user_id = ?", userId).Where("pid = ?", r.Pid)
+	q := global.Db.Model(&model.Doc{}).Select("id,title").Where("user_id = ?", userId)
 	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&res).Error
 	return
 }
