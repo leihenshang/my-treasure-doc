@@ -3,10 +3,12 @@ package request
 import (
 	"errors"
 	"strings"
+
+	"fastduck/treasure-doc/service/user/gid"
 )
 
 type IDReq struct {
-	ID int64 `json:"id" form:"id"  xml:"id"`
+	ID gid.Gid `json:"id" form:"id"  xml:"id"`
 }
 
 type ListPagination struct {

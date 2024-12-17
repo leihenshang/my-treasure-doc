@@ -42,11 +42,11 @@ func (dh *DocHistoryService) DocHistoryRecover(r request.IDReq, userId int64) (e
 
 	tx := global.Db.Begin()
 	if err = tx.Create(&model.DocHistory{
-		BasicModel: model.BasicModel{},
-		DocId:      dbDoc.Id,
-		UserId:     dbDoc.UserId,
-		Title:      dbDoc.Title,
-		Content:    dbDoc.Content,
+		BaseModel: model.BaseModel{},
+		DocId:     dbDoc.Id,
+		UserId:    dbDoc.UserId,
+		Title:     dbDoc.Title,
+		Content:   dbDoc.Content,
 	}).Error; err != nil {
 		tx.Rollback()
 		errMsg := fmt.Errorf("保存id 为 %d 的历史数据失败 %v ", r.ID, err)

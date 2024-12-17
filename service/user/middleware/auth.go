@@ -18,7 +18,7 @@ const (
 )
 
 var mockUser = &model.User{
-	BasicModel: model.BasicModel{
+	BaseModel: model.BaseModel{
 		Id: 9999999999,
 	},
 	Nickname:   "mockUser9999999999",

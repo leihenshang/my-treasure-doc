@@ -11,7 +11,7 @@ const (
 
 // User 用户表
 type User struct {
-	BasicModel
+	BaseModel
 	Nickname   string `json:"nickname" gorm:"column:nickname;type:varchar(50);NOT NULL;comment:昵称;AUTO_INCREMENT"`
 	Account    string `json:"account" gorm:"column:account;type:varchar(100);NOT NULL;comment:账号"`
 	Email      string `json:"email" gorm:"column:email;type:varchar(100);comment:邮箱"`

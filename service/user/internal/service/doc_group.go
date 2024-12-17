@@ -39,7 +39,7 @@ func (group *DocGroupService) DocGroupCreate(r doc.CreateDocGroupRequest, userId
 	}
 
 	parentGroup := &model.DocGroup{
-		BasicModel: model.BasicModel{
+		BaseModel: model.BaseModel{
 			Id: r.PId,
 		},
 	}
@@ -88,7 +88,7 @@ func (group *DocGroupService) DocGroupCreate(r doc.CreateDocGroupRequest, userId
 
 func genGroupPath(id, pid int64, userId int64) (string, error) {
 	parentGroup := &model.DocGroup{
-		BasicModel: model.BasicModel{
+		BaseModel: model.BaseModel{
 			Id: pid,
 		},
 	}
@@ -234,7 +234,7 @@ func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId int64)
 	for _, d := range currentDocs {
 		docTree = append(docTree, &resp.DocTree{
 			DocGroup: &model.DocGroup{
-				BasicModel: model.BasicModel{
+				BaseModel: model.BaseModel{
 					Id: d.Id,
 				},
 				Title:     d.Title,

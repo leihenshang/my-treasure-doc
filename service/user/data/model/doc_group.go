@@ -2,7 +2,7 @@ package model
 
 // DocGroup 文档分组
 type DocGroup struct {
-	BasicModel
+	BaseModel
 	UserId    int64     `gorm:"column:user_id;default:0;NOT NULL" json:"userId"`    // 用户Id
 	Title     string    `gorm:"column:title;NOT NULL" json:"title"`                 // 组名
 	Icon      string    `gorm:"column:icon;NOT NULL" json:"icon"`                   // 图标

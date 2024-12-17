@@ -78,7 +78,7 @@ func checkDocTitleIsDuplicates(title string, userId int64) (doc *model.Doc, err 
 
 // DocDetail 文档详情
 func (doc *DocService) DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
-	err = global.Db.Unscoped().Where("id = ? AND user_id = ?", r.ID, userId).First(&d).Error
+	err = global.Db.Unscoped().Debug().Where("id = ? AND user_id = ?", r.ID, userId).First(&d).Error
 	if err != nil {
 		return
 	}
@@ -118,7 +118,7 @@ func (doc *DocService) DocList(r doc.ListDocRequest, userId int64) (res response
 	if r.RecycleBin == 1 {
 		q = q.Unscoped().Where("deleted_at is not null")
 	}
-	if r.GroupId > 0 {
+	if r.GroupId.Int64() > 0 {
 		q = q.Where("group_id = ?", r.GroupId)
 	}
 
@@ -161,7 +161,7 @@ var ErrorDocIsEdited = errors.New("数据已在其他位置更新,请刷新后�
 // DocUpdate 文档更新
 func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *model.Doc, err error) {
 	errMsg := fmt.Errorf("id 为 %d 的数据没有找到", r.Id)
-	if r.Id <= 0 {
+	if r.Id.Int64() <= 0 {
 		global.Log.Error(errMsg)
 		return nil, errMsg
 	}
@@ -210,11 +210,11 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *
 	}
 
 	if err = tx.Create(&model.DocHistory{
-		BasicModel: model.BasicModel{},
-		DocId:      oldDoc.Id,
-		UserId:     oldDoc.UserId,
-		Title:      oldDoc.Title,
-		Content:    oldDoc.Content,
+		BaseModel: model.BaseModel{},
+		DocId:     oldDoc.Id,
+		UserId:    oldDoc.UserId,
+		Title:     oldDoc.Title,
+		Content:   oldDoc.Content,
 	}).Error; err != nil {
 		tx.Rollback()
 		errMsg = fmt.Errorf("保存id 为 %d 的历史数据失败 %v ", r.Id, err)
@@ -226,10 +226,10 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *
 		var dbNote *model.Note
 		if err := tx.Where("user_id = ? AND doc_id = ? AND note_type = ?", userId, r.Id, model.NoteTypeDoc).First(&dbNote).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 			if err = tx.Create(&model.Note{
-				BasicModel: model.BasicModel{},
-				UserId:     userId,
-				DocId:      r.Id,
-				NoteType:   model.NoteTypeDoc,
+				BaseModel: model.BaseModel{},
+				UserId:    userId,
+				DocId:     r.Id.Int64(),
+				NoteType:  model.NoteTypeDoc,
 			}).Error; err != nil {
 				tx.Rollback()
 				errMsg = fmt.Errorf("保存id 为 %d 的笔记失败 %v ", r.Id, err)
@@ -264,8 +264,8 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *
 
 // DocDelete 文档删除
 func (doc *DocService) DocDelete(r doc.DeleteDocRequest, userId int64) (err error) {
-	if r.Id <= 0 {
-		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
+	if r.Id.Int64() <= 0 {
+		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
