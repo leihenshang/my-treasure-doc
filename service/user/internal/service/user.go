@@ -3,13 +3,14 @@ package service
 import (
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"sync"
 	"time"
 	"unicode/utf8"
 
 	"fastduck/treasure-doc/service/user/data/model"
-	"fastduck/treasure-doc/service/user/data/request/user"
+	userReq "fastduck/treasure-doc/service/user/data/request/user"
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/utils"
 
@@ -26,11 +27,45 @@ func NewUserService() *UserService {
 	userOnce.Do(func() {
 		userService = &UserService{}
 	})
+
+	if err := userService.RegisterRootUser(); err != nil {
+		log.Fatalf("register root user failed: %v", err)
+	}
+
 	return userService
 }
 
+var rootUser = &model.User{
+	Account:  "treasure-root",
+	Email:    "treasure-root",
+	Password: "treasure-root",
+}
+
+func getRootUserReq() userReq.UserRegisterRequest {
+	return userReq.UserRegisterRequest{
+		Password:   rootUser.Password,
+		RePassword: rootUser.Password,
+		Account:    rootUser.Account,
+		Email:      rootUser.Email,
+	}
+}
+
+func (user *UserService) RegisterRootUser() error {
+	regRequest := getRootUserReq()
+	if checkAccountIsDuplicate(regRequest.Account) {
+		log.Printf("root account [%v] already existes,cancel registration\n", regRequest.Account)
+	} else {
+		if _, err := userService.UserRegister(regRequest); err != nil {
+			return err
+		}
+		log.Printf("root user is registered,account is [%v],password is [%v],"+
+			"please update your password immediately\n", regRequest.Account, regRequest.Password)
+	}
+	return nil
+}
+
 // UserRegister 用户注册
-func (user *UserService) UserRegister(r user.UserRegisterRequest) (u model.User, err error) {
+func (user *UserService) UserRegister(r userReq.UserRegisterRequest) (u model.User, err error) {
 	pwd, err := checkPasswordRule(r.Password, r.RePassword)
 	if err != nil {
 		return u, err
@@ -60,6 +95,12 @@ func (user *UserService) UserRegister(r user.UserRegisterRequest) (u model.User,
 	u.Account = r.Account
 	u.Email = r.Email
 	u.Password = encryptedPwd
+
+	if r.Account == rootUser.Account && r.Password == rootUser.Password {
+		u.UserStatus = model.UserStatusAvailable
+		u.UserType = model.UserTypeRoot
+	}
+
 	err = global.Db.Create(&u).Error
 	u.Password = ""
 	return u, err
@@ -72,7 +113,7 @@ func checkAccountIsDuplicate(account string) bool {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	} else {
-		global.Log.Errorf("failed to get user:%v", err)
+		global.Log.Errorf("failed to get userReq:%v", err)
 	}
 	return true
 }
@@ -89,7 +130,7 @@ func checkAccountRule(account string, accountLen int) (err error) {
 	}
 
 	//需要检查一下账号只能使用英文和数字
-	reg := regexp.MustCompile(`^[a-zA-Z\d]*$`)
+	reg := regexp.MustCompile(`^[a-zA-Z-_\d]*$`)
 	if isAccord := reg.MatchString(account); !isAccord {
 		return errors.New("账号必须为数字或英文")
 	}
@@ -104,7 +145,7 @@ func checkEmailIsDuplicate(email string) bool {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	} else {
-		global.Log.Errorf("failed to get user from email:%v", err)
+		global.Log.Errorf("failed to get userReq from email:%v", err)
 	}
 
 	return true
@@ -124,7 +165,7 @@ func checkPasswordRule(password string, repeatPassword string) (string, error) {
 }
 
 // UserLogin 用户登录
-func (user *UserService) UserLogin(r user.UserLoginRequest, clientIp string) (u *model.User, err error) {
+func (user *UserService) UserLogin(r userReq.UserLoginRequest, clientIp string) (u *model.User, err error) {
 	if len(r.Password) == 0 || len(r.Account) == 0 {
 		return nil, errors.New("密码或账号(邮箱)不能为空")
 	}
@@ -144,14 +185,14 @@ func (user *UserService) UserLogin(r user.UserLoginRequest, clientIp string) (u 
 
 	var userTokens model.UserTokens
 	if err = global.Db.Where("user_id = ?", u.Id).Order("created_at ASC").Find(&userTokens).Error; err != nil {
-		global.Log.Errorf("failed to get user token:%v", err)
+		global.Log.Errorf("failed to get userReq token:%v", err)
 		return nil, errors.New("获取用户token失败")
 	}
 
 	tx := global.Db.Begin()
 	if len(userTokens) == 3 {
 		if err = tx.Delete(&userTokens[0]).Error; err != nil {
-			global.Log.Errorf("failed to delete user token:%v", err)
+			global.Log.Errorf("failed to delete userReq token:%v", err)
 			tx.Rollback()
 			return nil, errors.New("删除用户token失败")
 		}
@@ -166,7 +207,7 @@ func (user *UserService) UserLogin(r user.UserLoginRequest, clientIp string) (u 
 	}
 
 	if err = tx.Save(&userToken).Error; err != nil {
-		global.Log.Errorf("failed to save user token:%v", err)
+		global.Log.Errorf("failed to save userReq token:%v", err)
 		tx.Rollback()
 		return nil, errors.New("保存用户token失败")
 	}
@@ -182,20 +223,20 @@ func (user *UserService) UserLogout(userId int64, token string) error {
 	if err := global.Db.Where("id = ?", userId).First(&userInfo).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		return errors.New("用户不存在")
 	} else if err != nil {
-		global.Log.Errorf("user logout error:%v", err)
+		global.Log.Errorf("userReq logout error:%v", err)
 		return errors.New("查询用户信息失败")
 	}
 
 	tx := global.Db.Begin()
 	userToken := &model.UserToken{}
 	if err := tx.Model(&userToken).Where("user_id = ? AND token = ?", userId, token).Update("login_out_time", time.Now()).Error; err != nil {
-		global.Log.Errorf("failed to update user token login out time:%v", err)
+		global.Log.Errorf("failed to update userReq token login out time:%v", err)
 		tx.Rollback()
 		return errors.New("更新用户token信息失败")
 	}
 
 	if err := tx.Model(&userToken).Where("user_id = ? AND token = ?", userId, token).Delete(&model.UserToken{}).Error; err != nil {
-		global.Log.Errorf("failed to delete user token:%v", err)
+		global.Log.Errorf("failed to delete userReq token:%v", err)
 		tx.Rollback()
 		return errors.New("删除用户token信息失败")
 	}
@@ -205,7 +246,7 @@ func (user *UserService) UserLogout(userId int64, token string) error {
 }
 
 // UserProfileUpdate 更新用户个人资料
-func (user *UserService) UserProfileUpdate(profile user.UserProfileUpdateRequest, userId int64) (u model.User, err error) {
+func (user *UserService) UserProfileUpdate(profile userReq.UserProfileUpdateRequest, userId int64) (u model.User, err error) {
 	if errors.Is(global.Db.Where("id = ?", userId).First(&u).Error, gorm.ErrRecordNotFound) {
 		return u, errors.New("用户没有找到")
 	}
