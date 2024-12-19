@@ -30,8 +30,8 @@ func PasswordCompare(encryptedPassword string, inputPassword string) bool {
 	return false
 }
 
-func GenerateLoginToken(userId int64) string {
-	str := "apiDocGo" + strconv.FormatInt(userId, 2)
+func GenerateLoginToken(userId string) string {
+	str := "treasure-doc-" + userId
 
 	// 生成随机数（生成4字节的随机数）
 	randomBytes := make([]byte, 4)

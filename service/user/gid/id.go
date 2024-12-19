@@ -1,7 +1,6 @@
 package gid
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -19,15 +18,15 @@ func init() {
 	}
 }
 
-func genSid() (int64, error) {
+func genSid() (string, error) {
 	id, err := sf.NextID()
 	if err != nil {
-		return 0, err
+		return "", err
 	}
-	return int64(id), nil
+	return strconv.FormatUint(id, 10), nil
 }
 
-func GenId() int64 {
+func GenId() string {
 	id, err := genSid()
 	if err != nil {
 		log.Printf("failed to gen sonyflake: %v", err)
@@ -39,21 +38,10 @@ func GenId() int64 {
 	return id
 }
 
-func BatchGenId(count int) []int64 {
-	res := make([]int64, 0, count)
+func BatchGenId(count int) []string {
+	res := make([]string, 0, count)
 	for i := 0; i < count; i++ {
 		res = append(res, GenId())
 	}
 	return res
-}
-
-type Gid string
-
-func (s Gid) Int64() int64 {
-	num, err := strconv.ParseInt(string(s), 10, 64)
-	if err != nil {
-		fmt.Printf("failed to convert gid %s to int", s)
-		return 0
-	}
-	return num
 }

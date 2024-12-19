@@ -9,7 +9,7 @@ type RestPwdRequest struct {
 }
 
 type ListUserManageRequest struct {
-	Id      int64  `json:"id" form:"id" param:"id"`
+	Id      string `json:"id" form:"id" param:"id"`
 	Keyword string `json:"keyword" form:"keyword" binding:""`
 	Account string `json:"account" form:"account" binding:""`
 	request.Pagination

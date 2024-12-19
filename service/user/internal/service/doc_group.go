@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -30,7 +29,7 @@ func NewDocGroupService() *DocGroupService {
 }
 
 // DocGroupCreate 创建文档分组
-func (group *DocGroupService) DocGroupCreate(r doc.CreateDocGroupRequest, userId int64) (dg *model.DocGroup, err error) {
+func (group *DocGroupService) DocGroupCreate(r doc.CreateDocGroupRequest, userId string) (dg *model.DocGroup, err error) {
 	if existed, err := checkDocGroupTitleRepeat(r.PId, r.Title, userId); err != nil {
 		global.Log.Error(r, userId, err)
 		return nil, errors.New("检查文档分组标题失败")
@@ -43,14 +42,14 @@ func (group *DocGroupService) DocGroupCreate(r doc.CreateDocGroupRequest, userId
 			Id: r.PId,
 		},
 	}
-	if parentGroup.PId > 0 {
+	if parentGroup.PId != "" {
 		if err = global.Db.Where("id = ? AND user_id = ?", r.PId, userId).First(&parentGroup).Error; err != nil {
 			errorMsg := fmt.Errorf("查找父级分组失败")
 			global.Log.Error(errorMsg, err)
 			return nil, errorMsg
 		}
 	} else {
-		parentGroup.GroupPath = strconv.FormatInt(r.PId, 10)
+		parentGroup.GroupPath = r.PId
 	}
 
 	insertData := &model.DocGroup{
@@ -86,21 +85,21 @@ func (group *DocGroupService) DocGroupCreate(r doc.CreateDocGroupRequest, userId
 	return insertData, nil
 }
 
-func genGroupPath(id, pid int64, userId int64) (string, error) {
+func genGroupPath(id, pid string, userId string) (string, error) {
 	parentGroup := &model.DocGroup{
 		BaseModel: model.BaseModel{
 			Id: pid,
 		},
 	}
-	if pid > 0 {
+	if pid != "" {
 		if err := global.Db.Where("id = ? AND user_id = ?", pid, userId).First(&parentGroup).Error; err != nil {
 			errorMsg := fmt.Errorf("查找父级分组失败")
 			global.Log.Error(errorMsg, err)
 			return "", errorMsg
 		}
 	} else {
-		parentGroup.GroupPath = strconv.FormatInt(pid, 10)
-		return fmt.Sprintf("%d,%d", 0, id), nil
+		parentGroup.GroupPath = pid
+		return fmt.Sprintf("%d,%s", 0, id), nil
 	}
 
 	paths := append(strings.Split(parentGroup.GroupPath, ","), fmt.Sprintf(`%d`, id))
@@ -108,7 +107,7 @@ func genGroupPath(id, pid int64, userId int64) (string, error) {
 }
 
 // checkDocGroupTitleRepeat 查询数据库检查文档分组标题是否重复
-func checkDocGroupTitleRepeat(pid int64, title string, userId int64) (dg *model.DocGroup, err error) {
+func checkDocGroupTitleRepeat(pid string, title string, userId string) (dg *model.DocGroup, err error) {
 	q := global.Db.Model(&model.DocGroup{}).Where("title = ? AND user_id = ? AND p_id = ?", title, userId, pid)
 	if err = q.First(&dg).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -120,7 +119,7 @@ func checkDocGroupTitleRepeat(pid int64, title string, userId int64) (dg *model.
 }
 
 // DocGroupList 文档分组列表
-func (group *DocGroupService) DocGroupList(r request.Pagination, userId int64) (res resp.ListResponse, err error) {
+func (group *DocGroupService) DocGroupList(r request.Pagination, userId string) (res resp.ListResponse, err error) {
 	var list []model.DocGroup
 	q := global.Db.Model(&model.DocGroup{}).Where("user_id = ?", userId)
 	q.Count(&r.Total)
@@ -131,8 +130,8 @@ func (group *DocGroupService) DocGroupList(r request.Pagination, userId int64) (
 }
 
 // DocGroupUpdate 文档分组更新
-func (group *DocGroupService) DocGroupUpdate(r doc.UpdateDocGroupRequest, userId int64) (err error) {
-	if r.Id <= 0 {
+func (group *DocGroupService) DocGroupUpdate(r doc.UpdateDocGroupRequest, userId string) (err error) {
+	if r.Id != "" {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		return errors.New(errMsg)
 	}
@@ -155,8 +154,8 @@ func (group *DocGroupService) DocGroupUpdate(r doc.UpdateDocGroupRequest, userId
 }
 
 // DocGroupDelete 文档分组删除
-func (group *DocGroupService) DocGroupDelete(r doc.UpdateDocGroupRequest, userId int64) (err error) {
-	if r.Id <= 0 {
+func (group *DocGroupService) DocGroupDelete(r doc.UpdateDocGroupRequest, userId string) (err error) {
+	if r.Id != "" {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
@@ -184,7 +183,7 @@ func (group *DocGroupService) DocGroupDelete(r doc.UpdateDocGroupRequest, userId
 	return
 }
 
-func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId int64) (docTree resp.DocTrees, err error) {
+func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId string) (docTree resp.DocTrees, err error) {
 	docTree = make([]*resp.DocTree, 0)
 	var list model.DocGroups
 	if err = global.Db.Where("user_id = ?", userId).Where("p_id = ?", r.Pid).Order("created_at ASC").Find(&list).Error; err != nil {
@@ -248,12 +247,12 @@ func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId int64)
 	return
 }
 
-func getDocByGroupIds(groupId ...int64) (res model.Docs, err error) {
+func getDocByGroupIds(groupId ...string) (res model.Docs, err error) {
 	err = global.Db.Where("group_id IN (?)", groupId).Find(&res).Error
 	return
 }
 
-func getDocGroupByIds(groupId ...int64) (res model.DocGroups, err error) {
+func getDocGroupByIds(groupId ...string) (res model.DocGroups, err error) {
 	err = global.Db.Where("id IN (?)", groupId).Find(&res).Error
 	return
 }

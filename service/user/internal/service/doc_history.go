@@ -25,7 +25,7 @@ func NewDocHistoryService() *DocHistoryService {
 	return docHistoryService
 }
 
-func (dh *DocHistoryService) DocHistoryRecover(r request.IDReq, userId int64) (err error) {
+func (dh *DocHistoryService) DocHistoryRecover(r request.IDReq, userId string) (err error) {
 	history, err := docHistoryService.DocHistoryDetail(r, userId)
 	if err != nil {
 		return err
@@ -66,18 +66,18 @@ func (dh *DocHistoryService) DocHistoryRecover(r request.IDReq, userId int64) (e
 }
 
 // DocHistoryDetail 文档历史详情
-func (dh *DocHistoryService) DocHistoryDetail(r request.IDReq, userId int64) (d *model.DocHistory, err error) {
+func (dh *DocHistoryService) DocHistoryDetail(r request.IDReq, userId string) (d *model.DocHistory, err error) {
 	q := global.Db.Unscoped().Model(&model.DocHistory{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
 	return
 }
 
 // DocHistoryList 文档列表
-func (dh *DocHistoryService) DocHistoryList(r doc.ListDocHistoryRequest, userId int64) (res response.ListResponse, err error) {
+func (dh *DocHistoryService) DocHistoryList(r doc.ListDocHistoryRequest, userId string) (res response.ListResponse, err error) {
 	q := global.Db.Model(&model.DocHistory{}).Where("user_id = ?", userId)
 	global.Log.Infof(`requet:%+v`, r)
 
-	if r.DocId > 0 {
+	if r.DocId != "" {
 		q = q.Where("doc_id = ?", r.DocId)
 	}
 

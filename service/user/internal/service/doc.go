@@ -29,7 +29,7 @@ func NewDocService() *DocService {
 }
 
 // DocCreate 创建文档
-func (doc *DocService) DocCreate(r doc.CreateDocRequest, userId int64) (d *model.Doc, err error) {
+func (doc *DocService) DocCreate(r doc.CreateDocRequest, userId string) (d *model.Doc, err error) {
 	insertData := &model.Doc{
 		UserId:  userId,
 		Title:   r.Title,
@@ -47,7 +47,7 @@ func (doc *DocService) DocCreate(r doc.CreateDocRequest, userId int64) (d *model
 	//	}
 	//}
 
-	if insertData.GroupId > 0 {
+	if insertData.GroupId != "" {
 		groupList, err := getDocGroupByIds(insertData.GroupId)
 		if err != nil {
 			return nil, err
@@ -65,7 +65,7 @@ func (doc *DocService) DocCreate(r doc.CreateDocRequest, userId int64) (d *model
 }
 
 // checkDocTitleIsDuplicates 检查文档标题是否重复
-func checkDocTitleIsDuplicates(title string, userId int64) (doc *model.Doc, err error) {
+func checkDocTitleIsDuplicates(title string, userId string) (doc *model.Doc, err error) {
 	q := global.Db.Model(&model.Doc{}).Where("title = ? AND user_id = ?", title, userId)
 	if err = q.First(&doc).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -77,7 +77,7 @@ func checkDocTitleIsDuplicates(title string, userId int64) (doc *model.Doc, err 
 }
 
 // DocDetail 文档详情
-func (doc *DocService) DocDetail(r request.IDReq, userId int64) (d *model.Doc, err error) {
+func (doc *DocService) DocDetail(r request.IDReq, userId string) (d *model.Doc, err error) {
 	err = global.Db.Unscoped().Debug().Where("id = ? AND user_id = ?", r.ID, userId).First(&d).Error
 	if err != nil {
 		return
@@ -113,12 +113,12 @@ func (doc *DocService) DocDetail(r request.IDReq, userId int64) (d *model.Doc, e
 }
 
 // DocList 文档列表
-func (doc *DocService) DocList(r doc.ListDocRequest, userId int64) (res response.ListResponse, err error) {
+func (doc *DocService) DocList(r doc.ListDocRequest, userId string) (res response.ListResponse, err error) {
 	q := global.Db.Model(&model.Doc{}).Where("user_id = ?", userId)
 	if r.RecycleBin == 1 {
 		q = q.Unscoped().Where("deleted_at is not null")
 	}
-	if r.GroupId.Int64() > 0 {
+	if r.GroupId != "" {
 		q = q.Where("group_id = ?", r.GroupId)
 	}
 
@@ -159,9 +159,9 @@ func fillGroupPath(docs model.Docs) model.Docs {
 var ErrorDocIsEdited = errors.New("数据已在其他位置更新,请刷新后再试~")
 
 // DocUpdate 文档更新
-func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *model.Doc, err error) {
+func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId string) (newDoc *model.Doc, err error) {
 	errMsg := fmt.Errorf("id 为 %d 的数据没有找到", r.Id)
-	if r.Id.Int64() <= 0 {
+	if r.Id != "" {
 		global.Log.Error(errMsg)
 		return nil, errMsg
 	}
@@ -192,7 +192,7 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *
 		u["Content"] = r.Content
 	}
 
-	if r.GroupId >= 0 {
+	if r.GroupId != "" {
 		u["GroupId"] = r.GroupId
 	}
 
@@ -228,7 +228,7 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *
 			if err = tx.Create(&model.Note{
 				BaseModel: model.BaseModel{},
 				UserId:    userId,
-				DocId:     r.Id.Int64(),
+				DocId:     r.Id,
 				NoteType:  model.NoteTypeDoc,
 			}).Error; err != nil {
 				tx.Rollback()
@@ -263,8 +263,8 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId int64) (newDoc *
 }
 
 // DocDelete 文档删除
-func (doc *DocService) DocDelete(r doc.DeleteDocRequest, userId int64) (err error) {
-	if r.Id.Int64() <= 0 {
+func (doc *DocService) DocDelete(r doc.DeleteDocRequest, userId string) (err error) {
+	if r.Id != "" {
 		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
@@ -280,7 +280,7 @@ func (doc *DocService) DocDelete(r doc.DeleteDocRequest, userId int64) (err erro
 	return
 }
 
-func (doc *DocService) DocTree(r doc.ListDocRequest, userId int64) (res model.Docs, err error) {
+func (doc *DocService) DocTree(r doc.ListDocRequest, userId string) (res model.Docs, err error) {
 	q := global.Db.Model(&model.Doc{}).Select("id,title").Where("user_id = ?", userId)
 	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&res).Error
 	return

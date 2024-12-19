@@ -215,7 +215,7 @@ func (user *UserService) UserLogin(r userReq.UserLoginRequest, clientIp string) 
 }
 
 // UserLogout 用户退出登陆
-func (user *UserService) UserLogout(userId int64, token string) error {
+func (user *UserService) UserLogout(userId string, token string) error {
 	var userInfo model.User
 	if err := global.Db.Where("id = ?", userId).First(&userInfo).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		return errors.New("用户不存在")
@@ -243,7 +243,7 @@ func (user *UserService) UserLogout(userId int64, token string) error {
 }
 
 // UserProfileUpdate 更新用户个人资料
-func (user *UserService) UserProfileUpdate(profile userReq.UserProfileUpdateRequest, userId int64) (u model.User, err error) {
+func (user *UserService) UserProfileUpdate(profile userReq.UserProfileUpdateRequest, userId string) (u model.User, err error) {
 	if errors.Is(global.Db.Where("id = ?", userId).First(&u).Error, gorm.ErrRecordNotFound) {
 		return u, errors.New("用户没有找到")
 	}

@@ -3,8 +3,8 @@ package model
 // UserConf 用户配置表
 type UserConf struct {
 	BaseModel
-	UserId int64  `gorm:"column:user_id;type:bigint(20) unsigned;default:0;NOT NULL" json:"userId"` // 用户id
-	Key    string `gorm:"column:key;type:varchar(64);default:'';NOT NULL" json:"key"`
+	UserId string `gorm:"column:user_id;type:varchar(100);" json:"userId"` // 用户id
+	Key    string `gorm:"column:key;type:varchar(64);NOT NULL" json:"key"`
 	Value  string `gorm:"column:value;type:text;NOT NULL" json:"value"`
 }
 

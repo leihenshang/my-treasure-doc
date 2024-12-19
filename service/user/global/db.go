@@ -15,7 +15,7 @@ import (
 	"fastduck/treasure-doc/service/user/data/model"
 )
 
-var TableMigrate = []any{
+var TableMigrate = []schema.Tabler{
 	&model.Doc{},
 	&model.DocGroup{},
 	&model.GlobalConf{},
@@ -72,8 +72,10 @@ func migrateDbTable() error {
 		return fmt.Errorf("the Db is not initialize")
 	}
 
-	if err := Db.AutoMigrate(TableMigrate...); err != nil {
-		return fmt.Errorf("failed to migrate tables,error:%v,table[%+v]", err, TableMigrate)
+	for _, t := range TableMigrate {
+		if err := Db.AutoMigrate(t); err != nil {
+			return fmt.Errorf("failed to migrate tables,error:%v,table[%#v]", err, t.TableName())
+		}
 	}
 
 	return nil

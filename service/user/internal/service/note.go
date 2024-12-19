@@ -28,7 +28,7 @@ func NewNoteService() *NoteService {
 }
 
 // NoteCreate 创建笔记
-func (n *NoteService) NoteCreate(r note.CreateNoteRequest, userId int64) (d *model.Note, err error) {
+func (n *NoteService) NoteCreate(r note.CreateNoteRequest, userId string) (d *model.Note, err error) {
 	insertData := &model.Note{
 		UserId:   userId,
 		Content:  r.Content,
@@ -49,7 +49,7 @@ func (n *NoteService) NoteCreate(r note.CreateNoteRequest, userId int64) (d *mod
 }
 
 // NoteDetail 笔记详情
-func (n *NoteService) NoteDetail(r request.IDReq, userId int64) (d *model.Note, err error) {
+func (n *NoteService) NoteDetail(r request.IDReq, userId string) (d *model.Note, err error) {
 	q := global.Db.Model(&model.Note{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
 	if err != nil {
@@ -71,7 +71,7 @@ func (n *NoteService) NoteDetail(r request.IDReq, userId int64) (d *model.Note, 
 }
 
 // NoteList 笔记列表
-func (n *NoteService) NoteList(r note.ListNoteRequest, userId int64) (res response.ListResponse, err error) {
+func (n *NoteService) NoteList(r note.ListNoteRequest, userId string) (res response.ListResponse, err error) {
 	q := global.Db.Model(&model.Note{}).Where("user_id = ?", userId).Where("note_type IN ?", r.NoteTypes.GetNoteTypeList())
 	q.Count(&r.Total)
 	r.Sort.OrderBy = "isTop_desc,priority_desc,createdAt_desc,id_asc"
@@ -121,8 +121,8 @@ func FillDoc(notes model.Notes) error {
 }
 
 // NoteUpdate 笔记更新
-func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId int64) (err error) {
-	if r.Id <= 0 {
+func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId string) (err error) {
+	if r.Id != "" {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
@@ -154,8 +154,8 @@ func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId int64) (err er
 }
 
 // NoteDelete 笔记删除
-func (n *NoteService) NoteDelete(r note.UpdateNoteRequest, userId int64) (err error) {
-	if r.Id <= 0 {
+func (n *NoteService) NoteDelete(r note.UpdateNoteRequest, userId string) (err error) {
+	if r.Id != "" {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)

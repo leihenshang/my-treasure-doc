@@ -31,7 +31,7 @@ func (u *UserManageService) List(r userReq.ListUserManageRequest) (res response.
 		q = q.Where("account LIKE ? OR email LIKE ?", likeStr, likeStr)
 	}
 
-	if r.Id > 0 {
+	if r.Id != "" {
 		q = q.Where("id = ?", r.Id)
 	}
 
@@ -68,8 +68,8 @@ func (u *UserManageService) Create(user *model.User) (createdUser *model.User, e
 	return createdUser, nil
 }
 
-func (u *UserManageService) Delete(userId int64) error {
-	if userId <= 0 {
+func (u *UserManageService) Delete(userId string) error {
+	if userId != "" {
 		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", userId)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
@@ -89,7 +89,7 @@ func (u *UserManageService) Update(user *model.User) (updatedUser *model.User, e
 	return user, global.Db.Select("NickName", "UserStatus", "Mobile", "avatar", "Bio").Save(user).Error
 }
 
-func (u *UserManageService) Detail(userId int64) (user *model.User, err error) {
+func (u *UserManageService) Detail(userId string) (user *model.User, err error) {
 	if res, err := u.List(userReq.ListUserManageRequest{Id: userId}); err != nil {
 		return nil, err
 	} else if userList, ok := res.List.(model.Users); !ok {

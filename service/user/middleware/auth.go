@@ -19,7 +19,7 @@ const (
 
 var mockUser = &model.User{
 	BaseModel: model.BaseModel{
-		Id: 9999999999,
+		Id: "9999999999",
 	},
 	Nickname:   "mockUser9999999999",
 	Account:    "mockUser9999999999",
@@ -40,7 +40,7 @@ func Auth() gin.HandlerFunc {
 		result := &response.Response{Code: response.ERROR}
 
 		if config.GetConfig().Debug.EnableMockLogin {
-			if config.GetConfig().Debug.MockUserId > 0 {
+			if config.GetConfig().Debug.MockUserId != "" {
 				mockUser.Id = config.GetConfig().Debug.MockUserId
 			}
 			c.Set("userinfo", mockUser)
