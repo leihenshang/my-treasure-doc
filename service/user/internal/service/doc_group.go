@@ -131,7 +131,7 @@ func (group *DocGroupService) DocGroupList(r request.Pagination, userId string) 
 
 // DocGroupUpdate 文档分组更新
 func (group *DocGroupService) DocGroupUpdate(r doc.UpdateDocGroupRequest, userId string) (err error) {
-	if r.Id != "" {
+	if r.Id == "" {
 		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		return errors.New(errMsg)
 	}
@@ -155,7 +155,7 @@ func (group *DocGroupService) DocGroupUpdate(r doc.UpdateDocGroupRequest, userId
 
 // DocGroupDelete 文档分组删除
 func (group *DocGroupService) DocGroupDelete(r doc.UpdateDocGroupRequest, userId string) (err error) {
-	if r.Id != "" {
+	if r.Id == "" {
 		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)

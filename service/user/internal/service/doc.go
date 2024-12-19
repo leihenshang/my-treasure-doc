@@ -161,7 +161,7 @@ var ErrorDocIsEdited = errors.New("数据已在其他位置更新,请刷新后�
 // DocUpdate 文档更新
 func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId string) (newDoc *model.Doc, err error) {
 	errMsg := fmt.Errorf("id 为 %s 的数据没有找到", r.Id)
-	if r.Id != "" {
+	if r.Id == "" {
 		global.Log.Error(errMsg)
 		return nil, errMsg
 	}
@@ -264,7 +264,7 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId string) (newDoc 
 
 // DocDelete 文档删除
 func (doc *DocService) DocDelete(r doc.DeleteDocRequest, userId string) (err error) {
-	if r.Id != "" {
+	if r.Id == "" {
 		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)

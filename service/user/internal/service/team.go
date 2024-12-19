@@ -85,7 +85,7 @@ func (t *TeamService) TeamList(r request.Pagination, userId string) (res respons
 
 // TeamUpdate 文档更新
 func (t *TeamService) TeamUpdate(r team.CreateOrUpdateTeamRequest, userId string) (err error) {
-	if r.Id != "" {
+	if r.Id == "" {
 		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
@@ -104,7 +104,7 @@ func (t *TeamService) TeamUpdate(r team.CreateOrUpdateTeamRequest, userId string
 
 // TeamDelete 文档删除
 func (t *TeamService) TeamDelete(r team.CreateOrUpdateTeamRequest, userId string) (err error) {
-	if r.Id != "" {
+	if r.Id == "" {
 		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)

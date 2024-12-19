@@ -31,7 +31,7 @@ func (u *UserManageService) List(r userReq.ListUserManageRequest) (res response.
 		q = q.Where("account LIKE ? OR email LIKE ?", likeStr, likeStr)
 	}
 
-	if r.Id != "" {
+	if r.Id == "" {
 		q = q.Where("id = ?", r.Id)
 	}
 
