@@ -41,8 +41,8 @@ var rootUser = &model.User{
 	Password: "treasure-root",
 }
 
-func getRootUserReq() userReq.UserRegisterRequest {
-	return userReq.UserRegisterRequest{
+func getRootUserReq() *userReq.UserRegisterRequest {
+	return &userReq.UserRegisterRequest{
 		Password:   rootUser.Password,
 		RePassword: rootUser.Password,
 		Account:    rootUser.Account,
@@ -65,7 +65,7 @@ func (user *UserService) RegisterRootUser() error {
 }
 
 // UserRegister 用户注册
-func (user *UserService) UserRegister(r userReq.UserRegisterRequest) (u *model.User, err error) {
+func (user *UserService) UserRegister(r *userReq.UserRegisterRequest) (u *model.User, err error) {
 	pwd, err := checkPasswordRule(r.Password, r.RePassword)
 	if err != nil {
 		return nil, err

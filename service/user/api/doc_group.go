@@ -44,7 +44,7 @@ func (d *DocGroupApi) DocGroupCreate(c *gin.Context) {
 
 // DocGroupList 文档分组列表
 func (d *DocGroupApi) DocGroupList(c *gin.Context) {
-	var req request.ListPagination
+	var req request.Pagination
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return

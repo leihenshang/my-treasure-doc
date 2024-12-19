@@ -65,7 +65,7 @@ func (t *TeamApi) TeamDetail(c *gin.Context) {
 
 // TeamList 团队列表
 func (t *TeamApi) TeamList(c *gin.Context) {
-	var req request.ListPagination
+	var req request.Pagination
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return

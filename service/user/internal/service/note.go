@@ -74,8 +74,8 @@ func (n *NoteService) NoteDetail(r request.IDReq, userId int64) (d *model.Note, 
 func (n *NoteService) NoteList(r note.ListNoteRequest, userId int64) (res response.ListResponse, err error) {
 	q := global.Db.Model(&model.Note{}).Where("user_id = ?", userId).Where("note_type IN ?", r.NoteTypes.GetNoteTypeList())
 	q.Count(&r.Total)
-	r.ListSort.OrderBy = "isTop_desc,priority_desc,createdAt_desc,id_asc"
-	if sortStr, err := r.ListSort.Sort(map[string]string{"isTop": "is_top", "priority": "priority", "createdAt": "created_at", "id": "id"}); err == nil {
+	r.Sort.OrderBy = "isTop_desc,priority_desc,createdAt_desc,id_asc"
+	if sortStr, err := r.Sort.Sort(map[string]string{"isTop": "is_top", "priority": "priority", "createdAt": "created_at", "id": "id"}); err == nil {
 		q = q.Order(sortStr)
 	} else {
 		global.Log.Error(r, err)
@@ -94,7 +94,7 @@ func (n *NoteService) NoteList(r note.ListNoteRequest, userId int64) (res respon
 	}
 
 	res.List = list
-	res.Pagination = r.ListPagination
+	res.Pagination = r.Pagination
 	return
 }
 

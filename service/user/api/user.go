@@ -26,7 +26,7 @@ func (u *UserApi) UserRegister(c *gin.Context) {
 		return
 	}
 
-	var reg user.UserRegisterRequest
+	var reg *user.UserRegisterRequest
 	err := c.ShouldBindJSON(&reg)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())

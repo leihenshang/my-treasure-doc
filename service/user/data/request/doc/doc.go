@@ -35,6 +35,6 @@ type ListDocRequest struct {
 	IsTop      int    `json:"isTop" form:"isTop" binding:""`
 	RecycleBin int    `json:"recycleBin" form:"recycleBin" binding:""`
 	Keyword    string `json:"keyword" form:"keyword" binding:""`
-	request.ListPagination
-	request.ListSort
+	request.Pagination
+	request.Sort
 }

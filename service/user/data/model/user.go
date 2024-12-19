@@ -15,6 +15,8 @@ type User struct {
 	Token      string     `json:"token" gorm:"-"`
 }
 
+type Users []*User
+
 type UserType int
 
 const (
