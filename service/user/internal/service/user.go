@@ -68,30 +68,27 @@ func (user *UserService) RegisterRootUser() error {
 func (user *UserService) UserRegister(r userReq.UserRegisterRequest) (u *model.User, err error) {
 	pwd, err := checkPasswordRule(r.Password, r.RePassword)
 	if err != nil {
-		return u, err
+		return nil, err
 	}
 
 	encryptedPwd, err := utils.PasswordEncrypt(pwd)
 	if err != nil {
-		return u, errors.New("加密密码失败")
+		return nil, errors.New("加密密码失败")
 	}
 
 	if err := checkAccountRule(r.Account, 8); err != nil {
-		return u, err
+		return nil, err
 	}
 
 	if checkAccountIsDuplicate(r.Account) {
-		return u, errors.New("账号重复")
+		return nil, errors.New("账号重复")
 	}
 
 	if checkEmailIsDuplicate(r.Email) {
-		return u, errors.New("邮箱重复")
+		return nil, errors.New("邮箱重复")
 	}
 
-	if u.Nickname == "" {
-		u.Nickname = r.Account
-	}
-
+	u.Nickname = r.Account
 	u.Account = r.Account
 	u.Email = r.Email
 	u.Password = encryptedPwd
