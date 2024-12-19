@@ -7,10 +7,11 @@ const WebPath = "web"
 const FilesPath = "files"
 
 type App struct {
-	Host    string
-	Port    int
-	Name    string
-	RunMode string
+	Host            string
+	Port            int
+	Name            string
+	RunMode         string
+	RegisterEnabled bool
 }
 
 func (app *App) IsRelease() bool {

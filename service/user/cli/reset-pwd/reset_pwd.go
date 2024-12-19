@@ -46,5 +46,5 @@ func main() {
 }
 
 func resetPwd(user string, pwd string) error {
-	return service.ResetPwd(user, pwd)
+	return service.ResetPwd(user, pwd, pwd)
 }

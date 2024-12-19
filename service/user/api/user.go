@@ -21,7 +21,12 @@ func NewUserApi() *UserApi {
 
 // UserRegister 用户注册
 func (u *UserApi) UserRegister(c *gin.Context) {
-	var reg user.UserRegisterRequest
+	if !global.Conf.App.RegisterEnabled {
+		response.FailWithMessage(c, "注册未启用,请联系管理员！")
+		return
+	}
+
+	var reg *user.UserRegisterRequest
 	err := c.ShouldBindJSON(&reg)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())

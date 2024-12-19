@@ -9,8 +9,8 @@ import (
 )
 
 type ListResponse struct {
-	Pagination request.ListPagination `json:"pagination"`
-	List       interface{}            `json:"list"`
+	Pagination request.Pagination `json:"pagination"`
+	List       interface{}        `json:"list"`
 }
 
 type Response struct {

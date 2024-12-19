@@ -33,8 +33,8 @@ type UpdateNoteRequest struct {
 
 type ListNoteRequest struct {
 	NoteTypes ReqNoteTypes `json:"noteTypes"`
-	request.ListPagination
-	request.ListSort
+	request.Pagination
+	request.Sort
 }
 
 type ReqNoteTypes string

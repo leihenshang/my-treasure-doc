@@ -131,23 +131,23 @@ func (doc *DocService) DocList(r doc.ListDocRequest, userId int64) (res response
 		q = q.Where("title LIKE ? OR content LIKE ?", likeStr, likeStr)
 	}
 
-	if r.ListPagination.PageSize > 0 {
+	if r.Pagination.PageSize > 0 {
 		q.Count(&r.Total)
 	}
 
-	if sortStr, err := r.ListSort.Sort(map[string]string{"createdAt": "created_at", "id": "id"}); err == nil {
+	if sortStr, err := r.Sort.Sort(map[string]string{"createdAt": "created_at", "id": "id"}); err == nil {
 		q = q.Order(sortStr)
 	}
 
 	var list []*model.Doc
 
-	if r.ListPagination.Page > 0 && r.ListPagination.PageSize > 0 {
+	if r.Pagination.Page > 0 && r.Pagination.PageSize > 0 {
 		q = q.Limit(r.PageSize).Offset(r.Offset())
 	}
 
 	err = q.Find(&list).Error
 	res.List = list
-	res.Pagination = r.ListPagination
+	res.Pagination = r.Pagination
 	return
 }
 

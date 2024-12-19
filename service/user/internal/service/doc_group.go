@@ -120,7 +120,7 @@ func checkDocGroupTitleRepeat(pid int64, title string, userId int64) (dg *model.
 }
 
 // DocGroupList 文档分组列表
-func (group *DocGroupService) DocGroupList(r request.ListPagination, userId int64) (res resp.ListResponse, err error) {
+func (group *DocGroupService) DocGroupList(r request.Pagination, userId int64) (res resp.ListResponse, err error) {
 	var list []model.DocGroup
 	q := global.Db.Model(&model.DocGroup{}).Where("user_id = ?", userId)
 	q.Count(&r.Total)

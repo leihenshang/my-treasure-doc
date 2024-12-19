@@ -68,7 +68,7 @@ func (t *TeamService) TeamDetail(r request.IDReq, userId int64) (d *model.Team, 
 }
 
 // TeamList 文档列表
-func (t *TeamService) TeamList(r request.ListPagination, userId int64) (res response.ListResponse, err error) {
+func (t *TeamService) TeamList(r request.Pagination, userId int64) (res response.ListResponse, err error) {
 	offset := (r.Page - 1) * r.PageSize
 	if offset < 0 {
 		offset = 1
