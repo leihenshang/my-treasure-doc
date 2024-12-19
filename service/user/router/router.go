@@ -26,6 +26,7 @@ func InitRouter(r *gin.Engine) {
 	})
 
 	apiBase := r.Group("api")
+
 	{
 		userApi := api.NewUserApi()
 		userRoute := apiBase.Group("user").Use(middleware.Cors())
@@ -34,6 +35,16 @@ func InitRouter(r *gin.Engine) {
 		userRoute.Use(middleware.Auth(), middleware.Cors())
 		userRoute.POST("/logout", userApi.UserLogout)
 		userRoute.POST("/update-profile", userApi.UserProfileUpdate)
+	}
+
+	{
+		userMgrApi := api.NewUserManageApi()
+		userMgrRoute := apiBase.Group("user-manage").Use(middleware.Cors())
+		userMgrRoute.POST("/create", userMgrApi.Create)
+		userMgrRoute.GET("/detail", userMgrApi.Detail)
+		userMgrRoute.GET("/list", userMgrApi.List)
+		userMgrRoute.POST("/update", userMgrApi.Update)
+		userMgrRoute.POST("/delete", userMgrApi.Delete)
 	}
 
 	//doc

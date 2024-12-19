@@ -65,7 +65,7 @@ func (user *UserService) RegisterRootUser() error {
 }
 
 // UserRegister 用户注册
-func (user *UserService) UserRegister(r userReq.UserRegisterRequest) (u model.User, err error) {
+func (user *UserService) UserRegister(r userReq.UserRegisterRequest) (u *model.User, err error) {
 	pwd, err := checkPasswordRule(r.Password, r.RePassword)
 	if err != nil {
 		return u, err
@@ -280,8 +280,8 @@ func GetUserByToken(token string) (u *model.User, err error) {
 	return
 }
 
-func ResetPwd(account string, pwd string) error {
-	if _, err := checkPasswordRule(pwd, pwd); err != nil {
+func ResetPwd(account string, pwd string, rePwd string) error {
+	if _, err := checkPasswordRule(pwd, rePwd); err != nil {
 		return err
 	}
 
