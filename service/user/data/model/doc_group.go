@@ -3,11 +3,11 @@ package model
 // DocGroup 文档分组
 type DocGroup struct {
 	BaseModel
-	UserId    string    `gorm:"column:user_id;type:varchar(100);NOT NULL" json:"userId"` // 用户Id
-	Title     string    `gorm:"column:title;NOT NULL" json:"title"`                      // 组名
-	Icon      string    `gorm:"column:icon;NOT NULL" json:"icon"`                        // 图标
-	PId       string    `gorm:"column:p_id;type:varchar(100);NOT NULL" json:"pid"`       // 父级id
-	Priority  int       `gorm:"column:priority;NOT NULL" json:"priority"`                // 优先级
+	UserId    string    `gorm:"column:user_id;type:varchar(100);default:'';NOT NULL" json:"userId"` // 用户Id
+	Title     string    `gorm:"column:title;NOT NULL" json:"title"`                                 // 组名
+	Icon      string    `gorm:"column:icon;NOT NULL" json:"icon"`                                   // 图标
+	PId       string    `gorm:"column:p_id;type:varchar(100);default:'';NOT NULL" json:"pid"`       // 父级id
+	Priority  int       `gorm:"column:priority;NOT NULL" json:"priority"`                           // 优先级
 	GroupPath string    `gorm:"column:group_path;NOT NULL" json:"groupPath"`
 	GroupType GroupType `gorm:"-:all" json:"groupType"`
 	IsLeaf    bool      `gorm:"-:all" json:"isLeaf"`
