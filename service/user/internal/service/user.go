@@ -88,6 +88,7 @@ func (user *UserService) UserRegister(r *userReq.UserRegisterRequest) (u *model.
 		return nil, errors.New("邮箱重复")
 	}
 
+	u = &model.User{}
 	u.Nickname = r.Account
 	u.Account = r.Account
 	u.Email = r.Email
@@ -298,6 +299,15 @@ func ResetPwd(account string, pwd string, rePwd string) error {
 	if err := global.Db.Select("Password").Save(&u).Error; err != nil {
 		return errors.New("更新密码失败")
 	}
+
+	tx := global.Db.Begin()
+	userToken := &model.UserToken{}
+	if err := tx.Model(&userToken).Where("user_id = ?", u.Id).Delete(&model.UserToken{}).Error; err != nil {
+		global.Log.Errorf("failed to delete userReq token:%v", err)
+		tx.Rollback()
+		return errors.New("删除用户token信息失败")
+	}
+	tx.Commit()
 
 	return nil
 }

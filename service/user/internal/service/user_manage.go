@@ -25,7 +25,7 @@ func NewUserManageService() *UserManageService {
 }
 
 func (u *UserManageService) List(r userReq.ListUserManageRequest) (res response.ListResponse, err error) {
-	q := global.Db.Model(&model.User{})
+	q := global.Db.Model(&model.User{}).Omit("password")
 	if r.Keyword != "" {
 		likeStr := fmt.Sprintf(`%%%s%%`, r.Keyword)
 		q = q.Where("account LIKE ? OR email LIKE ?", likeStr, likeStr)
@@ -33,6 +33,10 @@ func (u *UserManageService) List(r userReq.ListUserManageRequest) (res response.
 
 	if r.Id != "" {
 		q = q.Where("id = ?", r.Id)
+	}
+
+	if r.Account != "" {
+		q = q.Where("account = ?", r.Account)
 	}
 
 	if r.Pagination.PageSize > 0 {
@@ -69,15 +73,15 @@ func (u *UserManageService) Create(user *model.User) (createdUser *model.User, e
 }
 
 func (u *UserManageService) Delete(userId string) error {
-	if userId != "" {
-		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", userId)
+	if userId == "" {
+		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", userId)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
 	q := global.Db.Where("id = ? AND user_type = ?", userId, model.UserTypeUser)
-	if err := q.Delete(&model.Doc{}).Error; err != nil {
-		errMsg := fmt.Sprintf("删除id 为 %d 的数据失败 %v ", userId, err)
+	if err := q.Delete(&model.User{}).Error; err != nil {
+		errMsg := fmt.Sprintf("删除id 为 %s 的数据失败 %v ", userId, err)
 		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}
@@ -86,7 +90,7 @@ func (u *UserManageService) Delete(userId string) error {
 }
 
 func (u *UserManageService) Update(user *model.User) (updatedUser *model.User, err error) {
-	return user, global.Db.Select("NickName", "UserStatus", "Mobile", "avatar", "Bio").Save(user).Error
+	return user, global.Db.Select("Nickname", "UserStatus", "Mobile", "Avatar", "Bio").Save(user).Error
 }
 
 func (u *UserManageService) Detail(userId string) (user *model.User, err error) {

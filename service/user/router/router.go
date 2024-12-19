@@ -39,12 +39,13 @@ func InitRouter(r *gin.Engine) {
 
 	{
 		userMgrApi := api.NewUserManageApi()
-		userMgrRoute := apiBase.Group("user-manage").Use(middleware.Cors())
+		userMgrRoute := apiBase.Group("user-manage").Use(middleware.Auth(), middleware.Cors())
 		userMgrRoute.POST("/create", userMgrApi.Create)
 		userMgrRoute.GET("/detail", userMgrApi.Detail)
 		userMgrRoute.GET("/list", userMgrApi.List)
 		userMgrRoute.POST("/update", userMgrApi.Update)
 		userMgrRoute.POST("/delete", userMgrApi.Delete)
+		userMgrRoute.POST("/reset-pwd", userMgrApi.ResetPwd)
 	}
 
 	//doc

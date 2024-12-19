@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+
+	"fastduck/treasure-doc/service/user/gid"
 )
 
 // TimeFormat 时间格式
@@ -14,4 +16,11 @@ type BaseModel struct {
 	UpdatedAt time.Time      `json:"createdAt" gorm:"column:updated_at;type:datetime"`
 	CreatedAt time.Time      `json:"updatedAt" gorm:"column:created_at;type:datetime"`
 	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"column:deleted_at;type:datetime"`
+}
+
+func (m *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
+	if m.Id == "" {
+		m.Id = gid.GenId()
+	}
+	return
 }
