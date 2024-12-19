@@ -123,7 +123,7 @@ func FillDoc(notes model.Notes) error {
 // NoteUpdate 笔记更新
 func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId string) (err error) {
 	if r.Id != "" {
-		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
+		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
@@ -145,7 +145,7 @@ func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId string) (err e
 	u["Priority"] = r.Priority
 
 	if err = q.Updates(u).Error; err != nil {
-		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
+		errMsg := fmt.Sprintf("修改id 为 %s 的数据失败 %v ", r.Id, err)
 		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}
@@ -156,14 +156,14 @@ func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId string) (err e
 // NoteDelete 笔记删除
 func (n *NoteService) NoteDelete(r note.UpdateNoteRequest, userId string) (err error) {
 	if r.Id != "" {
-		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
+		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
 	q := global.Db.Where("id = ? AND user_id = ?", r.Id, userId)
 	if err = q.Delete(&model.Note{}).Error; err != nil {
-		errMsg := fmt.Sprintf("删除id 为 %d 的数据失败 %v ", r.Id, err)
+		errMsg := fmt.Sprintf("删除id 为 %s 的数据失败 %v ", r.Id, err)
 		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}

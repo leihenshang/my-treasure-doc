@@ -132,7 +132,7 @@ func (group *DocGroupService) DocGroupList(r request.Pagination, userId string) 
 // DocGroupUpdate 文档分组更新
 func (group *DocGroupService) DocGroupUpdate(r doc.UpdateDocGroupRequest, userId string) (err error) {
 	if r.Id != "" {
-		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
+		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		return errors.New(errMsg)
 	}
 
@@ -145,7 +145,7 @@ func (group *DocGroupService) DocGroupUpdate(r doc.UpdateDocGroupRequest, userId
 	q := global.Db.Model(&model.DocGroup{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	u := map[string]interface{}{"Title": r.Title, "PId": r.PId, "Icon": r.Icon, "GroupPath": groupPath}
 	if err = q.Updates(u).Error; err != nil {
-		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
+		errMsg := fmt.Sprintf("修改id 为 %s 的数据失败 %v ", r.Id, err)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
@@ -156,7 +156,7 @@ func (group *DocGroupService) DocGroupUpdate(r doc.UpdateDocGroupRequest, userId
 // DocGroupDelete 文档分组删除
 func (group *DocGroupService) DocGroupDelete(r doc.UpdateDocGroupRequest, userId string) (err error) {
 	if r.Id != "" {
-		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
+		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
@@ -165,16 +165,16 @@ func (group *DocGroupService) DocGroupDelete(r doc.UpdateDocGroupRequest, userId
 	q := tx.Where("id = ? AND user_id = ?", r.Id, userId)
 	if err = q.Delete(&model.DocGroup{}).Error; err != nil {
 		tx.Rollback()
-		return fmt.Errorf("删除id 为 %d 的数据失败 %v ", r.Id, err)
+		return fmt.Errorf("删除id 为 %s 的数据失败 %v ", r.Id, err)
 	}
 	if err = tx.Where("group_id = ? AND user_id = ?", r.Id, userId).Delete(&model.Doc{}).Error; err != nil {
 		// if !errors.Is(err, gorm.ErrRecordNotFound) {
 		// 	tx.Rollback()
-		// 	errMsg := fmt.Sprintf("删除id 为 %d 的分组下的文档失败 %v ", r.Id, err)
+		// 	errMsg := fmt.Sprintf("删除id 为 %s 的分组下的文档失败 %v ", r.Id, err)
 		// 	return errors.New(errMsg)
 		// }
 		tx.Rollback()
-		errMsg := fmt.Sprintf("删除id 为 %d 的分组下的文档失败 %v ", r.Id, err)
+		errMsg := fmt.Sprintf("删除id 为 %s 的分组下的文档失败 %v ", r.Id, err)
 		return errors.New(errMsg)
 	}
 

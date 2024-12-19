@@ -86,7 +86,7 @@ func (t *TeamService) TeamList(r request.Pagination, userId string) (res respons
 // TeamUpdate 文档更新
 func (t *TeamService) TeamUpdate(r team.CreateOrUpdateTeamRequest, userId string) (err error) {
 	if r.Id != "" {
-		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
+		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
@@ -94,7 +94,7 @@ func (t *TeamService) TeamUpdate(r team.CreateOrUpdateTeamRequest, userId string
 	q := global.Db.Model(&model.Team{}).Where("id = ? AND user_id = ?", r.Id, userId)
 	u := map[string]interface{}{"Name": r.Name}
 	if err = q.Updates(u).Error; err != nil {
-		errMsg := fmt.Sprintf("修改id 为 %d 的数据失败 %v ", r.Id, err)
+		errMsg := fmt.Sprintf("修改id 为 %s 的数据失败 %v ", r.Id, err)
 		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}
@@ -105,14 +105,14 @@ func (t *TeamService) TeamUpdate(r team.CreateOrUpdateTeamRequest, userId string
 // TeamDelete 文档删除
 func (t *TeamService) TeamDelete(r team.CreateOrUpdateTeamRequest, userId string) (err error) {
 	if r.Id != "" {
-		errMsg := fmt.Sprintf("id 为 %d 的数据没有找到", r.Id)
+		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
 	q := global.Db.Where("id = ? AND user_id = ?", r.Id, userId)
 	if err = q.Delete(&model.Team{}).Error; err != nil {
-		errMsg := fmt.Sprintf("删除id 为 %d 的数据失败 %v ", r.Id, err)
+		errMsg := fmt.Sprintf("删除id 为 %s 的数据失败 %v ", r.Id, err)
 		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}

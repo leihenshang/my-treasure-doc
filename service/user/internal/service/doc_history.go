@@ -49,13 +49,13 @@ func (dh *DocHistoryService) DocHistoryRecover(r request.IDReq, userId string) (
 		Content:   dbDoc.Content,
 	}).Error; err != nil {
 		tx.Rollback()
-		errMsg := fmt.Errorf("保存id 为 %d 的历史数据失败 %v ", r.ID, err)
+		errMsg := fmt.Errorf("保存id 为 %s 的历史数据失败 %v ", r.ID, err)
 		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}
 
 	if err = tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", history.DocId, userId).Updates(map[string]any{"Content": history.Content}).Error; err != nil {
-		errMsg := fmt.Errorf("修改id 为 %d 的数据失败 %v ", r.ID, err)
+		errMsg := fmt.Errorf("修改id 为 %s 的数据失败 %v ", r.ID, err)
 		global.Log.Error(errMsg)
 		tx.Rollback()
 		return errors.New("操作失败")
