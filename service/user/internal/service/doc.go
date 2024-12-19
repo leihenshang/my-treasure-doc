@@ -160,7 +160,7 @@ var ErrorDocIsEdited = errors.New("数据已在其他位置更新,请刷新后�
 
 // DocUpdate 文档更新
 func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId string) (newDoc *model.Doc, err error) {
-	errMsg := fmt.Errorf("id 为 %d 的数据没有找到", r.Id)
+	errMsg := fmt.Errorf("id 为 %s 的数据没有找到", r.Id)
 	if r.Id != "" {
 		global.Log.Error(errMsg)
 		return nil, errMsg
@@ -217,7 +217,7 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId string) (newDoc 
 		Content:   oldDoc.Content,
 	}).Error; err != nil {
 		tx.Rollback()
-		errMsg = fmt.Errorf("保存id 为 %d 的历史数据失败 %v ", r.Id, err)
+		errMsg = fmt.Errorf("保存id 为 %s 的历史数据失败 %v ", r.Id, err)
 		global.Log.Error(errMsg)
 		return nil, errors.New("操作失败")
 	}
@@ -232,7 +232,7 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId string) (newDoc 
 				NoteType:  model.NoteTypeDoc,
 			}).Error; err != nil {
 				tx.Rollback()
-				errMsg = fmt.Errorf("保存id 为 %d 的笔记失败 %v ", r.Id, err)
+				errMsg = fmt.Errorf("保存id 为 %s 的笔记失败 %v ", r.Id, err)
 				global.Log.Error(errMsg)
 				return nil, errors.New("操作失败")
 			}
@@ -244,7 +244,7 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId string) (newDoc 
 	} else if r.IsPin == 2 {
 		if err := tx.Unscoped().Where("doc_id = ? AND user_id = ? AND note_type = ?", r.Id, userId, model.NoteTypeDoc).Delete(&model.Note{}).Error; err != nil {
 			tx.Rollback()
-			errMsg := fmt.Sprintf("删除id 为 %d 的笔记数据失败 %v ", r.Id, err)
+			errMsg := fmt.Sprintf("删除id 为 %s 的笔记数据失败 %v ", r.Id, err)
 			global.Log.Error(errMsg)
 			return nil, errors.New("操作失败")
 		}
@@ -252,7 +252,7 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId string) (newDoc 
 	oldDoc.Version++
 	u["version"] = oldDoc.Version
 	if err = q.Updates(u).Error; err != nil {
-		errMsg = fmt.Errorf("修改id 为 %d 的数据失败 %v ", r.Id, err)
+		errMsg = fmt.Errorf("修改id 为 %s 的数据失败 %v ", r.Id, err)
 		global.Log.Error(errMsg)
 		tx.Rollback()
 		return nil, errors.New("操作失败")
@@ -272,7 +272,7 @@ func (doc *DocService) DocDelete(r doc.DeleteDocRequest, userId string) (err err
 
 	q := global.Db.Where("id = ? AND user_id = ?", r.Id, userId)
 	if err = q.Delete(&model.Doc{}).Error; err != nil {
-		errMsg := fmt.Sprintf("删除id 为 %d 的数据失败 %v ", r.Id, err)
+		errMsg := fmt.Sprintf("删除id 为 %s 的数据失败 %v ", r.Id, err)
 		global.Log.Error(errMsg)
 		return errors.New("操作失败")
 	}
