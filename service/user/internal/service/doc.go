@@ -78,7 +78,7 @@ func checkDocTitleIsDuplicates(title string, userId string) (doc *model.Doc, err
 
 // DocDetail 文档详情
 func (doc *DocService) DocDetail(r request.IDReq, userId string) (d *model.Doc, err error) {
-	err = global.Db.Unscoped().Debug().Where("id = ? AND user_id = ?", r.ID, userId).First(&d).Error
+	err = global.Db.Unscoped().Where("id = ? AND user_id = ?", r.ID, userId).First(&d).Error
 	if err != nil {
 		return
 	}
