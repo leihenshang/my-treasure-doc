@@ -26,7 +26,7 @@ func (u *UserApi) UserRegister(c *gin.Context) {
 		return
 	}
 
-	var reg *user.UserRegisterRequest
+	var reg *user.RegisterRequest
 	err := c.ShouldBindJSON(&reg)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
@@ -42,7 +42,7 @@ func (u *UserApi) UserRegister(c *gin.Context) {
 
 // UserLogin 用户登录，账号字段支持填入账号和邮箱，因为都是唯一的
 func (u *UserApi) UserLogin(c *gin.Context) {
-	var login user.UserLoginRequest
+	var login user.LoginRequest
 	err := c.ShouldBindJSON(&login)
 	if err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -73,7 +73,7 @@ func (u *UserApi) UserLogout(c *gin.Context) {
 
 // UserProfileUpdate 更新用户个人资料
 func (u *UserApi) UserProfileUpdate(c *gin.Context) {
-	var profile user.UserProfileUpdateRequest
+	var profile user.UpdateRequest
 	if err := c.ShouldBindJSON(&profile); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return

@@ -41,8 +41,8 @@ var rootUser = &model.User{
 	Password: "treasure-root",
 }
 
-func getRootUserReq() *userReq.UserRegisterRequest {
-	return &userReq.UserRegisterRequest{
+func getRootUserReq() *userReq.RegisterRequest {
+	return &userReq.RegisterRequest{
 		Password:   rootUser.Password,
 		RePassword: rootUser.Password,
 		Account:    rootUser.Account,
@@ -65,7 +65,7 @@ func (user *UserService) RegisterRootUser() error {
 }
 
 // UserRegister 用户注册
-func (user *UserService) UserRegister(r *userReq.UserRegisterRequest) (u *model.User, err error) {
+func (user *UserService) UserRegister(r *userReq.RegisterRequest) (u *model.User, err error) {
 	pwd, err := checkPasswordRule(r.Password, r.RePassword)
 	if err != nil {
 		return nil, err
@@ -163,7 +163,7 @@ func checkPasswordRule(password string, repeatPassword string) (string, error) {
 }
 
 // UserLogin 用户登录
-func (user *UserService) UserLogin(r userReq.UserLoginRequest, clientIp string) (u *model.User, err error) {
+func (user *UserService) UserLogin(r userReq.LoginRequest, clientIp string) (u *model.User, err error) {
 	if len(r.Password) == 0 || len(r.Account) == 0 {
 		return nil, errors.New("密码或账号(邮箱)不能为空")
 	}
@@ -244,7 +244,7 @@ func (user *UserService) UserLogout(userId string, token string) error {
 }
 
 // UserProfileUpdate 更新用户个人资料
-func (user *UserService) UserProfileUpdate(profile userReq.UserProfileUpdateRequest, userId string) (u model.User, err error) {
+func (user *UserService) UserProfileUpdate(profile userReq.UpdateRequest, userId string) (u model.User, err error) {
 	if errors.Is(global.Db.Where("id = ?", userId).First(&u).Error, gorm.ErrRecordNotFound) {
 		return u, errors.New("用户没有找到")
 	}

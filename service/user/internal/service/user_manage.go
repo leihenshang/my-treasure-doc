@@ -59,7 +59,7 @@ func (u *UserManageService) List(r userReq.ListUserManageRequest) (res response.
 }
 
 func (u *UserManageService) Create(user *model.User) (createdUser *model.User, err error) {
-	regRequest := &userReq.UserRegisterRequest{
+	regRequest := &userReq.RegisterRequest{
 		Password:   user.Password,
 		RePassword: user.Password,
 		Account:    user.Account,
@@ -73,6 +73,7 @@ func (u *UserManageService) Create(user *model.User) (createdUser *model.User, e
 }
 
 func (u *UserManageService) Delete(userId string) error {
+	return nil
 	if userId == "" {
 		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", userId)
 		global.Log.Error(errMsg)
