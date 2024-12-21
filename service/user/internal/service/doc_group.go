@@ -102,7 +102,7 @@ func genGroupPath(id, pid string, userId string) (string, error) {
 		return fmt.Sprintf("%d,%s", 0, id), nil
 	}
 
-	paths := append(strings.Split(parentGroup.GroupPath, ","), fmt.Sprintf(`%d`, id))
+	paths := append(strings.Split(parentGroup.GroupPath, ","), id)
 	return strings.Join(paths, ","), nil
 }
 
@@ -199,7 +199,7 @@ func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId string
 		}
 	}
 
-	childrenDoc, err := getDocByGroupIds(list.GetIds()...)
+	childrenDoc, err := getDocByGroupIds(userId, list.GetIds()...)
 	if err != nil {
 		return nil, err
 	}
@@ -247,12 +247,12 @@ func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId string
 	return
 }
 
-func getDocByGroupIds(groupId ...string) (res model.Docs, err error) {
-	err = global.Db.Where("group_id IN (?)", groupId).Find(&res).Error
+func getDocByGroupIds(userId string, groupId ...string) (res model.Docs, err error) {
+	err = global.Db.Where("user_id = ?", userId).Where("group_id IN (?)", groupId).Find(&res).Error
 	return
 }
 
-func getDocGroupByIds(groupId ...string) (res model.DocGroups, err error) {
-	err = global.Db.Where("id IN (?)", groupId).Find(&res).Error
+func getDocGroupByIds(userId string, groupId ...string) (res model.DocGroups, err error) {
+	err = global.Db.Where("user_id = ?", userId).Where("id IN (?)", groupId).Find(&res).Error
 	return
 }

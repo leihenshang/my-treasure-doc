@@ -54,7 +54,7 @@ func Auth() gin.HandlerFunc {
 			u, err := service.GetUserByToken(authKey)
 			if err != nil {
 				global.Log.Error(err)
-				result.Msg = "查询用户信息失败"
+				result.Msg = err.Error()
 				c.AbortWithStatusJSON(http.StatusUnauthorized, result)
 				return
 			}

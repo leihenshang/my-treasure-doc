@@ -274,6 +274,11 @@ func GetUserByToken(token string) (u *model.User, err error) {
 		global.Log.Errorf("token : %s ,expire_time: %s  not found\n", token, now)
 		return nil, errors.New("用户信息没有找到")
 	}
+
+	if !u.UserStatus.IsAvailable() {
+		return nil, errors.New("用户不可用，请联系管理员")
+	}
+
 	u.HiddenPwd().Token = token
 	return
 }

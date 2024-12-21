@@ -36,6 +36,10 @@ const (
 	UserStatusNotActivated UserStatus = 3
 )
 
+func (u UserStatus) IsAvailable() bool {
+	return u == 1
+}
+
 func (u *User) TableName() string {
 	return "td_user"
 }
