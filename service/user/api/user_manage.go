@@ -20,7 +20,7 @@ func NewUserManageApi() *UserManageApi {
 }
 
 func (u *UserManageApi) Create(c *gin.Context) {
-	var req *model.User
+	var req *userReq.RegisterRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))

@@ -58,15 +58,9 @@ func (u *UserManageService) List(r userReq.ListUserManageRequest) (res response.
 	return
 }
 
-func (u *UserManageService) Create(user *model.User) (createdUser *model.User, err error) {
-	regRequest := &userReq.RegisterRequest{
-		Password:   user.Password,
-		RePassword: user.Password,
-		Account:    user.Account,
-		Email:      user.Email,
-	}
+func (u *UserManageService) Create(user *userReq.RegisterRequest) (createdUser *model.User, err error) {
 
-	if createdUser, err = userService.UserRegister(regRequest); err != nil {
+	if createdUser, err = userService.UserRegister(user); err != nil {
 		return nil, err
 	}
 	return createdUser, nil
