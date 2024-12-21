@@ -40,6 +40,10 @@ func (u UserStatus) IsAvailable() bool {
 	return u == 1
 }
 
+func (u UserType) IsUser() bool {
+	return u == 1
+}
+
 func (u *User) TableName() string {
 	return "td_user"
 }

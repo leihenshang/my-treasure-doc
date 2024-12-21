@@ -91,6 +91,14 @@ func (u *UserManageService) Delete(userId string) error {
 }
 
 func (u *UserManageService) Update(user *model.User) (updatedUser *model.User, err error) {
+	dbUser, err := u.Detail(user.Id)
+	if err != nil {
+		return nil, err
+	}
+	if !dbUser.UserType.IsUser() {
+		return nil, errors.New("只能对用户进行操作")
+	}
+
 	return user, global.Db.Select("Nickname", "UserStatus", "Mobile", "Avatar", "Bio").Save(user).Error
 }
 
