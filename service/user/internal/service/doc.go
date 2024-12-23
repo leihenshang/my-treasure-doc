@@ -118,9 +118,8 @@ func (doc *DocService) DocList(r doc.ListDocRequest, userId string) (res respons
 	if r.RecycleBin == 1 {
 		q = q.Unscoped().Where("deleted_at is not null")
 	}
-	if r.GroupId != "" {
-		q = q.Where("group_id = ?", r.GroupId)
-	}
+
+	q = q.Where("group_id = ?", r.GroupId)
 
 	if r.IsTop > 0 {
 		q = q.Where("is_top = ?", r.IsTop)
