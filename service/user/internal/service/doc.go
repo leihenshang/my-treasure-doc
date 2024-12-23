@@ -54,6 +54,8 @@ func (doc *DocService) DocCreate(r doc.CreateDocRequest, userId string) (d *mode
 		} else if len(groupList) == 0 {
 			return nil, errors.New("分组没有找到")
 		}
+	} else {
+		insertData.GroupId = "0"
 	}
 
 	if err = global.Db.Create(insertData).Error; err != nil {
