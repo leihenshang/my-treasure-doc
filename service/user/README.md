@@ -10,3 +10,8 @@
 
 ```
 
+## 数据更新
+```sql
+UPDATE td_doc SET group_id = ''  WHERE group_id = '0';
+UPDATE td_doc_group SET p_id = '' WHERE p_id = '0';
+```
