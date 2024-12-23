@@ -48,7 +48,7 @@ func (doc *DocService) DocCreate(r doc.CreateDocRequest, userId string) (d *mode
 	//}
 
 	if insertData.GroupId != "" {
-		groupList, err := getDocGroupByIds(insertData.GroupId)
+		groupList, err := getDocGroupByIds(userId, insertData.GroupId)
 		if err != nil {
 			return nil, err
 		} else if len(groupList) == 0 {
