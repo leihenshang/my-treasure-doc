@@ -114,12 +114,14 @@ func (doc *DocService) DocDetail(r request.IDReq, userId string) (d *model.Doc, 
 
 // DocList 文档列表
 func (doc *DocService) DocList(r doc.ListDocRequest, userId string) (res response.ListResponse, err error) {
-	q := global.Db.Model(&model.Doc{}).Where("user_id = ?", userId)
+	q := global.Db.Model(&model.Doc{}).Debug().Where("user_id = ?", userId)
 	if r.RecycleBin == 1 {
 		q = q.Unscoped().Where("deleted_at is not null")
 	}
 
-	q = q.Where("group_id = ?", r.GroupId)
+	if r.GroupId != "" {
+		q = q.Where("group_id = ?", r.GroupId)
+	}
 
 	if r.IsTop > 0 {
 		q = q.Where("is_top = ?", r.IsTop)
