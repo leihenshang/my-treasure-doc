@@ -216,13 +216,13 @@ func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId string
 	}
 
 	childrenPidMap := children.ToPidMap()
-	docGroupIdMap := childrenDoc.ToGroupIdMap()
+	docMapWithGroupId := childrenDoc.ToGroupIdMap()
 	for _, v := range list {
 		if _, ok := childrenPidMap[v.Id]; !ok {
 			v.IsLeaf = true
 		}
-		if _, ok := docGroupIdMap[v.Id]; !ok {
-			v.IsLeaf = true
+		if _, ok := docMapWithGroupId[v.Id]; ok {
+			v.IsLeaf = false
 		}
 		v.GroupType = model.GroupTypeGroup
 		docTree = append(docTree, &resp.DocTree{
