@@ -39,7 +39,7 @@ func genRootGroup(userId string) error {
 				UserId:    userId,
 				Title:     global.RootGroup,
 				Icon:      "",
-				PId:       global.RootGroup,
+				PId:       "",
 				Priority:  0,
 				GroupPath: global.RootGroup,
 				GroupType: "",
