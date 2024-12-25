@@ -153,8 +153,7 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 	}
 
 	tx := global.Db.Begin()
-	q := tx.Unscoped().Debug().Model(&model.Doc{}).
-		Where("id = ? AND user_id = ?", r.Id, userId).
+	q := tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId).
 		Where("version = ?", *r.Version)
 	var dbDoc *model.Doc
 	if err = q.First(&dbDoc).Error; err != nil {
@@ -169,57 +168,17 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 		return nil, ErrorDocIsEdited
 	}
 
-	u := map[string]interface{}{}
-	if r.Title != "" {
-		u["Title"] = r.Title
-	}
-	if r.Content != "" {
-		u["Content"] = r.Content
-	}
-
-	if r.GroupId != "" {
-		u["GroupId"] = r.GroupId
-	}
-
-	if r.IsTop > 0 {
-		u["IsTop"] = r.IsTop
-	}
-
-	if r.IsRecover {
-		u["DeletedAt"] = nil
-		u["GroupId"] = 0
-	}
-
-	if r.ReadOnly > 0 {
-		u["ReadOnly"] = r.ReadOnly
-	}
-
-	if err = tx.Create(&model.DocHistory{
-		BaseModel: model.BaseModel{},
-		DocId:     dbDoc.Id,
-		UserId:    dbDoc.UserId,
-		Title:     dbDoc.Title,
-		Content:   dbDoc.Content,
-	}).Error; err != nil {
+	if result := q.Updates(setDocUpdateData(r)); result.Error != nil {
 		tx.Rollback()
-		errMsg := fmt.Errorf("保存id 为 %s 的历史数据失败", r.Id)
-		global.Log.Error(r, err)
-		return nil, errMsg
-	}
-
-	if err = handleDocIsPin(tx, userId, r); err != nil {
-		return nil, err
-	}
-
-	u["version"] = gorm.Expr("version + ?", 1)
-	result := q.Updates(u)
-	if err = result.Error; err != nil {
-		tx.Rollback()
-		global.Log.Error(err)
+		global.Log.Error(result.Error)
 		return nil, fmt.Errorf("修改id 为 %s 的数据失败", r.Id)
 	} else if result.RowsAffected == 0 {
 		tx.Rollback()
 		return nil, ErrorDocIsEdited
+	}
+
+	if err = handleDocExtraData(tx, dbDoc); err != nil {
+		return nil, err
 	}
 
 	tx.Commit()
@@ -228,14 +187,58 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 	return dbDoc.HiddenData(), nil
 }
 
-func handleDocIsPin(tx *gorm.DB, userId string, r doc.UpdateDocRequest) (err error) {
-	if r.IsPin == 1 {
+func setDocUpdateData(r doc.UpdateDocRequest) map[string]any {
+	updateData := make(map[string]any)
+	if r.Title != "" {
+		updateData["Title"] = r.Title
+	}
+	if r.Content != "" {
+		updateData["Content"] = r.Content
+	}
+
+	if r.GroupId != "" {
+		updateData["GroupId"] = r.GroupId
+	}
+
+	if r.IsTop > 0 {
+		updateData["IsTop"] = r.IsTop
+	}
+
+	if r.IsRecover {
+		updateData["DeletedAt"] = nil
+		updateData["GroupId"] = 0
+	}
+
+	if r.ReadOnly > 0 {
+		updateData["ReadOnly"] = r.ReadOnly
+	}
+
+	updateData["version"] = gorm.Expr("version + ?", 1)
+	return updateData
+}
+
+func handleDocExtraData(tx *gorm.DB, dbDoc *model.Doc) (err error) {
+	if err = tx.Create(&model.DocHistory{
+		BaseModel: model.BaseModel{},
+		DocId:     dbDoc.Id,
+		UserId:    dbDoc.UserId,
+		Title:     dbDoc.Title,
+		Content:   dbDoc.Content,
+	}).Error; err != nil {
+		tx.Rollback()
+		errMsg := fmt.Errorf("保存id 为 %s 的历史数据失败", dbDoc.Id)
+		global.Log.Error(dbDoc, err)
+		return errMsg
+	}
+
+	if dbDoc.IsPin == 1 {
 		var dbNote *model.Note
-		if err = tx.Where("user_id = ? AND doc_id = ? AND note_type = ?", userId, r.Id, model.NoteTypeDoc).First(&dbNote).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+		if err = tx.Where("user_id = ? AND doc_id = ? AND note_type = ?", dbDoc.UserId, dbDoc.Id, model.NoteTypeDoc).
+			First(&dbNote).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 			if err = tx.Create(&model.Note{
 				BaseModel: model.BaseModel{},
-				UserId:    userId,
-				DocId:     r.Id,
+				UserId:    dbDoc.UserId,
+				DocId:     dbDoc.Id,
 				NoteType:  model.NoteTypeDoc,
 			}).Error; err != nil {
 				tx.Rollback()
@@ -248,10 +251,12 @@ func handleDocIsPin(tx *gorm.DB, userId string, r doc.UpdateDocRequest) (err err
 			global.Log.Error("保存笔记失败,error:[%v]", err)
 			return errors.New("保存笔记失败")
 		}
-	} else if r.IsPin == 2 {
-		if err = tx.Unscoped().Where("doc_id = ? AND user_id = ? AND note_type = ?", r.Id, userId, model.NoteTypeDoc).Delete(&model.Note{}).Error; err != nil {
+	}
+	if dbDoc.IsPin == 2 {
+		if err = tx.Unscoped().Where("doc_id = ? AND user_id = ? AND note_type = ?", dbDoc.Id, dbDoc.UserId, model.NoteTypeDoc).
+			Delete(&model.Note{}).Error; err != nil {
 			tx.Rollback()
-			errMsg := fmt.Errorf("删除id 为 %s 的笔记数据失败", r.Id)
+			errMsg := fmt.Errorf("删除id 为 %s 的笔记数据失败", dbDoc.Id)
 			global.Log.Error(err)
 			return errMsg
 		}
