@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"fastduck/treasure-doc/service/user/data/model"
-	"fastduck/treasure-doc/service/user/data/request"
 	"fastduck/treasure-doc/service/user/data/request/doc"
 	"fastduck/treasure-doc/service/user/data/response"
 	"fastduck/treasure-doc/service/user/global"
@@ -69,33 +68,32 @@ func checkDocTitleIsDuplicates(title string, userId string) (doc *model.Doc, err
 }
 
 // DocDetail 文档详情
-func (doc *DocService) DocDetail(r request.IDReq, userId string) (d *model.Doc, err error) {
-	err = global.Db.Unscoped().Where("id = ? AND user_id = ?", r.ID, userId).First(&d).Error
+func (doc *DocService) DocDetail(id string, userId string) (d *model.Doc, err error) {
+	err = global.Db.Unscoped().Where("id = ? AND user_id = ?", id, userId).First(&d).Error
 	if err != nil {
 		return
 	}
 
-	d.IsPin = 1
+	d.IsPin = 2
 	note := &model.Note{}
-	if err := global.Db.Where("doc_id = ? AND user_id = ?", r.ID, userId).First(&note).Error; err != nil {
+	if err = global.Db.Where("doc_id = ? AND user_id = ?", id, userId).First(&note).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, err
+			d.IsPin = 1
 		} else {
-			d.IsPin = 2
+			global.Log.Errorf("failed to query note,data:[%#v],error:[%v]", id, err)
 		}
 	}
 
 	var group *model.DocGroup
-	if err := global.Db.Where("user_id = ? AND id = ?", userId, d.GroupId).First(&group).Error; err != nil {
+	if err = global.Db.Where("user_id = ? AND id = ?", userId, d.GroupId).First(&group).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			global.Log.Error(r, err)
-			return nil, err
+			global.Log.Error(id, err)
 		}
 	} else {
 		var parentGroups model.DocGroups
-		if err := global.Db.Where("user_id = ? AND id IN (?)", userId, strings.Split(group.GroupPath, ",")).Order("created_at ASC").Find(&parentGroups).Error; err != nil {
-			global.Log.Error(r, err)
-			return nil, err
+		if err = global.Db.Where("user_id = ? AND id IN (?)", userId, strings.Split(group.GroupPath, ",")).
+			Order("created_at ASC").Find(&parentGroups).Error; err != nil {
+			global.Log.Error(id, err)
 		} else {
 			d.GroupPath = parentGroups
 		}
@@ -106,7 +104,7 @@ func (doc *DocService) DocDetail(r request.IDReq, userId string) (d *model.Doc, 
 
 // DocList 文档列表
 func (doc *DocService) DocList(r doc.ListDocRequest, userId string) (res response.ListResponse, err error) {
-	q := global.Db.Model(&model.Doc{}).Debug().Where("user_id = ?", userId)
+	q := global.Db.Model(&model.Doc{}).Where("user_id = ?", userId)
 	if r.RecycleBin == 1 {
 		q = q.Unscoped().Where("deleted_at is not null")
 	}
@@ -133,7 +131,6 @@ func (doc *DocService) DocList(r doc.ListDocRequest, userId string) (res respons
 	}
 
 	var list []*model.Doc
-
 	if r.Pagination.Page > 0 && r.Pagination.PageSize > 0 {
 		q = q.Limit(r.PageSize).Offset(r.Offset())
 	}
@@ -142,11 +139,6 @@ func (doc *DocService) DocList(r doc.ListDocRequest, userId string) (res respons
 	res.List = list
 	res.Pagination = r.Pagination
 	return
-}
-
-func fillGroupPath(docs model.Docs) model.Docs {
-	docs.GetGroupIds(true)
-	return docs
 }
 
 var ErrorDocIsEdited = errors.New("数据已在其他位置更新,请刷新后再试~")
@@ -256,18 +248,18 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId string) (newDoc 
 }
 
 // DocDelete 文档删除
-func (doc *DocService) DocDelete(r doc.DeleteDocRequest, userId string) (err error) {
-	if r.Id == "" {
-		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
+func (doc *DocService) DocDelete(id string, userId string) (err error) {
+	if id == "" {
+		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
-	q := global.Db.Where("id = ? AND user_id = ?", r.Id, userId)
+	q := global.Db.Where("id = ? AND user_id = ?", id, userId)
 	if err = q.Delete(&model.Doc{}).Error; err != nil {
-		errMsg := fmt.Sprintf("删除id 为 %s 的数据失败 %v ", r.Id, err)
+		errMsg := fmt.Errorf("删除id 为 %s 的数据失败 %v ", id, err)
 		global.Log.Error(errMsg)
-		return errors.New("操作失败")
+		return errMsg
 	}
 
 	return

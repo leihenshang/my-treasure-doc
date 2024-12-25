@@ -66,7 +66,7 @@ func (d *DocApi) Detail(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if docObj, ok := d.DocService.DocDetail(req, u.Id); ok != nil {
+	if docObj, ok := d.DocService.DocDetail(req.ID, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, docObj)
