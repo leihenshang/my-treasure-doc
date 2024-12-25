@@ -22,7 +22,7 @@ type UpdateDocRequest struct {
 	IsRecover bool   `json:"isRecover" binding:"boolean"`
 	IsPin     int8   `json:"isPin" binding:""`
 	ReadOnly  int8   `json:"readOnly" binding:""`
-	Version   *int   `json:"version" binding:"required,alphanum"`
+	Version   *int   `json:"version" binding:"required,number"`
 }
 
 // DeleteDocRequest 更新文档
