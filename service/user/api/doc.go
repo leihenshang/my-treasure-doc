@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/middleware"
 
 	"fastduck/treasure-doc/service/user/data/request"
@@ -37,7 +38,15 @@ func (d *DocApi) Create(c *gin.Context) {
 		return
 	}
 
-	if newDoc, ok := d.DocService.DocCreate(req, u.Id); ok != nil {
+	createDoc := &model.Doc{
+		UserId:  u.Id,
+		Title:   req.Title,
+		Content: req.Content,
+		GroupId: req.GroupId,
+		IsTop:   req.IsTop,
+	}
+
+	if newDoc, ok := d.DocService.DocCreate(createDoc, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, newDoc)

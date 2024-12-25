@@ -29,41 +29,31 @@ func NewDocService() *DocService {
 }
 
 // DocCreate 创建文档
-func (doc *DocService) DocCreate(r doc.CreateDocRequest, userId string) (d *model.Doc, err error) {
-	insertData := &model.Doc{
-		UserId:  userId,
-		Title:   r.Title,
-		Content: r.Content,
-		GroupId: r.GroupId,
-		IsTop:   r.IsTop,
+func (doc *DocService) DocCreate(createDoc *model.Doc, userId string) (d *model.Doc, err error) {
+	if createDoc == nil {
+		return nil, nil
 	}
 
-	//if existed, checkErr := checkDocTitleIsDuplicates(insertData.Title, userId); checkErr != nil {
-	//	global.Log.Error(r, userId, "检查文档标题失败")
-	//	return nil, errors.New("检查文档标题失败")
-	//} else {
-	//	if existed != nil {
-	//		return nil, errors.New("文档标题已存在")
-	//	}
-	//}
-
-	if insertData.GroupId != "" {
-		groupList, err := getDocGroupByIds(userId, insertData.GroupId)
+	if createDoc.GroupId != "" {
+		errorMsg := fmt.Errorf("分组没有找到")
+		groupList, err := getDocGroupByIds(userId, createDoc.GroupId)
 		if err != nil {
-			return nil, err
+			global.Log.Errorf("failed to query user group,userId:[%s], groupId:[%s],error:[%v] ",
+				userId, createDoc.GroupId, err)
+			return nil, errorMsg
 		} else if len(groupList) == 0 {
-			return nil, errors.New("分组没有找到")
+			return nil, errorMsg
 		}
 	} else {
-		insertData.GroupId = "0"
+		createDoc.GroupId = global.RootGroup
 	}
 
-	if err = global.Db.Create(insertData).Error; err != nil {
-		global.Log.Error(r, err)
+	if err = global.Db.Create(createDoc).Error; err != nil {
+		global.Log.Errorf("failed to create doc,data:[%#v],error:%v", createDoc, err)
 		return nil, errors.New("创建文档失败")
 	}
 
-	return insertData, nil
+	return createDoc, nil
 }
 
 // checkDocTitleIsDuplicates 检查文档标题是否重复
