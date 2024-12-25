@@ -156,15 +156,14 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 		Where("version = ?", *r.Version)
 	var dbDoc *model.Doc
 	if err = q.First(&dbDoc).Error; err != nil {
-		errMsg := fmt.Errorf("id 为 %s 的数据没有找到", r.Id)
-		global.Log.Error(err)
-		tx.Rollback()
-		return nil, errMsg
-
-	}
-
-	if dbDoc.Version != *r.Version {
-		return nil, ErrorDocIsEdited
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrorDocIsEdited
+		} else {
+			errMsg := fmt.Errorf("id 为 %s 的数据没有找到", r.Id)
+			global.Log.Error(err)
+			tx.Rollback()
+			return nil, errMsg
+		}
 	}
 
 	if result := q.Updates(setDocUpdateData(r)); result.Error != nil {
