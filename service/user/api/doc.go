@@ -37,10 +37,10 @@ func (d *DocApi) Create(c *gin.Context) {
 		return
 	}
 
-	if d, ok := d.DocService.DocCreate(req, u.Id); ok != nil {
+	if newDoc, ok := d.DocService.DocCreate(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(c, d)
+		response.OkWithData(c, newDoc)
 	}
 }
 
@@ -57,10 +57,10 @@ func (d *DocApi) Detail(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if d, ok := d.DocService.DocDetail(req, u.Id); ok != nil {
+	if docObj, ok := d.DocService.DocDetail(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(c, d)
+		response.OkWithData(c, docObj)
 	}
 
 }
@@ -78,10 +78,10 @@ func (d *DocApi) List(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if d, ok := d.DocService.DocList(req, u.Id); ok != nil {
+	if list, ok := d.DocService.DocList(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.OkWithData(c, d)
+		response.OkWithData(c, list)
 	}
 }
 
