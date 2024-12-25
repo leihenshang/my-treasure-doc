@@ -226,9 +226,8 @@ func handleDocExtraData(tx *gorm.DB, dbDoc *model.Doc) (err error) {
 		Content:   dbDoc.Content,
 	}).Error; err != nil {
 		tx.Rollback()
-		errMsg := fmt.Errorf("保存id 为 %s 的历史数据失败", dbDoc.Id)
 		global.Log.Error(dbDoc, err)
-		return errMsg
+		return fmt.Errorf("保存id 为 %s 的历史数据失败", dbDoc.Id)
 	}
 
 	if dbDoc.IsPin == 1 {
@@ -242,23 +241,21 @@ func handleDocExtraData(tx *gorm.DB, dbDoc *model.Doc) (err error) {
 				NoteType:  model.NoteTypeDoc,
 			}).Error; err != nil {
 				tx.Rollback()
-				global.Log.Error("保存笔记失败,error:[%v]", err)
-				return errors.New("保存笔记失败")
+				global.Log.Error(err)
+				return errors.New("保存文档笔记失败")
 			}
 		} else if err != nil {
 			tx.Rollback()
 			global.Log.Error(err)
-			global.Log.Error("保存笔记失败,error:[%v]", err)
-			return errors.New("保存笔记失败")
+			return errors.New("获取文档笔记失败")
 		}
 	}
 	if dbDoc.IsPin == 2 {
 		if err = tx.Unscoped().Where("doc_id = ? AND user_id = ? AND note_type = ?", dbDoc.Id, dbDoc.UserId, model.NoteTypeDoc).
 			Delete(&model.Note{}).Error; err != nil {
 			tx.Rollback()
-			errMsg := fmt.Errorf("删除id 为 %s 的笔记数据失败", dbDoc.Id)
 			global.Log.Error(err)
-			return errMsg
+			return errors.New("删除文档笔记失败")
 		}
 	}
 	return nil
