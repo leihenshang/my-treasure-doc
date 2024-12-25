@@ -73,14 +73,14 @@ func (doc *DocService) Detail(id string, userId string) (d *model.Doc, err error
 		return
 	}
 
-	d.IsPin = 2
 	note := &model.Note{}
 	if err = global.Db.Where("doc_id = ? AND user_id = ?", id, userId).First(&note).Error; err != nil {
+		d.IsPin = 2
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			global.Log.Errorf("failed to query note,data:[%#v],error:[%v]", id, err)
-		} else {
-			d.IsPin = 1
 		}
+	} else {
+		d.IsPin = 1
 	}
 
 	var group *model.DocGroup
