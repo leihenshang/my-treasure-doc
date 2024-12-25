@@ -123,9 +123,7 @@ func FillDoc(notes model.Notes) error {
 // NoteUpdate 笔记更新
 func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId string) (err error) {
 	if r.Id == "" {
-		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
-		global.Log.Error(errMsg)
-		return errors.New(errMsg)
+		return nil
 	}
 
 	q := global.Db.Model(&model.Note{}).Where("id = ? AND user_id = ?", r.Id, userId)
@@ -156,9 +154,7 @@ func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId string) (err e
 // NoteDelete 笔记删除
 func (n *NoteService) NoteDelete(r note.UpdateNoteRequest, userId string) (err error) {
 	if r.Id == "" {
-		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
-		global.Log.Error(errMsg)
-		return errors.New(errMsg)
+		return nil
 	}
 
 	q := global.Db.Where("id = ? AND user_id = ?", r.Id, userId)

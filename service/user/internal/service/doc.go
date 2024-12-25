@@ -148,27 +148,24 @@ var ErrorDocIsEdited = errors.New("数据已在其他位置更新,请刷新后�
 
 // Update 文档更新
 func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *model.Doc, err error) {
-	errMsg := fmt.Errorf("id 为 %s 的数据没有找到", r.Id)
 	if r.Id == "" {
-		global.Log.Error(errMsg)
-		return nil, errMsg
+		return nil, nil
 	}
 
 	tx := global.Db.Begin()
-	q := tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId)
-	var oldDoc *model.Doc
-	if err = q.First(&oldDoc).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			global.Log.Error(err)
-			tx.Rollback()
-			return nil, errMsg
-		} else {
-			global.Log.Error(errMsg)
-			tx.Rollback()
-			return nil, errMsg
-		}
+	q := tx.Unscoped().Debug().Model(&model.Doc{}).
+		Where("id = ? AND user_id = ?", r.Id, userId).
+		Where("version = ?", *r.Version)
+	var dbDoc *model.Doc
+	if err = q.First(&dbDoc).Error; err != nil {
+		errMsg := fmt.Errorf("id 为 %s 的数据没有找到", r.Id)
+		global.Log.Error(err)
+		tx.Rollback()
+		return nil, errMsg
+
 	}
-	if oldDoc.Version != *r.Version {
+
+	if dbDoc.Version != *r.Version {
 		return nil, ErrorDocIsEdited
 	}
 
@@ -199,20 +196,42 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 
 	if err = tx.Create(&model.DocHistory{
 		BaseModel: model.BaseModel{},
-		DocId:     oldDoc.Id,
-		UserId:    oldDoc.UserId,
-		Title:     oldDoc.Title,
-		Content:   oldDoc.Content,
+		DocId:     dbDoc.Id,
+		UserId:    dbDoc.UserId,
+		Title:     dbDoc.Title,
+		Content:   dbDoc.Content,
 	}).Error; err != nil {
 		tx.Rollback()
-		errMsg = fmt.Errorf("保存id 为 %s 的历史数据失败 %v ", r.Id, err)
-		global.Log.Error(errMsg)
-		return nil, errors.New("操作失败")
+		errMsg := fmt.Errorf("保存id 为 %s 的历史数据失败", r.Id)
+		global.Log.Error(r, err)
+		return nil, errMsg
 	}
 
+	if err = handleDocIsPin(tx, userId, r); err != nil {
+		return nil, err
+	}
+
+	u["version"] = gorm.Expr("version + ?", 1)
+	result := q.Updates(u)
+	if err = result.Error; err != nil {
+		tx.Rollback()
+		global.Log.Error(err)
+		return nil, fmt.Errorf("修改id 为 %s 的数据失败", r.Id)
+	} else if result.RowsAffected == 0 {
+		tx.Rollback()
+		return nil, fmt.Errorf("修改id 为 %s 的数据失败,数据没有找到", r.Id)
+	}
+
+	tx.Commit()
+
+	dbDoc.Version++
+	return dbDoc.HiddenData(), nil
+}
+
+func handleDocIsPin(tx *gorm.DB, userId string, r doc.UpdateDocRequest) (err error) {
 	if r.IsPin == 1 {
 		var dbNote *model.Note
-		if err := tx.Where("user_id = ? AND doc_id = ? AND note_type = ?", userId, r.Id, model.NoteTypeDoc).First(&dbNote).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+		if err = tx.Where("user_id = ? AND doc_id = ? AND note_type = ?", userId, r.Id, model.NoteTypeDoc).First(&dbNote).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 			if err = tx.Create(&model.Note{
 				BaseModel: model.BaseModel{},
 				UserId:    userId,
@@ -220,42 +239,30 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 				NoteType:  model.NoteTypeDoc,
 			}).Error; err != nil {
 				tx.Rollback()
-				errMsg = fmt.Errorf("保存id 为 %s 的笔记失败 %v ", r.Id, err)
-				global.Log.Error(errMsg)
-				return nil, errors.New("操作失败")
+				global.Log.Error("保存笔记失败,error:[%v]", err)
+				return errors.New("保存笔记失败")
 			}
 		} else if err != nil {
 			tx.Rollback()
 			global.Log.Error(err)
-			return nil, errors.New("操作失败")
+			global.Log.Error("保存笔记失败,error:[%v]", err)
+			return errors.New("保存笔记失败")
 		}
 	} else if r.IsPin == 2 {
-		if err := tx.Unscoped().Where("doc_id = ? AND user_id = ? AND note_type = ?", r.Id, userId, model.NoteTypeDoc).Delete(&model.Note{}).Error; err != nil {
+		if err = tx.Unscoped().Where("doc_id = ? AND user_id = ? AND note_type = ?", r.Id, userId, model.NoteTypeDoc).Delete(&model.Note{}).Error; err != nil {
 			tx.Rollback()
-			errMsg := fmt.Sprintf("删除id 为 %s 的笔记数据失败 %v ", r.Id, err)
-			global.Log.Error(errMsg)
-			return nil, errors.New("操作失败")
+			errMsg := fmt.Errorf("删除id 为 %s 的笔记数据失败", r.Id)
+			global.Log.Error(err)
+			return errMsg
 		}
 	}
-	oldDoc.Version++
-	u["version"] = oldDoc.Version
-	if err = q.Updates(u).Error; err != nil {
-		errMsg = fmt.Errorf("修改id 为 %s 的数据失败 %v ", r.Id, err)
-		global.Log.Error(errMsg)
-		tx.Rollback()
-		return nil, errors.New("操作失败")
-	}
-
-	tx.Commit()
-	return oldDoc.HiddenUnnecessary(), nil
+	return nil
 }
 
 // Delete 文档删除
 func (doc *DocService) Delete(id string, userId string) (err error) {
 	if id == "" {
-		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", id)
-		global.Log.Error(errMsg)
-		return errors.New(errMsg)
+		return nil
 	}
 
 	q := global.Db.Where("id = ? AND user_id = ?", id, userId)

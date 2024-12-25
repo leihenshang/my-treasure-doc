@@ -67,11 +67,8 @@ func (u *UserManageService) Create(user *userReq.RegisterRequest) (createdUser *
 }
 
 func (u *UserManageService) Delete(userId string) error {
-	return nil
 	if userId == "" {
-		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", userId)
-		global.Log.Error(errMsg)
-		return errors.New(errMsg)
+		return nil
 	}
 
 	q := global.Db.Where("id = ? AND user_type = ?", userId, model.UserTypeUser)

@@ -54,7 +54,7 @@ func (d Docs) ToGroupIdMap() map[string]*Doc {
 	return m
 }
 
-func (d *Doc) HiddenUnnecessary() *Doc {
+func (d *Doc) HiddenData() *Doc {
 	d.Content = ""
 	return d
 }
