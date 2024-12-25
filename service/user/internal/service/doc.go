@@ -152,7 +152,7 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 	}
 
 	tx := global.Db.Begin()
-	q := tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId).
+	q := tx.Unscoped().Debug().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId).
 		Where("version = ?", *r.Version)
 	var dbDoc *model.Doc
 	if err = q.First(&dbDoc).Error; err != nil {
@@ -175,7 +175,7 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 		return nil, ErrorDocIsEdited
 	}
 
-	if err = handleDocExtraData(tx, dbDoc); err != nil {
+	if err = handleDocExtraData(tx, dbDoc, r); err != nil {
 		return nil, err
 	}
 
@@ -215,7 +215,7 @@ func setDocUpdateData(r doc.UpdateDocRequest) map[string]any {
 	return updateData
 }
 
-func handleDocExtraData(tx *gorm.DB, dbDoc *model.Doc) (err error) {
+func handleDocExtraData(tx *gorm.DB, dbDoc *model.Doc, r doc.UpdateDocRequest) (err error) {
 	if err = tx.Create(&model.DocHistory{
 		BaseModel: model.BaseModel{},
 		DocId:     dbDoc.Id,
@@ -228,7 +228,7 @@ func handleDocExtraData(tx *gorm.DB, dbDoc *model.Doc) (err error) {
 		return fmt.Errorf("保存id 为 %s 的历史数据失败", dbDoc.Id)
 	}
 
-	if dbDoc.IsPin == 1 {
+	if r.IsPin == 1 {
 		var dbNote *model.Note
 		if err = tx.Where("user_id = ? AND doc_id = ? AND note_type = ?", dbDoc.UserId, dbDoc.Id, model.NoteTypeDoc).
 			First(&dbNote).Error; errors.Is(err, gorm.ErrRecordNotFound) {
@@ -248,7 +248,7 @@ func handleDocExtraData(tx *gorm.DB, dbDoc *model.Doc) (err error) {
 			return errors.New("获取文档笔记失败")
 		}
 	}
-	if dbDoc.IsPin == 2 {
+	if r.IsPin == 2 {
 		if err = tx.Unscoped().Where("doc_id = ? AND user_id = ? AND note_type = ?", dbDoc.Id, dbDoc.UserId, model.NoteTypeDoc).
 			Delete(&model.Note{}).Error; err != nil {
 			tx.Rollback()
