@@ -256,7 +256,7 @@ func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId string
 }
 
 func getDocByGroupIds(userId string, groupId ...string) (res model.Docs, err error) {
-	err = global.Db.Debug().Where("user_id = ?", userId).Where("group_id IN (?)", groupId).Find(&res).Error
+	err = global.Db.Where("user_id = ?", userId).Where("group_id IN (?)", groupId).Find(&res).Error
 	return
 }
 
