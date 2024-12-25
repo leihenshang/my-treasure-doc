@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request"
@@ -34,7 +35,8 @@ func genRootGroup(userId string) error {
 		if errors.Is(q.Error, gorm.ErrRecordNotFound) {
 			return global.Db.Create(&model.DocGroup{
 				BaseModel: model.BaseModel{
-					Id: global.RootGroup,
+					Id:        global.RootGroup,
+					CreatedAt: func() time.Time { t, _ := time.Parse(time.DateTime, "2006-01-02 15:04:05"); return t }(),
 				},
 				UserId:    userId,
 				Title:     global.RootGroup,
