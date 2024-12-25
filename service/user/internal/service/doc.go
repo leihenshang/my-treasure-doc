@@ -37,8 +37,7 @@ func (doc *DocService) Create(createDoc *model.Doc, userId string) (d *model.Doc
 		errorMsg := fmt.Errorf("分组没有找到")
 		groupList, err := getDocGroupByIds(userId, createDoc.GroupId)
 		if err != nil {
-			global.Log.Errorf("failed to query user group,userId:[%s], groupId:[%s],error:[%v] ",
-				userId, createDoc.GroupId, err)
+			global.Log.Error(err)
 			return nil, errorMsg
 		} else if len(groupList) == 0 {
 			return nil, errorMsg
@@ -48,7 +47,7 @@ func (doc *DocService) Create(createDoc *model.Doc, userId string) (d *model.Doc
 	}
 
 	if err = global.Db.Create(createDoc).Error; err != nil {
-		global.Log.Errorf("failed to create doc,data:[%#v],error:%v", createDoc, err)
+		global.Log.Error(err)
 		return nil, errors.New("创建文档失败")
 	}
 
@@ -269,9 +268,8 @@ func (doc *DocService) Delete(id string, userId string) (err error) {
 
 	q := global.Db.Where("id = ? AND user_id = ?", id, userId)
 	if err = q.Delete(&model.Doc{}).Error; err != nil {
-		errMsg := fmt.Errorf("删除id 为 %s 的数据失败 %v ", id, err)
-		global.Log.Error(errMsg)
-		return errMsg
+		global.Log.Error(err)
+		return fmt.Errorf("删除id 为 %s 的数据失败 %v ", id, err)
 	}
 
 	return
