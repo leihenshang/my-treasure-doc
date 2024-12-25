@@ -129,7 +129,7 @@ func (d *DocApi) Delete(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := d.DocService.DocDelete(req, u.Id); ok != nil {
+	if ok := d.DocService.DocDelete(req.Id, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)

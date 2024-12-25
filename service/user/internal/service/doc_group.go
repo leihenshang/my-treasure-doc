@@ -28,81 +28,87 @@ func NewDocGroupService() *DocGroupService {
 	return docGroupService
 }
 
+func genRootGroup(userId string) error {
+	q := global.Db.Where("user_id = ? AND id = ?", userId, global.RootGroup).First(&model.DocGroup{})
+	if q.Error != nil {
+		if errors.Is(q.Error, gorm.ErrRecordNotFound) {
+			return global.Db.Create(&model.DocGroup{
+				BaseModel: model.BaseModel{
+					Id: global.RootGroup,
+				},
+				UserId:    userId,
+				Title:     global.RootGroup,
+				Icon:      "",
+				PId:       global.RootGroup,
+				Priority:  0,
+				GroupPath: global.RootGroup,
+				GroupType: "",
+				IsLeaf:    false,
+			}).Error
+		} else {
+			return q.Error
+		}
+	}
+	return nil
+}
+
 // DocGroupCreate 创建文档分组
-func (group *DocGroupService) DocGroupCreate(r doc.CreateDocGroupRequest, userId string) (dg *model.DocGroup, err error) {
-	if existed, err := checkDocGroupTitleRepeat(r.PId, r.Title, userId); err != nil {
-		global.Log.Error(r, userId, err)
+func (group *DocGroupService) DocGroupCreate(createGroup *model.DocGroup, userId string) (dg *model.DocGroup, err error) {
+	if createGroup == nil {
+		return nil, nil
+	}
+
+	if createGroup.PId == "" {
+		createGroup.PId = global.RootGroup
+	}
+
+	if err = genRootGroup(userId); err != nil {
+		global.Log.Errorf("failed to gen root group,error:[%v]", err)
+		return nil, err
+	}
+
+	if dbGroup, err := checkDocGroupTitleRepeat(createGroup.PId, createGroup.Title, userId); err != nil {
+		global.Log.Error(createGroup, userId, err)
 		return nil, errors.New("检查文档分组标题失败")
-	} else if existed != nil {
+	} else if dbGroup != nil {
 		return nil, errors.New("文档分组标题已存在")
 	}
 
-	parentGroup := &model.DocGroup{
-		BaseModel: model.BaseModel{
-			Id: r.PId,
-		},
-	}
-	if parentGroup.PId != "" {
-		if err = global.Db.Where("id = ? AND user_id = ?", r.PId, userId).First(&parentGroup).Error; err != nil {
-			errorMsg := fmt.Errorf("查找父级分组失败")
-			global.Log.Error(errorMsg, err)
-			return nil, errorMsg
-		}
-	} else {
-		parentGroup.GroupPath = r.PId
-	}
-
-	insertData := &model.DocGroup{
-		Title:    r.Title,
-		Icon:     r.Icon,
-		PId:      r.PId,
-		UserId:   userId,
-		Priority: r.Priority,
-	}
-
 	tx := global.Db.Begin()
-
-	if err = tx.Create(insertData).Error; err != nil {
-		global.Log.Error(r, err)
+	if err = tx.Create(createGroup).Error; err != nil {
+		global.Log.Error(createGroup, err)
 		tx.Rollback()
 		return nil, errors.New("创建文档分组失败")
 	}
 
-	groupPath, err := genGroupPath(insertData.Id, r.PId, userId)
+	groupPath, err := genGroupPath(createGroup, userId)
 	if err != nil {
-		global.Log.Error(r, userId, err)
+		global.Log.Error(createGroup, userId, err)
 		tx.Rollback()
-		return nil, err
+		return nil, errors.New("更新分组路径失败")
 	}
 
-	if err := tx.Model(&insertData).Update("GroupPath", groupPath).Error; err != nil {
-		global.Log.Error(r, userId, err)
+	if err = tx.Model(&createGroup).Update("GroupPath", groupPath).Error; err != nil {
+		global.Log.Error(createGroup, userId, err)
 		tx.Rollback()
-		return nil, err
+		return nil, errors.New("更新分组路径失败")
 	}
 
 	tx.Commit()
-	return insertData, nil
+	return createGroup, nil
 }
 
-func genGroupPath(id, pid string, userId string) (string, error) {
-	parentGroup := &model.DocGroup{
-		BaseModel: model.BaseModel{
-			Id: pid,
-		},
+func genGroupPath(group *model.DocGroup, userId string) (string, error) {
+	if group.PId == "" {
+		return fmt.Sprintf("%s,%s", global.RootGroup, group.Id), nil
 	}
-	if pid != "" {
-		if err := global.Db.Where("id = ? AND user_id = ?", pid, userId).First(&parentGroup).Error; err != nil {
-			errorMsg := fmt.Errorf("查找父级分组失败")
-			global.Log.Error(errorMsg, err)
-			return "", errorMsg
-		}
-	} else {
-		parentGroup.GroupPath = pid
-		return fmt.Sprintf("%d,%s", 0, id), nil
+	var parentGroup *model.DocGroup
+	if err := global.Db.Where("id = ? AND user_id = ?", group.PId, userId).First(&parentGroup).Error; err != nil {
+		errorMsg := fmt.Errorf("查找父级分组失败")
+		global.Log.Error(errorMsg, err)
+		return "", errorMsg
 	}
-
-	paths := append(strings.Split(parentGroup.GroupPath, ","), id)
+	paths := append(strings.Split(parentGroup.GroupPath, ","), group.Id)
 	return strings.Join(paths, ","), nil
 }
 
@@ -130,22 +136,32 @@ func (group *DocGroupService) DocGroupList(r request.Pagination, userId string) 
 }
 
 // DocGroupUpdate 文档分组更新
-func (group *DocGroupService) DocGroupUpdate(r doc.UpdateDocGroupRequest, userId string) (err error) {
-	if r.Id == "" {
-		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
+func (group *DocGroupService) DocGroupUpdate(updateGroup *model.DocGroup, userId string) (err error) {
+	if updateGroup.Id == "" {
+		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", updateGroup.Id)
 		return errors.New(errMsg)
 	}
 
-	groupPath, err := genGroupPath(r.Id, r.PId, userId)
-	if err != nil {
-		global.Log.Error(r, userId, err)
+	if err = genRootGroup(userId); err != nil {
+		global.Log.Errorf("failed to gen root group,error:[%v]", err)
 		return err
 	}
 
-	q := global.Db.Model(&model.DocGroup{}).Where("id = ? AND user_id = ?", r.Id, userId)
-	u := map[string]interface{}{"Title": r.Title, "PId": r.PId, "Icon": r.Icon, "GroupPath": groupPath}
+	if updateGroup.PId == "" {
+		updateGroup.PId = global.RootGroup
+	}
+
+	groupPath, err := genGroupPath(updateGroup, userId)
+	if err != nil {
+		global.Log.Error(updateGroup, userId, err)
+		return err
+	}
+
+	q := global.Db.Model(&model.DocGroup{}).Where("id = ? AND user_id = ?", updateGroup.Id, userId)
+	u := map[string]interface{}{"Title": updateGroup.Title, "PId": updateGroup.PId, "Icon": updateGroup.Icon,
+		"GroupPath": groupPath}
 	if err = q.Updates(u).Error; err != nil {
-		errMsg := fmt.Sprintf("修改id 为 %s 的数据失败 %v ", r.Id, err)
+		errMsg := fmt.Sprintf("修改id 为 %s 的数据失败 %v ", updateGroup.Id, err)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
@@ -154,37 +170,34 @@ func (group *DocGroupService) DocGroupUpdate(r doc.UpdateDocGroupRequest, userId
 }
 
 // DocGroupDelete 文档分组删除
-func (group *DocGroupService) DocGroupDelete(r doc.UpdateDocGroupRequest, userId string) (err error) {
-	if r.Id == "" {
-		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", r.Id)
+func (group *DocGroupService) DocGroupDelete(id string, userId string) (err error) {
+	if id == "" {
+		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", id)
 		global.Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
 	tx := global.Db.Begin()
-	q := tx.Where("id = ? AND user_id = ?", r.Id, userId)
+	q := tx.Where("id = ? AND user_id = ?", id, userId)
 	if err = q.Delete(&model.DocGroup{}).Error; err != nil {
 		tx.Rollback()
-		return fmt.Errorf("删除id 为 %s 的数据失败 %v ", r.Id, err)
+		return fmt.Errorf("删除id 为 %s 的数据失败 %v ", id, err)
 	}
-	if err = tx.Where("group_id = ? AND user_id = ?", r.Id, userId).Delete(&model.Doc{}).Error; err != nil {
-		// if !errors.Is(err, gorm.ErrRecordNotFound) {
-		// 	tx.Rollback()
-		// 	errMsg := fmt.Sprintf("删除id 为 %s 的分组下的文档失败 %v ", r.Id, err)
-		// 	return errors.New(errMsg)
-		// }
+	if err = tx.Where("group_id = ? AND user_id = ?", id, userId).Delete(&model.Doc{}).Error; err != nil {
 		tx.Rollback()
-		errMsg := fmt.Sprintf("删除id 为 %s 的分组下的文档失败 %v ", r.Id, err)
+		errMsg := fmt.Sprintf("删除id 为 %s 的分组下的文档失败 %v ", id, err)
 		return errors.New(errMsg)
 	}
-
 	tx.Commit()
-
 	return
 }
 
 func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId string) (docTree resp.DocTrees, err error) {
-	docTree = make([]*resp.DocTree, 0)
+	if err = genRootGroup(userId); err != nil {
+		global.Log.Errorf("failed to gen root group,error:[%v]", err)
+		return nil, err
+	}
+
 	var list model.DocGroups
 	if err = global.Db.Where("user_id = ?", userId).Where("p_id = ?", r.Pid).Order("created_at ASC").Find(&list).Error; err != nil {
 		global.Log.Error(err)
@@ -193,10 +206,8 @@ func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId string
 
 	var children model.DocGroups
 	if err = global.Db.Where("user_id = ?", userId).Where("p_id IN (?)", list.GetIds()).Find(&children).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			global.Log.Error(err)
-			return nil, errors.New("查询分组信息失败")
-		}
+		global.Log.Error(err)
+		return nil, errors.New("查询下级分组信息失败")
 	}
 
 	childrenDoc, err := getDocByGroupIds(userId, list.GetIds()...)
@@ -207,13 +218,11 @@ func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId string
 	childrenPidMap := children.ToPidMap()
 	docGroupIdMap := childrenDoc.ToGroupIdMap()
 	for _, v := range list {
-		if _, ok := childrenPidMap[v.Id]; ok {
-			v.IsLeaf = false
-		} else {
+		if _, ok := childrenPidMap[v.Id]; !ok {
 			v.IsLeaf = true
 		}
-		if _, ok := docGroupIdMap[v.Id]; ok {
-			v.IsLeaf = false
+		if _, ok := docGroupIdMap[v.Id]; !ok {
+			v.IsLeaf = true
 		}
 		v.GroupType = model.GroupTypeGroup
 		docTree = append(docTree, &resp.DocTree{
@@ -225,12 +234,12 @@ func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId string
 		return
 	}
 
-	currentDocs, err := getDocByGroupIds(userId, r.Pid)
+	docs, err := getDocByGroupIds(userId, r.Pid)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, d := range currentDocs {
+	for _, d := range docs {
 		docTree = append(docTree, &resp.DocTree{
 			DocGroup: &model.DocGroup{
 				BaseModel: model.BaseModel{
@@ -243,7 +252,6 @@ func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId string
 			},
 		})
 	}
-
 	return
 }
 

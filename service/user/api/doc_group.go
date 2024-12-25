@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 
+	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/middleware"
 
 	"fastduck/treasure-doc/service/user/data/request"
@@ -34,8 +35,14 @@ func (d *DocGroupApi) DocGroupCreate(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-
-	if group, ok := d.DocGroupService.DocGroupCreate(req, u.Id); ok != nil {
+	insertData := &model.DocGroup{
+		Title:    req.Title,
+		Icon:     req.Icon,
+		PId:      req.PId,
+		UserId:   u.Id,
+		Priority: req.Priority,
+	}
+	if group, ok := d.DocGroupService.DocGroupCreate(insertData, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, group)
@@ -74,7 +81,16 @@ func (d *DocGroupApi) DocGroupUpdate(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := d.DocGroupService.DocGroupUpdate(req, u.Id); ok != nil {
+
+	updateGroup := &model.DocGroup{
+		BaseModel: model.BaseModel{
+			Id: req.Id,
+		},
+		Title: req.Title,
+		Icon:  req.Icon,
+		PId:   req.PId,
+	}
+	if ok := d.DocGroupService.DocGroupUpdate(updateGroup, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
@@ -93,7 +109,7 @@ func (d *DocGroupApi) DocGroupDelete(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := d.DocGroupService.DocGroupDelete(req, u.Id); ok != nil {
+	if ok := d.DocGroupService.DocGroupDelete(req.Id, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
