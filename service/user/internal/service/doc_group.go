@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request"
@@ -29,31 +28,6 @@ func NewDocGroupService() *DocGroupService {
 	return docGroupService
 }
 
-func genRootGroup(userId string) error {
-	q := global.Db.Where("user_id = ? AND id = ?", userId, global.RootGroup).First(&model.DocGroup{})
-	if q.Error != nil {
-		if errors.Is(q.Error, gorm.ErrRecordNotFound) {
-			return global.Db.Create(&model.DocGroup{
-				BaseModel: model.BaseModel{
-					Id:        global.RootGroup,
-					CreatedAt: func() time.Time { t, _ := time.Parse(time.DateTime, "2006-01-02 15:04:05"); return t }(),
-				},
-				UserId:    userId,
-				Title:     global.RootGroup,
-				Icon:      "",
-				PId:       "",
-				Priority:  0,
-				GroupPath: global.RootGroup,
-				GroupType: "",
-				IsLeaf:    false,
-			}).Error
-		} else {
-			return q.Error
-		}
-	}
-	return nil
-}
-
 // Create 创建文档分组
 func (group *DocGroupService) Create(createGroup *model.DocGroup, userId string) (dg *model.DocGroup, err error) {
 	if createGroup == nil {
@@ -62,11 +36,6 @@ func (group *DocGroupService) Create(createGroup *model.DocGroup, userId string)
 
 	if createGroup.PId == "" {
 		createGroup.PId = global.RootGroup
-	}
-
-	if err = genRootGroup(userId); err != nil {
-		global.Log.Errorf("failed to gen root group,error:[%v]", err)
-		return nil, err
 	}
 
 	if dbGroup, err := checkDocGroupTitleRepeat(createGroup.PId, createGroup.Title, userId); err != nil {
@@ -101,7 +70,7 @@ func (group *DocGroupService) Create(createGroup *model.DocGroup, userId string)
 }
 
 func genGroupPath(group *model.DocGroup, userId string) (string, error) {
-	if group.PId == "" {
+	if group.PId == "" || group.PId == global.RootGroup {
 		return fmt.Sprintf("%s,%s", global.RootGroup, group.Id), nil
 	}
 	var parentGroup *model.DocGroup
@@ -142,11 +111,6 @@ func (group *DocGroupService) Update(updateGroup *model.DocGroup, userId string)
 	if updateGroup.Id == "" {
 		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", updateGroup.Id)
 		return errors.New(errMsg)
-	}
-
-	if err = genRootGroup(userId); err != nil {
-		global.Log.Errorf("failed to gen root group,error:[%v]", err)
-		return err
 	}
 
 	if updateGroup.PId == "" {
@@ -195,11 +159,6 @@ func (group *DocGroupService) Delete(id string, userId string) (err error) {
 }
 
 func (group *DocGroupService) Tree(r doc.GroupTreeRequest, userId string) (docTree resp.DocTrees, err error) {
-	if err = genRootGroup(userId); err != nil {
-		global.Log.Errorf("failed to gen root group,error:[%v]", err)
-		return nil, err
-	}
-
 	var list model.DocGroups
 	if err = global.Db.Where("user_id = ?", userId).Where("p_id = ?", r.Pid).Order("created_at ASC").Find(&list).Error; err != nil {
 		global.Log.Error(err)

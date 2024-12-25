@@ -33,7 +33,7 @@ func (doc *DocService) Create(createDoc *model.Doc, userId string) (d *model.Doc
 		return nil, nil
 	}
 
-	if createDoc.GroupId != "" {
+	if createDoc.GroupId != "" && createDoc.GroupId != global.RootGroup {
 		errorMsg := fmt.Errorf("分组没有找到")
 		groupList, err := getDocGroupByIds(userId, createDoc.GroupId)
 		if err != nil {
@@ -88,18 +88,21 @@ func (doc *DocService) Detail(id string, userId string) (d *model.Doc, err error
 	if err = global.Db.Where("user_id = ? AND id = ?", userId, d.GroupId).First(&group).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			global.Log.Error(id, err)
-		}
-	} else {
-		var parentGroups model.DocGroups
-		if err = global.Db.Where("user_id = ? AND id IN (?)", userId, strings.Split(group.GroupPath, ",")).
-			Order("created_at ASC").Find(&parentGroups).Error; err != nil {
-			global.Log.Error(id, err)
+			return nil, err
 		} else {
-			d.GroupPath = parentGroups
+			return d, nil
 		}
 	}
 
-	return
+	var parentGroups model.DocGroups
+	if err = global.Db.Where("user_id = ? AND id IN (?)", userId, strings.Split(group.GroupPath, ",")).
+		Order("created_at ASC").Find(&parentGroups).Error; err != nil {
+		global.Log.Error(id, err)
+	} else {
+		d.GroupPath = parentGroups
+	}
+
+	return d, nil
 }
 
 // List 文档列表
