@@ -219,7 +219,7 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 		return nil, fmt.Errorf("修改id 为 %s 的数据失败", r.Id)
 	} else if result.RowsAffected == 0 {
 		tx.Rollback()
-		return nil, fmt.Errorf("修改id 为 %s 的数据失败,数据没有找到", r.Id)
+		return nil, ErrorDocIsEdited
 	}
 
 	tx.Commit()
