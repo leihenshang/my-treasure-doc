@@ -52,12 +52,12 @@ func InitRouter(r *gin.Engine) {
 	docRoute := apiBase.Group("doc").Use(middleware.Auth(), middleware.Cors())
 	{
 		docApi := api.NewDocApi()
-		docRoute.POST("/create", docApi.DocCreate)
-		docRoute.GET("/detail", docApi.DocDetail)
-		docRoute.GET("/list", docApi.DocList)
-		docRoute.POST("/update", docApi.DocUpdate)
-		docRoute.POST("/delete", docApi.DocDelete)
-		docRoute.GET("/tree", docApi.DocTree)
+		docRoute.POST("/create", docApi.Create)
+		docRoute.GET("/detail", docApi.Detail)
+		docRoute.GET("/list", docApi.List)
+		docRoute.POST("/update", docApi.Update)
+		docRoute.POST("/delete", docApi.Delete)
+		docRoute.GET("/tree", docApi.Tree)
 	}
 
 	//doc-history

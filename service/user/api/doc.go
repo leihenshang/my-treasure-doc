@@ -22,8 +22,8 @@ func NewDocApi() *DocApi {
 	return &DocApi{DocService: service.NewDocService()}
 }
 
-// DocCreate 创建文档
-func (d *DocApi) DocCreate(c *gin.Context) {
+// Create 创建文档
+func (d *DocApi) Create(c *gin.Context) {
 	var req doc.CreateDocRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -44,8 +44,8 @@ func (d *DocApi) DocCreate(c *gin.Context) {
 	}
 }
 
-// DocDetail 文档详情
-func (d *DocApi) DocDetail(c *gin.Context) {
+// Detail 文档详情
+func (d *DocApi) Detail(c *gin.Context) {
 	req := request.IDReq{}
 	err := c.ShouldBindQuery(&req)
 	if err != nil {
@@ -65,8 +65,8 @@ func (d *DocApi) DocDetail(c *gin.Context) {
 
 }
 
-// DocList 文档列表
-func (d *DocApi) DocList(c *gin.Context) {
+// List 文档列表
+func (d *DocApi) List(c *gin.Context) {
 	var req doc.ListDocRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -85,8 +85,8 @@ func (d *DocApi) DocList(c *gin.Context) {
 	}
 }
 
-// DocUpdate 文档更新
-func (d *DocApi) DocUpdate(c *gin.Context) {
+// Update 文档更新
+func (d *DocApi) Update(c *gin.Context) {
 	var req doc.UpdateDocRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -108,8 +108,8 @@ func (d *DocApi) DocUpdate(c *gin.Context) {
 	}
 }
 
-// DocDelete 文档删除
-func (d *DocApi) DocDelete(c *gin.Context) {
+// Delete 文档删除
+func (d *DocApi) Delete(c *gin.Context) {
 	var req doc.DeleteDocRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -127,8 +127,8 @@ func (d *DocApi) DocDelete(c *gin.Context) {
 	}
 }
 
-// DocTree 文档树
-func (d *DocApi) DocTree(c *gin.Context) {
+// Tree 文档树
+func (d *DocApi) Tree(c *gin.Context) {
 	var req doc.ListDocRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
