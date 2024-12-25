@@ -54,8 +54,8 @@ func genRootGroup(userId string) error {
 	return nil
 }
 
-// DocGroupCreate 创建文档分组
-func (group *DocGroupService) DocGroupCreate(createGroup *model.DocGroup, userId string) (dg *model.DocGroup, err error) {
+// Create 创建文档分组
+func (group *DocGroupService) Create(createGroup *model.DocGroup, userId string) (dg *model.DocGroup, err error) {
 	if createGroup == nil {
 		return nil, nil
 	}
@@ -126,8 +126,8 @@ func checkDocGroupTitleRepeat(pid string, title string, userId string) (dg *mode
 	return
 }
 
-// DocGroupList 文档分组列表
-func (group *DocGroupService) DocGroupList(r request.Pagination, userId string) (res resp.ListResponse, err error) {
+// List 文档分组列表
+func (group *DocGroupService) List(r request.Pagination, userId string) (res resp.ListResponse, err error) {
 	var list []model.DocGroup
 	q := global.Db.Model(&model.DocGroup{}).Where("user_id = ?", userId)
 	q.Count(&r.Total)
@@ -137,8 +137,8 @@ func (group *DocGroupService) DocGroupList(r request.Pagination, userId string) 
 	return
 }
 
-// DocGroupUpdate 文档分组更新
-func (group *DocGroupService) DocGroupUpdate(updateGroup *model.DocGroup, userId string) (err error) {
+// Update 文档分组更新
+func (group *DocGroupService) Update(updateGroup *model.DocGroup, userId string) (err error) {
 	if updateGroup.Id == "" {
 		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", updateGroup.Id)
 		return errors.New(errMsg)
@@ -171,8 +171,8 @@ func (group *DocGroupService) DocGroupUpdate(updateGroup *model.DocGroup, userId
 	return
 }
 
-// DocGroupDelete 文档分组删除
-func (group *DocGroupService) DocGroupDelete(id string, userId string) (err error) {
+// Delete 文档分组删除
+func (group *DocGroupService) Delete(id string, userId string) (err error) {
 	if id == "" {
 		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", id)
 		global.Log.Error(errMsg)
@@ -194,7 +194,7 @@ func (group *DocGroupService) DocGroupDelete(id string, userId string) (err erro
 	return
 }
 
-func (group *DocGroupService) DocGroupTree(r doc.GroupTreeRequest, userId string) (docTree resp.DocTrees, err error) {
+func (group *DocGroupService) Tree(r doc.GroupTreeRequest, userId string) (docTree resp.DocTrees, err error) {
 	if err = genRootGroup(userId); err != nil {
 		global.Log.Errorf("failed to gen root group,error:[%v]", err)
 		return nil, err

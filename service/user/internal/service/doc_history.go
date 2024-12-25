@@ -25,15 +25,15 @@ func NewDocHistoryService() *DocHistoryService {
 	return docHistoryService
 }
 
-func (dh *DocHistoryService) DocHistoryRecover(r request.IDReq, userId string) (err error) {
-	history, err := docHistoryService.DocHistoryDetail(r, userId)
+func (dh *DocHistoryService) Recover(r request.IDReq, userId string) (err error) {
+	history, err := docHistoryService.Detail(r, userId)
 	if err != nil {
 		return err
 	} else if history == nil {
 		return errors.New("文档历史没有找到")
 	}
 
-	dbDoc, err := docService.DocDetail(history.DocId, userId)
+	dbDoc, err := docService.Detail(history.DocId, userId)
 	if err != nil {
 		return err
 	} else if dbDoc == nil {
@@ -65,15 +65,15 @@ func (dh *DocHistoryService) DocHistoryRecover(r request.IDReq, userId string) (
 	return nil
 }
 
-// DocHistoryDetail 文档历史详情
-func (dh *DocHistoryService) DocHistoryDetail(r request.IDReq, userId string) (d *model.DocHistory, err error) {
+// Detail 文档历史详情
+func (dh *DocHistoryService) Detail(r request.IDReq, userId string) (d *model.DocHistory, err error) {
 	q := global.Db.Unscoped().Model(&model.DocHistory{}).Where("id = ? AND user_id = ?", r.ID, userId)
 	err = q.First(&d).Error
 	return
 }
 
-// DocHistoryList 文档列表
-func (dh *DocHistoryService) DocHistoryList(r doc.ListDocHistoryRequest, userId string) (res response.ListResponse, err error) {
+// List 文档列表
+func (dh *DocHistoryService) List(r doc.ListDocHistoryRequest, userId string) (res response.ListResponse, err error) {
 	q := global.Db.Model(&model.DocHistory{}).Where("user_id = ?", userId)
 	global.Log.Infof(`requet:%+v`, r)
 

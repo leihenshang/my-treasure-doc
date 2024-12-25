@@ -27,8 +27,8 @@ func NewDocService() *DocService {
 	return docService
 }
 
-// DocCreate 创建文档
-func (doc *DocService) DocCreate(createDoc *model.Doc, userId string) (d *model.Doc, err error) {
+// Create 创建文档
+func (doc *DocService) Create(createDoc *model.Doc, userId string) (d *model.Doc, err error) {
 	if createDoc == nil {
 		return nil, nil
 	}
@@ -67,8 +67,8 @@ func checkDocTitleIsDuplicates(title string, userId string) (doc *model.Doc, err
 	return
 }
 
-// DocDetail 文档详情
-func (doc *DocService) DocDetail(id string, userId string) (d *model.Doc, err error) {
+// Detail 文档详情
+func (doc *DocService) Detail(id string, userId string) (d *model.Doc, err error) {
 	err = global.Db.Unscoped().Where("id = ? AND user_id = ?", id, userId).First(&d).Error
 	if err != nil {
 		return
@@ -102,8 +102,8 @@ func (doc *DocService) DocDetail(id string, userId string) (d *model.Doc, err er
 	return
 }
 
-// DocList 文档列表
-func (doc *DocService) DocList(r doc.ListDocRequest, userId string) (res response.ListResponse, err error) {
+// List 文档列表
+func (doc *DocService) List(r doc.ListDocRequest, userId string) (res response.ListResponse, err error) {
 	q := global.Db.Model(&model.Doc{}).Where("user_id = ?", userId)
 	if r.RecycleBin == 1 {
 		q = q.Unscoped().Where("deleted_at is not null")
@@ -143,8 +143,8 @@ func (doc *DocService) DocList(r doc.ListDocRequest, userId string) (res respons
 
 var ErrorDocIsEdited = errors.New("数据已在其他位置更新,请刷新后再试~")
 
-// DocUpdate 文档更新
-func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId string) (newDoc *model.Doc, err error) {
+// Update 文档更新
+func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *model.Doc, err error) {
 	errMsg := fmt.Errorf("id 为 %s 的数据没有找到", r.Id)
 	if r.Id == "" {
 		global.Log.Error(errMsg)
@@ -247,8 +247,8 @@ func (doc *DocService) DocUpdate(r doc.UpdateDocRequest, userId string) (newDoc 
 	return oldDoc.HiddenUnnecessary(), nil
 }
 
-// DocDelete 文档删除
-func (doc *DocService) DocDelete(id string, userId string) (err error) {
+// Delete 文档删除
+func (doc *DocService) Delete(id string, userId string) (err error) {
 	if id == "" {
 		errMsg := fmt.Sprintf("id 为 %s 的数据没有找到", id)
 		global.Log.Error(errMsg)
@@ -262,11 +262,5 @@ func (doc *DocService) DocDelete(id string, userId string) (err error) {
 		return errMsg
 	}
 
-	return
-}
-
-func (doc *DocService) DocTree(r doc.ListDocRequest, userId string) (res model.Docs, err error) {
-	q := global.Db.Model(&model.Doc{}).Select("id,title").Where("user_id = ?", userId)
-	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&res).Error
 	return
 }

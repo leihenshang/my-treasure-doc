@@ -46,7 +46,7 @@ func (d *DocApi) Create(c *gin.Context) {
 		IsTop:   req.IsTop,
 	}
 
-	if newDoc, ok := d.DocService.DocCreate(createDoc, u.Id); ok != nil {
+	if newDoc, ok := d.DocService.Create(createDoc, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, newDoc)
@@ -66,7 +66,7 @@ func (d *DocApi) Detail(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if docObj, ok := d.DocService.DocDetail(req.ID, u.Id); ok != nil {
+	if docObj, ok := d.DocService.Detail(req.ID, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, docObj)
@@ -87,7 +87,7 @@ func (d *DocApi) List(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if list, ok := d.DocService.DocList(req, u.Id); ok != nil {
+	if list, ok := d.DocService.List(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, list)
@@ -106,7 +106,7 @@ func (d *DocApi) Update(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if newDoc, err := d.DocService.DocUpdate(req, u.Id); err != nil {
+	if newDoc, err := d.DocService.Update(req, u.Id); err != nil {
 		if errors.Is(err, service.ErrorDocIsEdited) {
 			response.FailWithMessage(c, err.Error(), response.DocIsEdited)
 			return
@@ -129,30 +129,9 @@ func (d *DocApi) Delete(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := d.DocService.DocDelete(req.Id, u.Id); ok != nil {
+	if ok := d.DocService.Delete(req.Id, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
-	}
-}
-
-// Tree 文档树
-func (d *DocApi) Tree(c *gin.Context) {
-	var req doc.ListDocRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
-		response.FailWithMessage(c, global.ErrResp(err))
-		return
-	}
-
-	u, err := middleware.GetUserInfoByCtx(c)
-	if err != nil {
-		response.FailWithMessage(c, err.Error())
-		return
-	}
-
-	if res, ok := d.DocService.DocTree(req, u.Id); ok != nil {
-		response.FailWithMessage(c, ok.Error())
-	} else {
-		response.OkWithData(c, res)
 	}
 }

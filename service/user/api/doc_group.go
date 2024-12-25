@@ -42,7 +42,7 @@ func (d *DocGroupApi) DocGroupCreate(c *gin.Context) {
 		UserId:   u.Id,
 		Priority: req.Priority,
 	}
-	if group, ok := d.DocGroupService.DocGroupCreate(insertData, u.Id); ok != nil {
+	if group, ok := d.DocGroupService.Create(insertData, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, group)
@@ -62,7 +62,7 @@ func (d *DocGroupApi) DocGroupList(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if group, ok := d.DocGroupService.DocGroupList(req, u.Id); ok != nil {
+	if group, ok := d.DocGroupService.List(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, group)
@@ -90,7 +90,7 @@ func (d *DocGroupApi) DocGroupUpdate(c *gin.Context) {
 		Icon:  req.Icon,
 		PId:   req.PId,
 	}
-	if ok := d.DocGroupService.DocGroupUpdate(updateGroup, u.Id); ok != nil {
+	if ok := d.DocGroupService.Update(updateGroup, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
@@ -109,7 +109,7 @@ func (d *DocGroupApi) DocGroupDelete(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := d.DocGroupService.DocGroupDelete(req.Id, u.Id); ok != nil {
+	if ok := d.DocGroupService.Delete(req.Id, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
@@ -130,7 +130,7 @@ func (d *DocGroupApi) DocGroupTree(c *gin.Context) {
 		return
 	}
 
-	if res, ok := d.DocGroupService.DocGroupTree(req, u.Id); ok != nil {
+	if res, ok := d.DocGroupService.Tree(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, res)
