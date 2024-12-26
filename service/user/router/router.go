@@ -57,6 +57,7 @@ func InitRouter(r *gin.Engine) {
 		docRoute.GET("/list", docApi.List)
 		docRoute.POST("/update", docApi.Update)
 		docRoute.POST("/delete", docApi.Delete)
+		docRoute.POST("/recover", docApi.Recover)
 	}
 
 	//doc-history

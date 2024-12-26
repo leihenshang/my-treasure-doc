@@ -153,7 +153,7 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 
 	tx := global.Db.Begin()
 	q := tx.Unscoped().Debug().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId).
-		Where("version = ?", *r.Version)
+		Where("version = ?", r.Version)
 	var dbDoc *model.Doc
 	if err = q.First(&dbDoc).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -200,11 +200,6 @@ func setDocUpdateData(r doc.UpdateDocRequest) map[string]any {
 
 	if r.IsTop > 0 {
 		updateData["IsTop"] = r.IsTop
-	}
-
-	if r.IsRecover {
-		updateData["DeletedAt"] = nil
-		updateData["GroupId"] = 0
 	}
 
 	if r.ReadOnly > 0 {
@@ -269,6 +264,22 @@ func (doc *DocService) Delete(id string, userId string) (err error) {
 	if err = q.Delete(&model.Doc{}).Error; err != nil {
 		global.Log.Error(err)
 		return fmt.Errorf("删除id 为 %s 的数据失败 %v ", id, err)
+	}
+
+	return
+}
+
+// Recover 文档恢复
+func (doc *DocService) Recover(id string, userId string) (err error) {
+	if id == "" {
+		return nil
+	}
+
+	result := global.Db.Unscoped().Model(&model.Doc{}).
+		Where("id = ? AND user_id = ?", id, userId).Update("deleted_at", nil)
+	if err = result.Error; err != nil {
+		global.Log.Error(err)
+		return fmt.Errorf("恢复id 为 %s 的数据失败 %v ", id, err)
 	}
 
 	return

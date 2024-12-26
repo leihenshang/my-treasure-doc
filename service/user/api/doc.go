@@ -119,7 +119,7 @@ func (d *DocApi) Update(c *gin.Context) {
 
 // Delete 文档删除
 func (d *DocApi) Delete(c *gin.Context) {
-	var req doc.DeleteDocRequest
+	var req request.IDReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
@@ -129,7 +129,25 @@ func (d *DocApi) Delete(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := d.DocService.Delete(req.Id, u.Id); ok != nil {
+	if ok := d.DocService.Delete(req.ID, u.Id); ok != nil {
+		response.FailWithMessage(c, ok.Error())
+	} else {
+		response.Ok(c)
+	}
+}
+
+func (d *DocApi) Recover(c *gin.Context) {
+	var req request.IDReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.FailWithMessage(c, global.ErrResp(err))
+		return
+	}
+	u, err := middleware.GetUserInfoByCtx(c)
+	if err != nil {
+		response.FailWithMessage(c, err.Error())
+		return
+	}
+	if ok := d.DocService.Recover(req.ID, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
