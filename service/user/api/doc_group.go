@@ -99,7 +99,7 @@ func (d *DocGroupApi) DocGroupUpdate(c *gin.Context) {
 
 // DocGroupDelete 文档分组删除
 func (d *DocGroupApi) DocGroupDelete(c *gin.Context) {
-	var req doc.UpdateDocGroupRequest
+	var req request.IDReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
@@ -109,7 +109,7 @@ func (d *DocGroupApi) DocGroupDelete(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := d.DocGroupService.Delete(req.Id, u.Id); ok != nil {
+	if ok := d.DocGroupService.Delete(req.ID, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.Ok(c)
