@@ -16,7 +16,7 @@ type CreateDocRequest struct {
 type UpdateDocRequest struct {
 	Id       string `json:"id" binding:"required,alphanum"`
 	GroupId  string `json:"groupId" binding:""`
-	Title    string `json:"title" binding:"max:260"`
+	Title    string `json:"title" binding:"max=260"`
 	Content  string `json:"content" binding:""`
 	IsTop    int8   `json:"isTop" binding:""`
 	IsPin    int8   `json:"isPin" binding:""`
