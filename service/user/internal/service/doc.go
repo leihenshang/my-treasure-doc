@@ -152,7 +152,7 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 	}
 
 	tx := global.Db.Begin()
-	q := tx.Unscoped().Debug().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId).
+	q := tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId).
 		Where("version = ?", r.Version)
 	var dbDoc *model.Doc
 	if err = q.First(&dbDoc).Error; err != nil {
