@@ -200,9 +200,7 @@ func (group *DocGroupService) Tree(r doc.GroupTreeRequest, userId string) (docTr
 	for _, d := range docs {
 		docTree = append(docTree, &resp.DocTree{
 			DocGroup: &model.DocGroup{
-				BaseModel: model.BaseModel{
-					Id: d.Id,
-				},
+				BaseModel: d.BaseModel,
 				Title:     d.Title,
 				Priority:  d.Priority,
 				GroupType: model.GroupTypeDoc,
