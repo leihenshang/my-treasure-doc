@@ -116,8 +116,8 @@ func (d *DocGroupApi) DocGroupDelete(c *gin.Context) {
 	}
 }
 
-// DocGroupTree 文档组树
-func (d *DocGroupApi) DocGroupTree(c *gin.Context) {
+// Tree 文档组树
+func (d *DocGroupApi) Tree(c *gin.Context) {
 	var req doc.GroupTreeRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))

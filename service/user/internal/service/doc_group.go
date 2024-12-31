@@ -207,6 +207,7 @@ func (group *DocGroupService) Tree(r doc.GroupTreeRequest, userId string) (docTr
 				Priority:  d.Priority,
 				GroupType: model.GroupTypeDoc,
 				IsLeaf:    true,
+				PId:       r.Pid,
 			},
 		})
 	}

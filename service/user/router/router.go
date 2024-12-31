@@ -88,7 +88,7 @@ func InitRouter(r *gin.Engine) {
 		docGroupRoute.POST("/list", docGroupApi.DocGroupList)
 		docGroupRoute.POST("/update", docGroupApi.DocGroupUpdate)
 		docGroupRoute.POST("/delete", docGroupApi.DocGroupDelete)
-		docGroupRoute.GET("/tree", docGroupApi.DocGroupTree)
+		docGroupRoute.GET("/tree", docGroupApi.Tree)
 	}
 
 	// file upload
