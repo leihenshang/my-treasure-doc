@@ -84,10 +84,11 @@ func InitRouter(r *gin.Engine) {
 	docGroupRoute := apiBase.Group("doc-group").Use(middleware.Auth())
 	{
 		docGroupApi := api.NewDocGroupApi()
-		docGroupRoute.POST("/create", docGroupApi.DocGroupCreate)
-		docGroupRoute.POST("/list", docGroupApi.DocGroupList)
-		docGroupRoute.POST("/update", docGroupApi.DocGroupUpdate)
-		docGroupRoute.POST("/delete", docGroupApi.DocGroupDelete)
+		docGroupRoute.POST("/create", docGroupApi.Create)
+		docGroupRoute.GET("/list", docGroupApi.List)
+		docGroupRoute.POST("/update", docGroupApi.Update)
+		docGroupRoute.POST("/delete", docGroupApi.Delete)
+		docGroupRoute.GET("/detail", docGroupApi.Detail)
 		docGroupRoute.GET("/tree", docGroupApi.Tree)
 	}
 

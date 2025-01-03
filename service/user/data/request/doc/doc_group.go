@@ -1,5 +1,7 @@
 package doc
 
+import "fastduck/treasure-doc/service/user/data/request"
+
 // CreateDocGroupRequest 创建文档分组
 type CreateDocGroupRequest struct {
 	Title    string `json:"title" binding:"required,min=1,max=250"`
@@ -20,4 +22,10 @@ type UpdateDocGroupRequest struct {
 type GroupTreeRequest struct {
 	Pid     string `json:"pid" form:"pid" binding:"required,alphanum"`
 	WithDoc bool   `json:"withDoc" form:"withDoc"`
+}
+
+type ListDocGroupRequest struct {
+	Id string `json:"id" binding:""`
+	request.Pagination
+	request.Sort
 }

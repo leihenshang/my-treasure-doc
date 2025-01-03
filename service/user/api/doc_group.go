@@ -21,8 +21,8 @@ func NewDocGroupApi() *DocGroupApi {
 	return &DocGroupApi{DocGroupService: service.NewDocGroupService()}
 }
 
-// DocGroupCreate 创建文档分组
-func (d *DocGroupApi) DocGroupCreate(c *gin.Context) {
+// Create 创建文档分组
+func (d *DocGroupApi) Create(c *gin.Context) {
 	var req doc.CreateDocGroupRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -49,9 +49,32 @@ func (d *DocGroupApi) DocGroupCreate(c *gin.Context) {
 	}
 }
 
-// DocGroupList 文档分组列表
-func (d *DocGroupApi) DocGroupList(c *gin.Context) {
-	var req request.Pagination
+// Detail 文档详情
+func (d *DocGroupApi) Detail(c *gin.Context) {
+	req := request.IDReq{}
+	err := c.ShouldBindQuery(&req)
+	if err != nil {
+		response.FailWithMessage(c, global.ErrResp(err))
+		return
+	}
+	u, err := middleware.GetUserInfoByCtx(c)
+	if err != nil {
+		response.FailWithMessage(c, err.Error())
+		return
+	}
+	if docObj, ok := d.DocGroupService.List(doc.ListDocGroupRequest{
+		Id: req.ID,
+	}, u.Id); ok != nil {
+		response.FailWithMessage(c, ok.Error())
+	} else {
+		response.OkWithData(c, docObj)
+	}
+
+}
+
+// List 文档分组列表
+func (d *DocGroupApi) List(c *gin.Context) {
+	var req doc.ListDocGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
@@ -69,8 +92,8 @@ func (d *DocGroupApi) DocGroupList(c *gin.Context) {
 	}
 }
 
-// DocGroupUpdate 文档分组更新
-func (d *DocGroupApi) DocGroupUpdate(c *gin.Context) {
+// Update 文档分组更新
+func (d *DocGroupApi) Update(c *gin.Context) {
 	var req doc.UpdateDocGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -97,8 +120,8 @@ func (d *DocGroupApi) DocGroupUpdate(c *gin.Context) {
 	}
 }
 
-// DocGroupDelete 文档分组删除
-func (d *DocGroupApi) DocGroupDelete(c *gin.Context) {
+// Delete 文档分组删除
+func (d *DocGroupApi) Delete(c *gin.Context) {
 	var req request.IDReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
@@ -116,7 +139,6 @@ func (d *DocGroupApi) DocGroupDelete(c *gin.Context) {
 	}
 }
 
-// Tree 文档组树
 func (d *DocGroupApi) Tree(c *gin.Context) {
 	var req doc.GroupTreeRequest
 	if err := c.ShouldBindQuery(&req); err != nil {

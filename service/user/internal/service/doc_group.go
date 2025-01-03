@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"fastduck/treasure-doc/service/user/data/model"
-	"fastduck/treasure-doc/service/user/data/request"
 	"fastduck/treasure-doc/service/user/data/request/doc"
 	resp "fastduck/treasure-doc/service/user/data/response"
 	"fastduck/treasure-doc/service/user/global"
@@ -96,13 +95,37 @@ func checkDocGroupTitleRepeat(pid string, title string, userId string) (dg *mode
 }
 
 // List 文档分组列表
-func (group *DocGroupService) List(r request.Pagination, userId string) (res resp.ListResponse, err error) {
-	var list []model.DocGroup
+func (group *DocGroupService) List(r doc.ListDocGroupRequest, userId string) (res resp.ListResponse, err error) {
+	var list model.DocGroups
 	q := global.Db.Model(&model.DocGroup{}).Where("user_id = ?", userId)
-	q.Count(&r.Total)
+	if r.Id != "" {
+		q = q.Where("id = ?", r.Id)
+	}
+	if r.PageSize > 0 {
+		q.Count(&r.Total)
+	}
 	err = q.Limit(r.PageSize).Offset(r.Offset()).Find(&list).Error
+	if err != nil {
+		return res, err
+	}
+
+	var parentList model.DocGroups
+	if err = global.Db.Model(&model.DocGroup{}).Where("user_id = ? AND id IN (?)", userId, list.GetPIds()).Find(&parentList).Error; err != nil {
+		return res, err
+	}
+	parentMap := parentList.ToMap()
+
+	for _, docGroup := range list {
+		pathList := strings.Split(docGroup.GroupPath, ",")
+		for _, path := range pathList {
+			if p, ok := parentMap[path]; ok {
+				docGroup.GroupPathList = append(docGroup.GroupPathList, p)
+			}
+		}
+	}
+
 	res.List = list
-	res.Pagination = r
+	res.Pagination = r.Pagination
 	return
 }
 
