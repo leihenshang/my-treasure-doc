@@ -62,12 +62,16 @@ func (d *DocGroupApi) Detail(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if docObj, ok := d.DocGroupService.List(doc.ListDocGroupRequest{
+	if resp, err := d.DocGroupService.List(doc.ListDocGroupRequest{
 		Id: req.ID,
-	}, u.Id); ok != nil {
-		response.FailWithMessage(c, ok.Error())
+	}, u.Id); err != nil {
+		response.FailWithMessage(c, err.Error())
 	} else {
-		response.OkWithData(c, docObj)
+		if groups, ok := resp.List.(model.DocGroups); ok && len(groups) > 0 {
+			response.OkWithData(c, groups[0])
+			return
+		}
+		response.OkWithData(c, nil)
 	}
 
 }

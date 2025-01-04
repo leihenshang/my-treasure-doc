@@ -113,8 +113,16 @@ func (group *DocGroupService) List(r doc.ListDocGroupRequest, userId string) (re
 	if err = global.Db.Model(&model.DocGroup{}).Where("user_id = ? AND id IN (?)", userId, list.GetPIds()).Find(&parentList).Error; err != nil {
 		return res, err
 	}
-	parentMap := parentList.ToMap()
 
+	parentMap := parentList.ToMap()
+	parentMap["root"] = &model.DocGroup{
+		BaseModel: model.BaseModel{
+			Id: "root",
+		},
+		Title:     "root",
+		GroupType: model.GroupTypeGroup,
+		IsLeaf:    false,
+	}
 	for _, docGroup := range list {
 		pathList := strings.Split(docGroup.GroupPath, ",")
 		for _, path := range pathList {
@@ -122,6 +130,17 @@ func (group *DocGroupService) List(r doc.ListDocGroupRequest, userId string) (re
 				docGroup.GroupPathList = append(docGroup.GroupPathList, p)
 			}
 		}
+		docGroup.GroupPathList = append(docGroup.GroupPathList, &model.DocGroup{
+			BaseModel: docGroup.BaseModel,
+			UserId:    docGroup.UserId,
+			Title:     docGroup.Title,
+			Icon:      docGroup.Icon,
+			PId:       docGroup.PId,
+			Priority:  docGroup.Priority,
+			GroupType: docGroup.GroupType,
+			IsLeaf:    docGroup.IsLeaf,
+			GroupPath: docGroup.GroupPath,
+		})
 	}
 
 	res.List = list
