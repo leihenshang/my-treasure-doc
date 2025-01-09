@@ -31,7 +31,7 @@ type UpdateNoteRequest struct {
 }
 
 type ListNoteRequest struct {
-	NoteTypes ReqNoteTypes `json:"noteTypes"`
+	NoteTypes ReqNoteTypes `json:"noteTypes" form:"noteTypes"`
 	request.Pagination
 	request.Sort
 }

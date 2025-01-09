@@ -88,7 +88,7 @@ func (n *NoteService) NoteList(r note.ListNoteRequest, userId string) (res respo
 		return res, err
 	}
 
-	if err := FillDoc(list); err != nil {
+	if err = FillDoc(list); err != nil {
 		global.Log.Error(r, err)
 		return res, err
 	}
