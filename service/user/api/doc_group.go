@@ -79,7 +79,7 @@ func (d *DocGroupApi) Detail(c *gin.Context) {
 // List 文档分组列表
 func (d *DocGroupApi) List(c *gin.Context) {
 	var req doc.ListDocGroupRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindQuery(&req); err != nil {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}

@@ -25,7 +25,7 @@ type GroupTreeRequest struct {
 }
 
 type ListDocGroupRequest struct {
-	Id string `json:"id" binding:""`
+	Id string `json:"id" form:"id" binding:""`
 	request.Pagination
 	request.Sort
 }
