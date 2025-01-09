@@ -121,12 +121,19 @@ func FillDoc(notes model.Notes) error {
 }
 
 // NoteUpdate 笔记更新
-func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId string) (err error) {
+func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId string) (d *model.Note, err error) {
 	if r.Id == "" {
-		return nil
+		return nil, nil
 	}
 
-	q := global.Db.Model(&model.Note{}).Where("id = ? AND user_id = ?", r.Id, userId)
+	if err = global.Db.Where("id = ? AND user_id = ?", r.Id, userId).First(&d).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("没有找到笔记")
+		}
+		global.Log.Error(r, err)
+		return nil, errors.New("查询笔记失败")
+	}
+
 	u := map[string]interface{}{}
 	if r.Title != "" {
 		u["Title"] = r.Title
@@ -142,10 +149,10 @@ func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId string) (err e
 	u["Icon"] = r.Icon
 	u["Priority"] = r.Priority
 
-	if err = q.Updates(u).Error; err != nil {
+	if err = global.Db.Model(&d).Updates(u).Error; err != nil {
 		errMsg := fmt.Sprintf("修改id 为 %s 的数据失败 %v ", r.Id, err)
 		global.Log.Error(errMsg)
-		return errors.New("操作失败")
+		return nil, errors.New("操作失败")
 	}
 
 	return

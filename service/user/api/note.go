@@ -95,10 +95,10 @@ func (n *NoteApi) NoteUpdate(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	if ok := n.NoteService.NoteUpdate(req, u.Id); ok != nil {
+	if d, ok := n.NoteService.NoteUpdate(req, u.Id); ok != nil {
 		response.FailWithMessage(c, ok.Error())
 	} else {
-		response.Ok(c)
+		response.OkWithData(c, d)
 	}
 }
 
