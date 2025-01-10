@@ -60,7 +60,7 @@ func (n *NoteService) NoteDetail(r request.IDReq, userId string) (d *model.Note,
 	if d.NoteType == model.NoteTypeDoc {
 		if err = global.Db.Where("id = ? AND user_id = ?", d.DocId, userId).First(&doc).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return d, err
+				return nil, errors.New("文档不存在")
 			} else {
 				global.Log.Errorf("failed to query doc:[%v],error:[%v]", d.DocId, err)
 				return d, err
