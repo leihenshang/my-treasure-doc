@@ -68,3 +68,18 @@ func (p Pagination) Offset() int {
 	}
 	return offset
 }
+
+func GetListFromDotStr(s string) []string {
+	var res []string
+	strings.Split(strings.TrimSpace(s), ",")
+	return res
+}
+
+func GetUniqueMapFromDotStr(s string) map[string]string {
+	resList := strings.Split(strings.TrimSpace(s), ",")
+	resMap := make(map[string]string, len(resList))
+	for _, v := range resList {
+		resMap[v] = v
+	}
+	return resMap
+}

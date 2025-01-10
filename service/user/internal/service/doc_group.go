@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"fastduck/treasure-doc/service/user/data/model"
+	"fastduck/treasure-doc/service/user/data/request"
 	"fastduck/treasure-doc/service/user/data/request/doc"
 	resp "fastduck/treasure-doc/service/user/data/response"
 	"fastduck/treasure-doc/service/user/global"
@@ -217,7 +218,17 @@ func (group *DocGroupService) Tree(r doc.GroupTreeRequest, userId string) (docTr
 
 	childrenPidMap := children.ToPidMap()
 	docMapWithGroupId := childrenDoc.ToGroupIdMap()
+	excludeMap := request.GetUniqueMapFromDotStr(r.ExcludeIds)
 	for _, v := range list {
+		if _, ok := excludeMap[v.Id]; ok {
+			continue
+		}
+
+		if _, ok := excludeMap[v.PId]; ok {
+			excludeMap[v.Id] = v.Id
+			continue
+		}
+
 		if _, ok := childrenPidMap[v.Id]; !ok {
 			v.IsLeaf = true
 		}

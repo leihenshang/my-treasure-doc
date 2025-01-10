@@ -20,8 +20,9 @@ type UpdateDocGroupRequest struct {
 
 // GroupTreeRequest 文档分组树
 type GroupTreeRequest struct {
-	Pid     string `json:"pid" form:"pid" binding:"required,alphanum"`
-	WithDoc bool   `json:"withDoc" form:"withDoc"`
+	Pid        string `json:"pid" form:"pid" binding:"required,alphanum"`
+	ExcludeIds string `json:"excludeId" form:"excludeId" binding:""`
+	WithDoc    bool   `json:"withDoc" form:"withDoc"`
 }
 
 type ListDocGroupRequest struct {
