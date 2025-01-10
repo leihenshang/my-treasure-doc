@@ -222,7 +222,7 @@ func (group *DocGroupService) Tree(r doc.GroupTreeRequest, userId string) (docTr
 			v.IsLeaf = true
 		}
 
-		if !r.WithDoc {
+		if r.WithDoc {
 			if _, ok := docMapWithGroupId[v.Id]; ok {
 				v.IsLeaf = false
 			}
