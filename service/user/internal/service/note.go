@@ -58,13 +58,16 @@ func (n *NoteService) NoteDetail(r request.IDReq, userId string) (d *model.Note,
 
 	doc := &model.Doc{}
 	if d.NoteType == model.NoteTypeDoc {
-		if err := global.Db.Where("id = ? AND user_id = ?", d.DocId, userId).First(&doc).Error; err != nil {
-			if !errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, err
-			} else if doc != nil {
-				d.Title = doc.Title
-				d.Content = doc.Content
+		if err = global.Db.Where("id = ? AND user_id = ?", d.DocId, userId).First(&doc).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return d, err
+			} else {
+				global.Log.Errorf("failed to query doc:[%v],error:[%v]", d.DocId, err)
+				return d, err
 			}
+		} else {
+			d.Title = doc.Title
+			d.Content = doc.Content
 		}
 	}
 	return
