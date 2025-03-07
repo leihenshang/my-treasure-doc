@@ -123,8 +123,8 @@ func FillDoc(notes model.Notes) error {
 	return nil
 }
 
-// NoteUpdate 笔记更新
-func (n *NoteService) NoteUpdate(r note.UpdateNoteRequest, userId string) (d *model.Note, err error) {
+// Update 笔记更新
+func (n *NoteService) Update(r note.UpdateNoteRequest, userId string) (d *model.Note, err error) {
 	if r.Id == "" {
 		return nil, nil
 	}
