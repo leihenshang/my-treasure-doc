@@ -27,6 +27,7 @@ var TableMigrate = []schema.Tabler{
 	&model.DocHistory{},
 	&model.UserConf{},
 	&model.UserToken{},
+	&model.Room{},
 }
 
 func initMysql() error {

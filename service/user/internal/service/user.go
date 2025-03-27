@@ -41,17 +41,13 @@ var rootUser = &model.User{
 	Password: "treasure-root",
 }
 
-func getRootUserReq() *userReq.RegisterRequest {
-	return &userReq.RegisterRequest{
+func (user *UserService) RegisterRootUser() error {
+	regRequest := &userReq.RegisterRequest{
 		Password:   rootUser.Password,
 		RePassword: rootUser.Password,
 		Account:    rootUser.Account,
 		Email:      rootUser.Email,
 	}
-}
-
-func (user *UserService) RegisterRootUser() error {
-	regRequest := getRootUserReq()
 	if checkAccountIsDuplicate(regRequest.Account) {
 		log.Printf("root account [%v] already existes,cancel registration\n", regRequest.Account)
 	} else {
@@ -99,7 +95,24 @@ func (user *UserService) UserRegister(r *userReq.RegisterRequest) (u *model.User
 		u.UserType = model.UserTypeRoot
 	}
 
-	err = global.Db.Create(&u).Error
+	trans := global.Db.Begin()
+	err = trans.Create(&u).Error
+	if err != nil {
+		trans.Rollback()
+		global.Log.Errorf("failed to create userReq:%v", err)
+		return nil, errors.New("注册失败")
+	}
+	err = trans.Create(&model.Room{
+		Name:   "个人空间",
+		UserId: u.Id,
+	}).Error
+	if err != nil {
+		trans.Rollback()
+		global.Log.Errorf("failed to create room:%v", err)
+		return nil, errors.New("创建空间失败")
+	}
+	trans.Commit()
+
 	u.Password = ""
 	return u, err
 }

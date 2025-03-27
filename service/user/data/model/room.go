@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 type RoomStatus string
 
 const (
@@ -10,13 +8,10 @@ const (
 )
 
 type Room struct {
-	ID        string     `gorm:"column:id;primary_key;NOT NULL"`
-	Name      string     `gorm:"column:name;NOT NULL"`
-	UserId    string     `gorm:"column:user_id;NOT NULL"` // 房主
-	Status    RoomStatus `gorm:"column:status;NOT NULL;default:normal"`
-	CreatedAt time.Time  `gorm:"column:created_at"`
-	UpdatedAt time.Time  `gorm:"column:updated_at"`
-	DeletedAt time.Time  `gorm:"column:deleted_at"`
+	BaseModel
+	Name   string     `gorm:"column:name;NOT NULL"`
+	UserId string     `gorm:"column:user_id;NOT NULL"` // 房主
+	Status RoomStatus `gorm:"column:status;NOT NULL;default:'normal'"`
 }
 
 func (m *Room) TableName() string {
