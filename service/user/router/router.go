@@ -98,4 +98,15 @@ func InitRouter(r *gin.Engine) {
 		fileApi := api.NewFileApi()
 		fileGroupRoute.POST("upload", fileApi.FileUpload)
 	}
+
+	// room
+	roomRoute := apiBase.Group("room").Use(middleware.Auth(), middleware.Cors())
+	{
+		roomApi := api.NewRoomApi()
+		roomRoute.POST("/create", roomApi.Create)
+		roomRoute.GET("/detail", roomApi.Detail)
+		roomRoute.GET("/list", roomApi.List)
+		roomRoute.POST("/update", roomApi.Update)
+		roomRoute.POST("/delete", roomApi.Delete)
+	}
 }
