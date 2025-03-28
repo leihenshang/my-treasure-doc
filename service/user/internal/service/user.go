@@ -11,6 +11,7 @@ import (
 
 	"fastduck/treasure-doc/service/user/data/model"
 	userReq "fastduck/treasure-doc/service/user/data/request/user"
+	"fastduck/treasure-doc/service/user/gid"
 	"fastduck/treasure-doc/service/user/global"
 	"fastduck/treasure-doc/service/user/utils"
 
@@ -84,11 +85,13 @@ func (user *UserService) UserRegister(r *userReq.RegisterRequest) (u *model.User
 		return nil, errors.New("邮箱重复")
 	}
 
+	fistRoomId := gid.GenId()
 	u = &model.User{}
 	u.Nickname = r.Account
 	u.Account = r.Account
 	u.Email = r.Email
 	u.Password = encryptedPwd
+	u.CurrentRoomId = fistRoomId
 
 	if r.Account == rootUser.Account && r.Password == rootUser.Password {
 		u.UserStatus = model.UserStatusAvailable
@@ -102,10 +105,14 @@ func (user *UserService) UserRegister(r *userReq.RegisterRequest) (u *model.User
 		global.Log.Errorf("failed to create userReq:%v", err)
 		return nil, errors.New("注册失败")
 	}
-	err = trans.Create(&model.Room{
+
+	room := &model.Room{
 		Name:   "个人空间",
 		UserId: u.Id,
-	}).Error
+	}
+	room.Id = fistRoomId
+
+	err = trans.Create(room).Error
 	if err != nil {
 		trans.Rollback()
 		global.Log.Errorf("failed to create room:%v", err)

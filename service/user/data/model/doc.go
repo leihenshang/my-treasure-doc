@@ -3,6 +3,7 @@ package model
 type Doc struct {
 	BaseModel
 	UserId    string    `gorm:"column:user_id;type:varchar(100);default:'';NOT NULL" json:"userId"`    // 用户id
+	RoomId    string    `gorm:"column:room_id;type:varchar(100);default:'';NOT NULL" json:"roomId"`    // 房间id
 	Title     string    `gorm:"column:title;type:varchar(100);default:'';NOT NULL" json:"title"`       // 标题
 	Content   string    `gorm:"column:content;type:text;NOT NULL" json:"content"`                      // 文档内容
 	DocStatus int       `gorm:"column:doc_status;type:tinyint(4);default:1;NOT NULL" json:"docStatus"` // 1正常2审核中3禁用
