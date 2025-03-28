@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 
 	"fastduck/treasure-doc/service/user/data/model"
 	"fastduck/treasure-doc/service/user/data/request/room"
@@ -21,9 +20,21 @@ func (s *RoomService) Create(req room.CreateRoomRequest, userId string) (res *mo
 		return nil, errors.New("房间名称不能为空")
 	}
 
+	// 检查用户是否已有同名房间
+	var count int64
+	if err = global.Db.Model(&model.Room{}).
+		Where("user_id = ? AND name = ?", userId, req.Name).
+		Count(&count).Error; err != nil {
+		global.Log.Errorf("RoomService.Create check duplicate error:%v", err)
+		return nil, errors.New("检查房间名称失败")
+	}
+	if count > 0 {
+		return nil, errors.New("房间名称已存在")
+	}
+
 	roomObj := &model.Room{
 		Name:   req.Name,
-		UserId: fmt.Sprintf("%d", userId), // 将uint转换为string
+		UserId: userId,
 		Status: model.RoomStatusNormal,
 	}
 
@@ -40,7 +51,7 @@ func (s *RoomService) Detail(id string, userId string) (res *model.Room, err err
 	}
 
 	var roomObj model.Room
-	err = global.Db.Where("id = ? AND user_id = ?", id, fmt.Sprintf("%d", userId)).First(&roomObj).Error
+	err = global.Db.Where("id = ? AND user_id = ?", id, userId).First(&roomObj).Error
 	if err != nil {
 		global.Log.Errorf("RoomService.Detail error:%v", err)
 		return nil, errors.New("获取房间详情失败")
@@ -62,7 +73,6 @@ func (s *RoomService) List(req room.ListRoomRequest, userId string) (res respons
 	}
 
 	var rooms []*model.Room
-	var total int64
 
 	db := global.Db.Model(&model.Room{}).Where("user_id = ?", userId)
 	if req.Name != "" {
@@ -72,7 +82,11 @@ func (s *RoomService) List(req room.ListRoomRequest, userId string) (res respons
 		db = db.Where("status = ?", req.Status)
 	}
 
-	err = db.Count(&total).
+	if req.PageSize > 0 {
+		db.Count(&req.Total)
+	}
+
+	err = db.
 		Offset((req.Page - 1) * req.PageSize).
 		Limit(req.PageSize).
 		Find(&rooms).Error
@@ -98,7 +112,7 @@ func (s *RoomService) Update(req room.UpdateRoomRequest, userId string) (res *mo
 	}
 
 	err = global.Db.Model(roomObj).
-		Where("id = ? AND user_id = ?", req.Id, fmt.Sprintf("%d", userId)).
+		Where("id = ? AND user_id = ?", req.Id, userId).
 		Updates(roomObj).Error
 	if err != nil {
 		global.Log.Errorf("RoomService.Update error:%v", err)
@@ -113,7 +127,17 @@ func (s *RoomService) Delete(id string, userId string) (err error) {
 		return errors.New("房间ID不能为空")
 	}
 
-	err = global.Db.Where("id = ? AND user_id = ?", id, fmt.Sprintf("%d", userId)).
+	// 检查是否是默认空间
+	var roomObj model.Room
+	if err = global.Db.Where("id = ? AND user_id = ?", id, userId).First(&roomObj).Error; err != nil {
+		global.Log.Errorf("RoomService.Delete query error:%v", err)
+		return errors.New("查询房间信息失败")
+	}
+	if roomObj.IsDefault == 1 {
+		return errors.New("默认空间不能删除")
+	}
+
+	err = global.Db.Where("id = ? AND user_id = ?", id, userId).
 		Delete(&model.Room{}).Error
 	if err != nil {
 		global.Log.Errorf("RoomService.Delete error:%v", err)

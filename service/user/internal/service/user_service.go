@@ -107,8 +107,9 @@ func (user *UserService) UserRegister(r *userReq.RegisterRequest) (u *model.User
 	}
 
 	room := &model.Room{
-		Name:   "个人空间",
-		UserId: u.Id,
+		Name:      "个人空间",
+		UserId:    u.Id,
+		IsDefault: 1,
 	}
 	room.Id = fistRoomId
 
