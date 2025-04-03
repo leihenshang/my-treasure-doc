@@ -3,7 +3,7 @@ ARG binary_name=treasure-doc
 ARG expose_port=2021
 ARG build_dir=service/user
 
-# if docker image canot pull,refers https://cloud.tencent.com/developer/article/2454486
+# if docker image cannot pull, refers https://cloud.tencent.com/developer/article/2454486
 #backup image address: docker.linkedbus.com/
 FROM golang:1.22.9-alpine3.20 AS builder
 ARG work_dir
