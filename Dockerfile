@@ -1,7 +1,7 @@
 ARG work_dir=/app
 ARG binary_name=treasure-doc
 ARG expose_port=2021
-ARG build_dir=service/user
+ARG build_dir=module/user
 
 # if docker image cannot pull, refers https://cloud.tencent.com/developer/article/2454486
 #backup image address: docker.linkedbus.com/
