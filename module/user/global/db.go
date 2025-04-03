@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"gorm.io/driver/mysql"
@@ -31,11 +30,14 @@ var TableMigrate = []schema.Tabler{
 }
 
 func initMysql() error {
-	mysqlPort := strconv.Itoa(Conf.Mysql.Port)
 	var err error
-	//初始化数据库
-	dsn := Conf.Mysql.User + ":" + Conf.Mysql.Password + "@tcp(" + Conf.Mysql.Host + ":" + mysqlPort + ")/" +
-		Conf.Mysql.DbName + "?charset=" + Conf.Mysql.Charset + "&parseTime=True&loc=Local"
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local",
+		Conf.Mysql.User,
+		Conf.Mysql.Password,
+		Conf.Mysql.Host,
+		Conf.Mysql.Port,
+		Conf.Mysql.DbName,
+		Conf.Mysql.Charset)
 
 	// table prefix
 	tablePrefix := Conf.Mysql.TablePrefix
