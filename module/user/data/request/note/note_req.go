@@ -3,8 +3,8 @@ package note
 import (
 	"strings"
 
-	"fastduck/treasure-doc/service/user/data/model"
-	"fastduck/treasure-doc/service/user/data/request"
+	"fastduck/treasure-doc/module/user/data/model"
+	"fastduck/treasure-doc/module/user/data/request"
 )
 
 // CreateNoteRequest 创建文档

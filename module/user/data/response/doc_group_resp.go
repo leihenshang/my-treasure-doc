@@ -1,7 +1,7 @@
 package response
 
 import (
-	"fastduck/treasure-doc/service/user/data/model"
+	"fastduck/treasure-doc/module/user/data/model"
 )
 
 type DocTree struct {

@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
-	"fastduck/treasure-doc/service/user/config"
+	"fastduck/treasure-doc/module/user/config"
 )
 
 var (

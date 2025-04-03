@@ -6,7 +6,7 @@ import (
 	"path"
 	"time"
 
-	"fastduck/treasure-doc/service/user/utils"
+	"fastduck/treasure-doc/module/user/utils"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

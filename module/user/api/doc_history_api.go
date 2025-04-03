@@ -3,13 +3,13 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 
-	"fastduck/treasure-doc/service/user/middleware"
+	"fastduck/treasure-doc/module/user/middleware"
 
-	"fastduck/treasure-doc/service/user/data/request"
-	"fastduck/treasure-doc/service/user/data/request/doc"
-	"fastduck/treasure-doc/service/user/data/response"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/internal/service"
+	"fastduck/treasure-doc/module/user/data/request"
+	"fastduck/treasure-doc/module/user/data/request/doc"
+	"fastduck/treasure-doc/module/user/data/response"
+	"fastduck/treasure-doc/module/user/global"
+	"fastduck/treasure-doc/module/user/internal/service"
 )
 
 type DocHistoryApi struct {

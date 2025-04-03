@@ -7,11 +7,11 @@ import (
 
 	"gorm.io/gorm"
 
-	"fastduck/treasure-doc/service/user/data/model"
-	"fastduck/treasure-doc/service/user/data/request"
-	"fastduck/treasure-doc/service/user/data/request/note"
-	"fastduck/treasure-doc/service/user/data/response"
-	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/module/user/data/model"
+	"fastduck/treasure-doc/module/user/data/request"
+	"fastduck/treasure-doc/module/user/data/request/note"
+	"fastduck/treasure-doc/module/user/data/response"
+	"fastduck/treasure-doc/module/user/global"
 )
 
 type NoteService struct{}

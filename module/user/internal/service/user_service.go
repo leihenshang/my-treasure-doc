@@ -9,11 +9,11 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"fastduck/treasure-doc/service/user/data/model"
-	userReq "fastduck/treasure-doc/service/user/data/request/user"
-	"fastduck/treasure-doc/service/user/gid"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/utils"
+	"fastduck/treasure-doc/module/user/data/model"
+	userReq "fastduck/treasure-doc/module/user/data/request/user"
+	"fastduck/treasure-doc/module/user/gid"
+	"fastduck/treasure-doc/module/user/global"
+	"fastduck/treasure-doc/module/user/utils"
 
 	"gorm.io/gorm"
 )

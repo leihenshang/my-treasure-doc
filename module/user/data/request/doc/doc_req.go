@@ -1,7 +1,7 @@
 package doc
 
 import (
-	"fastduck/treasure-doc/service/user/data/request"
+	"fastduck/treasure-doc/module/user/data/request"
 )
 
 // CreateDocRequest 创建文档

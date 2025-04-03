@@ -9,9 +9,9 @@ import (
 
 	ginzap "github.com/gin-contrib/zap"
 
-	"fastduck/treasure-doc/service/user/config"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/router"
+	"fastduck/treasure-doc/module/user/config"
+	"fastduck/treasure-doc/module/user/global"
+	"fastduck/treasure-doc/module/user/router"
 
 	"github.com/gin-gonic/gin"
 )

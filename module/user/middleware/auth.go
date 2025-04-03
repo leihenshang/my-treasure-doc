@@ -6,11 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"fastduck/treasure-doc/service/user/config"
-	"fastduck/treasure-doc/service/user/data/model"
-	"fastduck/treasure-doc/service/user/data/response"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/internal/service"
+	"fastduck/treasure-doc/module/user/config"
+	"fastduck/treasure-doc/module/user/data/model"
+	"fastduck/treasure-doc/module/user/data/response"
+	"fastduck/treasure-doc/module/user/global"
+	"fastduck/treasure-doc/module/user/internal/service"
 )
 
 const (

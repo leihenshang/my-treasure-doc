@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"fastduck/treasure-doc/service/user/data/model"
-	userReq "fastduck/treasure-doc/service/user/data/request/user"
-	"fastduck/treasure-doc/service/user/data/response"
-	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/module/user/data/model"
+	userReq "fastduck/treasure-doc/module/user/data/request/user"
+	"fastduck/treasure-doc/module/user/data/response"
+	"fastduck/treasure-doc/module/user/global"
 )
 
 type UserManageService struct{}

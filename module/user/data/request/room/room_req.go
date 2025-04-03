@@ -1,6 +1,6 @@
 package room
 
-import "fastduck/treasure-doc/service/user/data/request"
+import "fastduck/treasure-doc/module/user/data/request"
 
 // CreateRoomRequest 创建房间请求
 type CreateRoomRequest struct {

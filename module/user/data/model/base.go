@@ -5,7 +5,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"fastduck/treasure-doc/service/user/gid"
+	"fastduck/treasure-doc/module/user/gid"
 )
 
 // TimeFormat 时间格式

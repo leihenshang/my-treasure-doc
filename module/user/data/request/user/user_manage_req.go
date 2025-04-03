@@ -1,6 +1,6 @@
 package user
 
-import "fastduck/treasure-doc/service/user/data/request"
+import "fastduck/treasure-doc/module/user/data/request"
 
 type RestPwdRequest struct {
 	Password   string `json:"password" form:"password" binding:"required,min=8,max=16"`

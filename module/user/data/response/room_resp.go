@@ -1,6 +1,6 @@
 package response
 
-import "fastduck/treasure-doc/service/user/data/model"
+import "fastduck/treasure-doc/module/user/data/model"
 
 // RoomDetail 房间详情响应
 type RoomDetail struct {

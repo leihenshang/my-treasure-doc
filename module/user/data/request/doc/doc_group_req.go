@@ -1,6 +1,6 @@
 package doc
 
-import "fastduck/treasure-doc/service/user/data/request"
+import "fastduck/treasure-doc/module/user/data/request"
 
 // CreateDocGroupRequest 创建文档分组
 type CreateDocGroupRequest struct {

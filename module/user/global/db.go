@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 
-	"fastduck/treasure-doc/service/user/data/model"
+	"fastduck/treasure-doc/module/user/data/model"
 )
 
 var TableMigrate = []schema.Tabler{

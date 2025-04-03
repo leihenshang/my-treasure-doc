@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"fastduck/treasure-doc/service/user/config"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/internal/service"
+	"fastduck/treasure-doc/module/user/config"
+	"fastduck/treasure-doc/module/user/global"
+	"fastduck/treasure-doc/module/user/internal/service"
 )
 
 const DefaultPwd = "12345678"

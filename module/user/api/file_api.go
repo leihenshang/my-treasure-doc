@@ -10,10 +10,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"fastduck/treasure-doc/service/user/config"
-	"fastduck/treasure-doc/service/user/data/response"
-	"fastduck/treasure-doc/service/user/global"
-	"fastduck/treasure-doc/service/user/utils"
+	"fastduck/treasure-doc/module/user/config"
+	"fastduck/treasure-doc/module/user/data/response"
+	"fastduck/treasure-doc/module/user/global"
+	"fastduck/treasure-doc/module/user/utils"
 )
 
 type FileApi struct {

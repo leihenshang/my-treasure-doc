@@ -6,10 +6,10 @@ import (
 	"strings"
 	"sync"
 
-	"fastduck/treasure-doc/service/user/data/model"
-	"fastduck/treasure-doc/service/user/data/request/doc"
-	"fastduck/treasure-doc/service/user/data/response"
-	"fastduck/treasure-doc/service/user/global"
+	"fastduck/treasure-doc/module/user/data/model"
+	"fastduck/treasure-doc/module/user/data/request/doc"
+	"fastduck/treasure-doc/module/user/data/response"
+	"fastduck/treasure-doc/module/user/global"
 
 	"gorm.io/gorm"
 )

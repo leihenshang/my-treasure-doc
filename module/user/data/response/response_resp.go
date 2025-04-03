@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"fastduck/treasure-doc/service/user/data/request"
+	"fastduck/treasure-doc/module/user/data/request"
 )
 
 type ListResponse struct {

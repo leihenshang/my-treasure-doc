@@ -3,12 +3,12 @@ package router
 import (
 	"net/http"
 
-	"fastduck/treasure-doc/service/user/config"
-	"fastduck/treasure-doc/service/user/middleware"
+	"fastduck/treasure-doc/module/user/config"
+	"fastduck/treasure-doc/module/user/middleware"
 
 	"github.com/gin-gonic/gin"
 
-	"fastduck/treasure-doc/service/user/api"
+	"fastduck/treasure-doc/module/user/api"
 )
 
 func InitRouter(r *gin.Engine) {
