@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 
-	"fastduck/treasure-doc/module/user/middleware"
+	"fastduck/treasure-doc/module/user/router/middleware"
 
 	"fastduck/treasure-doc/module/user/data/request"
 	"fastduck/treasure-doc/module/user/data/request/doc"

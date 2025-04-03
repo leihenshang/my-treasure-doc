@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"fastduck/treasure-doc/module/user/config"
-	"fastduck/treasure-doc/module/user/middleware"
+	"fastduck/treasure-doc/module/user/router/middleware"
 
 	"github.com/gin-gonic/gin"
 

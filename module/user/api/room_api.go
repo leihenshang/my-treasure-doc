@@ -8,7 +8,7 @@ import (
 	"fastduck/treasure-doc/module/user/data/response"
 	"fastduck/treasure-doc/module/user/global"
 	"fastduck/treasure-doc/module/user/internal/service"
-	"fastduck/treasure-doc/module/user/middleware"
+	"fastduck/treasure-doc/module/user/router/middleware"
 )
 
 type RoomApi struct {
