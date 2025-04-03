@@ -3,11 +3,10 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 
-	"fastduck/treasure-doc/module/user/router/middleware"
-
 	"fastduck/treasure-doc/module/user/data/request/user"
 	"fastduck/treasure-doc/module/user/data/response"
 	"fastduck/treasure-doc/module/user/global"
+	"fastduck/treasure-doc/module/user/internal/auth"
 	"fastduck/treasure-doc/module/user/internal/service"
 )
 
@@ -58,7 +57,7 @@ func (u *UserApi) UserLogin(c *gin.Context) {
 
 // UserLogout 用户退出登陆
 func (u *UserApi) UserLogout(c *gin.Context) {
-	loginUser, err := middleware.GetUserInfoByCtx(c)
+	loginUser, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -79,7 +78,7 @@ func (u *UserApi) UserProfileUpdate(c *gin.Context) {
 		return
 	}
 
-	loginUser, err := middleware.GetUserInfoByCtx(c)
+	loginUser, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return

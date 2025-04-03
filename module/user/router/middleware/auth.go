@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,10 +10,6 @@ import (
 	"fastduck/treasure-doc/module/user/data/response"
 	"fastduck/treasure-doc/module/user/global"
 	"fastduck/treasure-doc/module/user/internal/service"
-)
-
-const (
-	UserInfoKey = "userinfo"
 )
 
 var mockUser = &model.User{
@@ -64,17 +59,4 @@ func Auth() gin.HandlerFunc {
 		c.Next()
 	}
 
-}
-
-// GetUserInfoByCtx 从上下文获取用户信息
-func GetUserInfoByCtx(c *gin.Context) (u *model.User, err error) {
-	if v, exists := c.Get(UserInfoKey); !exists {
-		return nil, errors.New("从上下文中获取用户信息失败")
-	} else {
-		if u, ok := v.(*model.User); ok {
-			return u, nil
-		}
-	}
-
-	return nil, errors.New("从上下文解析用户信息失败")
 }

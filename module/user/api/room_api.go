@@ -7,8 +7,8 @@ import (
 	"fastduck/treasure-doc/module/user/data/request/room"
 	"fastduck/treasure-doc/module/user/data/response"
 	"fastduck/treasure-doc/module/user/global"
+	"fastduck/treasure-doc/module/user/internal/auth"
 	"fastduck/treasure-doc/module/user/internal/service"
-	"fastduck/treasure-doc/module/user/router/middleware"
 )
 
 type RoomApi struct {
@@ -28,7 +28,7 @@ func (r *RoomApi) Create(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -50,7 +50,7 @@ func (r *RoomApi) Detail(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -71,7 +71,7 @@ func (r *RoomApi) List(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -92,7 +92,7 @@ func (r *RoomApi) Update(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -113,7 +113,7 @@ func (r *RoomApi) Delete(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return

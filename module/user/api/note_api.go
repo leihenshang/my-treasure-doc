@@ -3,12 +3,11 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 
-	"fastduck/treasure-doc/module/user/router/middleware"
-
 	"fastduck/treasure-doc/module/user/data/request"
 	"fastduck/treasure-doc/module/user/data/request/note"
 	"fastduck/treasure-doc/module/user/data/response"
 	"fastduck/treasure-doc/module/user/global"
+	"fastduck/treasure-doc/module/user/internal/auth"
 	"fastduck/treasure-doc/module/user/internal/service"
 )
 
@@ -29,7 +28,7 @@ func (n *NoteApi) NoteCreate(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -50,7 +49,7 @@ func (n *NoteApi) NoteDetail(c *gin.Context) {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -71,7 +70,7 @@ func (n *NoteApi) NoteList(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -90,7 +89,7 @@ func (n *NoteApi) NoteUpdate(c *gin.Context) {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -109,7 +108,7 @@ func (n *NoteApi) NoteDelete(c *gin.Context) {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return

@@ -6,12 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"fastduck/treasure-doc/module/user/data/model"
-	"fastduck/treasure-doc/module/user/router/middleware"
 
 	"fastduck/treasure-doc/module/user/data/request"
 	"fastduck/treasure-doc/module/user/data/request/doc"
 	"fastduck/treasure-doc/module/user/data/response"
 	"fastduck/treasure-doc/module/user/global"
+	"fastduck/treasure-doc/module/user/internal/auth"
 	"fastduck/treasure-doc/module/user/internal/service"
 )
 
@@ -32,7 +32,7 @@ func (d *DocApi) Create(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -61,7 +61,7 @@ func (d *DocApi) Detail(c *gin.Context) {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -82,7 +82,7 @@ func (d *DocApi) List(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -101,7 +101,7 @@ func (d *DocApi) Update(c *gin.Context) {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -124,7 +124,7 @@ func (d *DocApi) Delete(c *gin.Context) {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -142,7 +142,7 @@ func (d *DocApi) Recover(c *gin.Context) {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return

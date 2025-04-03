@@ -7,8 +7,8 @@ import (
 	userReq "fastduck/treasure-doc/module/user/data/request/user"
 	"fastduck/treasure-doc/module/user/data/response"
 	"fastduck/treasure-doc/module/user/global"
+	"fastduck/treasure-doc/module/user/internal/auth"
 	"fastduck/treasure-doc/module/user/internal/service"
-	"fastduck/treasure-doc/module/user/router/middleware"
 )
 
 type UserManageApi struct {
@@ -27,7 +27,7 @@ func (u *UserManageApi) Create(c *gin.Context) {
 		return
 	}
 
-	_, err = middleware.GetUserInfoByCtx(c)
+	_, err = auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -47,7 +47,7 @@ func (u *UserManageApi) List(c *gin.Context) {
 		return
 	}
 
-	_, err := middleware.GetUserInfoByCtx(c)
+	_, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -66,7 +66,7 @@ func (u *UserManageApi) Detail(c *gin.Context) {
 		return
 	}
 
-	_, err := middleware.GetUserInfoByCtx(c)
+	_, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -86,7 +86,7 @@ func (u *UserManageApi) Delete(c *gin.Context) {
 		return
 	}
 
-	_, err = middleware.GetUserInfoByCtx(c)
+	_, err = auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -105,7 +105,7 @@ func (u *UserManageApi) Update(c *gin.Context) {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
-	_, err := middleware.GetUserInfoByCtx(c)
+	_, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -125,7 +125,7 @@ func (u *UserManageApi) ResetPwd(c *gin.Context) {
 		return
 	}
 
-	_, err = middleware.GetUserInfoByCtx(c)
+	_, err = auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return

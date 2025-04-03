@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"fastduck/treasure-doc/module/user/data/model"
-	"fastduck/treasure-doc/module/user/router/middleware"
+	"fastduck/treasure-doc/module/user/internal/auth"
 
 	"fastduck/treasure-doc/module/user/data/request"
 	"fastduck/treasure-doc/module/user/data/request/doc"
@@ -30,7 +30,7 @@ func (d *DocGroupApi) Create(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -57,7 +57,7 @@ func (d *DocGroupApi) Detail(c *gin.Context) {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -84,7 +84,7 @@ func (d *DocGroupApi) List(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -103,7 +103,7 @@ func (d *DocGroupApi) Update(c *gin.Context) {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -131,7 +131,7 @@ func (d *DocGroupApi) Delete(c *gin.Context) {
 		response.FailWithMessage(c, global.ErrResp(err))
 		return
 	}
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
@@ -150,7 +150,7 @@ func (d *DocGroupApi) Tree(c *gin.Context) {
 		return
 	}
 
-	u, err := middleware.GetUserInfoByCtx(c)
+	u, err := auth.GetUserInfoByCtx(c)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
