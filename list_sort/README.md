@@ -15,3 +15,11 @@ web:
 }
 
 ```
+## plan
+
+### step 1
+ - [x] support json sort format.
+ - [x] support string sort format.
+ ### step 2
+ - [ ] support sort field and order with default value.
+ - [ ] add options mode
