@@ -31,6 +31,7 @@ type GroupTreeRequest struct {
 type ListDocGroupRequest struct {
 	Id     string `json:"id" form:"id" binding:""`
 	RoomId string `json:"roomId"  form:"roomId" binding:""`
+	PId    string `json:"pId" binding:"required,alphanum"`
 	request.Pagination
 	request.Sort
 }

@@ -111,6 +111,13 @@ func (group *DocGroupService) List(r doc.ListDocGroupRequest, userId string) (re
 	if r.Id != "" {
 		q = q.Where("id = ?", r.Id)
 	}
+	if r.RoomId != "" {
+		q = q.Where("room_id = ?", r.RoomId)
+	}
+	if r.PId != "" {
+		q = q.Where("p_id = ?", r.PId)
+	}
+
 	if r.PageSize > 0 {
 		q.Count(&r.Total)
 	}
@@ -209,7 +216,7 @@ func (group *DocGroupService) Delete(id string, userId string) (err error) {
 
 func (group *DocGroupService) Tree(r doc.GroupTreeRequest, userId string) (docTree resp.DocTrees, err error) {
 	var list model.DocGroups
-	if err = global.Db.Where("user_id = ?", userId).Where("p_id = ?", r.Pid).Order("created_at ASC").Find(&list).Error; err != nil {
+	if err = global.Db.Where("user_id = ?", userId).Where("p_id = ?", r.Pid).Where("room_id = ?", r.RoomId).Order("created_at ASC").Find(&list).Error; err != nil {
 		global.Log.Error(err)
 		return nil, errors.New("查询分组信息失败")
 	}
