@@ -46,6 +46,24 @@ func (doc *DocService) Create(createDoc *model.Doc, userId string) (d *model.Doc
 		createDoc.GroupId = global.RootGroup
 	}
 
+	if createDoc.RoomId == "" {
+		defaultRoom, err := GetRoomService().GetDefaultRoom(userId)
+		if err != nil {
+			global.Log.Error(err)
+			return nil, err
+		}
+		createDoc.RoomId = defaultRoom.Id
+	} else {
+		room, err := GetRoomService().Detail(createDoc.RoomId, userId)
+		if err != nil {
+			global.Log.Error(err)
+			return nil, err
+		}
+		if room == nil {
+			return nil, errors.New("房间不存在")
+		}
+	}
+
 	if err = global.Db.Create(createDoc).Error; err != nil {
 		global.Log.Error(err)
 		return nil, errors.New("创建文档失败")
@@ -124,6 +142,10 @@ func (doc *DocService) List(r doc.ListDocRequest, userId string) (res response.L
 		q = q.Where("title LIKE ? OR content LIKE ?", likeStr, likeStr)
 	}
 
+	if r.RoomId != "" {
+		q = q.Where("room_id = ?", r.RoomId)
+	}
+
 	if r.Pagination.PageSize > 0 {
 		q.Count(&r.Total)
 	}
@@ -152,7 +174,8 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 	}
 
 	tx := global.Db.Begin()
-	q := tx.Unscoped().Model(&model.Doc{}).Where("id = ? AND user_id = ?", r.Id, userId).
+	q := tx.Unscoped().Model(&model.Doc{}).
+		Where("id = ? AND user_id = ?", r.Id, userId).
 		Where("version = ?", r.Version)
 	var dbDoc *model.Doc
 	if err = q.First(&dbDoc).Error; err != nil {
@@ -166,7 +189,12 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 		}
 	}
 
-	if result := q.Updates(setDocUpdateData(r)); result.Error != nil {
+	updateData, err := setDocUpdateData(r, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if result := q.Updates(updateData); result.Error != nil {
 		tx.Rollback()
 		global.Log.Error(result.Error)
 		return nil, fmt.Errorf("修改id 为 %s 的数据失败", r.Id)
@@ -185,7 +213,7 @@ func (doc *DocService) Update(r doc.UpdateDocRequest, userId string) (newDoc *mo
 	return dbDoc.HiddenData(), nil
 }
 
-func setDocUpdateData(r doc.UpdateDocRequest) map[string]any {
+func setDocUpdateData(r doc.UpdateDocRequest, userId string) (map[string]any, error) {
 	updateData := make(map[string]any)
 	if r.Title != "" {
 		updateData["Title"] = r.Title
@@ -195,6 +223,11 @@ func setDocUpdateData(r doc.UpdateDocRequest) map[string]any {
 	}
 
 	if r.GroupId != "" {
+		_, err := GetDocGroupService().Detail(r.GroupId, userId)
+		if err != nil {
+			return nil, fmt.Errorf("获取分组信息失败: %v", err)
+		}
+
 		updateData["GroupId"] = r.GroupId
 	}
 
@@ -206,8 +239,16 @@ func setDocUpdateData(r doc.UpdateDocRequest) map[string]any {
 		updateData["ReadOnly"] = r.ReadOnly
 	}
 
+	if r.RoomId != "" {
+		_, err := GetRoomService().Detail(r.RoomId, userId)
+		if err != nil {
+			return nil, fmt.Errorf("获取房间信息失败: %v", err)
+		}
+		updateData["RoomId"] = r.RoomId
+	}
+
 	updateData["version"] = gorm.Expr("version + ?", 1)
-	return updateData
+	return updateData, nil
 }
 
 func handleDocExtraData(tx *gorm.DB, dbDoc *model.Doc, r doc.UpdateDocRequest) (err error) {

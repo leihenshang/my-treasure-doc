@@ -7,3 +7,8 @@ const (
 
 	UserInfoKey = "userinfo"
 )
+
+const (
+	RoomIsDefault = 1
+	RoomNoDefault = 0
+)

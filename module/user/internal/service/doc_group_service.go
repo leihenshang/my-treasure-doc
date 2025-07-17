@@ -28,6 +28,10 @@ func NewDocGroupService() *DocGroupService {
 	return docGroupService
 }
 
+func GetDocGroupService() *DocGroupService {
+	return docGroupService
+}
+
 // Create 创建文档分组
 func (group *DocGroupService) Create(createGroup *model.DocGroup, userId string) (dg *model.DocGroup, err error) {
 	if createGroup == nil {
@@ -93,6 +97,11 @@ func checkDocGroupTitleRepeat(pid string, title string, userId string) (dg *mode
 	}
 
 	return
+}
+
+// Detail 分组详情
+func (group *DocGroupService) Detail(id string, userId string) (d *model.DocGroup, err error) {
+	return d, global.Db.Unscoped().Where("id = ? AND user_id = ?", id, userId).First(&d).Error
 }
 
 // List 文档分组列表

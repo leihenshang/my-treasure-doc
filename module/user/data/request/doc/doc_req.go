@@ -10,6 +10,7 @@ type CreateDocRequest struct {
 	Content string `json:"content" binding:""`
 	GroupId string `json:"groupId" binding:"required,alphanum"`
 	IsTop   int8   `json:"isTop" binding:""`
+	RoomId  string `json:"roomId" binding:""`
 }
 
 // UpdateDocRequest 更新文档
@@ -22,6 +23,7 @@ type UpdateDocRequest struct {
 	IsPin    int8   `json:"isPin" binding:""`
 	ReadOnly int8   `json:"readOnly" binding:""`
 	Version  int    `json:"version" binding:"number"`
+	RoomId   string `json:"roomId" binding:""`
 }
 
 type ListDocRequest struct {
@@ -29,6 +31,7 @@ type ListDocRequest struct {
 	IsTop      int    `json:"isTop" form:"isTop" binding:""`
 	RecycleBin int    `json:"recycleBin" form:"recycleBin" binding:""`
 	Keyword    string `json:"keyword" form:"keyword" binding:""`
+	RoomId     string `json:"roomId" form:"roomId" binding:""`
 	request.Pagination
 	request.Sort
 }

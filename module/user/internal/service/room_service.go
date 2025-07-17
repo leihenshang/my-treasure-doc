@@ -11,8 +11,15 @@ import (
 
 type RoomService struct{}
 
+var roomSrv *RoomService
+
 func NewRoomService() *RoomService {
-	return &RoomService{}
+	roomSrv = &RoomService{}
+	return roomSrv
+}
+
+func GetRoomService() *RoomService {
+	return roomSrv
 }
 
 func (s *RoomService) Create(req room.CreateRoomRequest, userId string) (res *model.Room, err error) {
@@ -58,6 +65,17 @@ func (s *RoomService) Detail(id string, userId string) (res *model.Room, err err
 	}
 
 	return &roomObj, nil
+}
+
+func (s *RoomService) GetDefaultRoom(userId string) (res *model.Room, err error) {
+	var room model.Room
+	err = global.Db.Where("user_id = ? AND is_default = ?", userId, global.RoomIsDefault).First(&room).Error
+	if err != nil {
+		global.Log.Errorf("RoomService.GetDefaultRoom error:%v", err)
+		return nil, errors.New("获取默认房间详情失败")
+	}
+
+	return &room, nil
 }
 
 func (s *RoomService) List(req room.ListRoomRequest, userId string) (res response.ListResponse, err error) {

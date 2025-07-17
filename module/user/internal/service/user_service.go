@@ -145,7 +145,7 @@ func checkAccountRule(account string, accountLen int) (err error) {
 	}
 
 	if len(account) < accountLen {
-		return errors.New(fmt.Sprintf("账号长度不能小于%d", accountLen))
+		return fmt.Errorf("账号长度不能小于%d", accountLen)
 	}
 
 	//需要检查一下账号只能使用英文和数字
@@ -191,7 +191,7 @@ func (user *UserService) UserLogin(r userReq.LoginRequest, clientIp string) (u *
 
 	err = global.Db.Where("account = ? OR email = ?", r.Account, r.Account).First(&u).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, errors.New(fmt.Sprintf("账号 %s 没有找到", r.Account))
+		return nil, fmt.Errorf("账号 %s 没有找到", r.Account)
 	}
 
 	if u.UserStatus != model.UserStatusAvailable {
@@ -312,7 +312,7 @@ func ResetPwd(account string, pwd string, rePwd string) error {
 	var u *model.User
 	result := global.Db.Where("account = ?", account).First(&u)
 	if result.RowsAffected <= 0 {
-		return errors.New(fmt.Sprintf("账号 %s 没有找到", account))
+		return fmt.Errorf("账号 %s 没有找到", account)
 	}
 
 	//对密码进行加密
