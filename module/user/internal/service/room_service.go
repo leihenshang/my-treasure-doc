@@ -104,10 +104,7 @@ func (s *RoomService) List(req room.ListRoomRequest, userId string) (res respons
 		db.Count(&req.Total)
 	}
 
-	err = db.
-		Offset((req.Page - 1) * req.PageSize).
-		Limit(req.PageSize).
-		Find(&rooms).Error
+	err = db.Offset((req.Page - 1) * req.PageSize).Limit(req.PageSize).Find(&rooms).Error
 	if err != nil {
 		global.Log.Errorf("RoomService.List error:%v", err)
 		return res, errors.New("获取房间列表失败")
