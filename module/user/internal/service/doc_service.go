@@ -46,24 +46,6 @@ func (doc *DocService) Create(createDoc *model.Doc, userId string) (d *model.Doc
 		createDoc.GroupId = global.RootGroup
 	}
 
-	if createDoc.RoomId == "" {
-		defaultRoom, err := GetRoomService().GetDefaultRoom(userId)
-		if err != nil {
-			global.Log.Error(err)
-			return nil, err
-		}
-		createDoc.RoomId = defaultRoom.Id
-	} else {
-		room, err := GetRoomService().Detail(createDoc.RoomId, userId)
-		if err != nil {
-			global.Log.Error(err)
-			return nil, err
-		}
-		if room == nil {
-			return nil, errors.New("房间不存在")
-		}
-	}
-
 	if err = global.Db.Create(createDoc).Error; err != nil {
 		global.Log.Error(err)
 		return nil, errors.New("创建文档失败")
@@ -237,14 +219,6 @@ func setDocUpdateData(r doc.UpdateDocRequest, userId string) (map[string]any, er
 
 	if r.ReadOnly > 0 {
 		updateData["ReadOnly"] = r.ReadOnly
-	}
-
-	if r.RoomId != "" {
-		_, err := GetRoomService().Detail(r.RoomId, userId)
-		if err != nil {
-			return nil, fmt.Errorf("获取房间信息失败: %v", err)
-		}
-		updateData["RoomId"] = r.RoomId
 	}
 
 	updateData["version"] = gorm.Expr("version + ?", 1)

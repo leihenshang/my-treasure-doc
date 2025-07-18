@@ -44,7 +44,6 @@ func (d *DocApi) Create(c *gin.Context) {
 		Content: req.Content,
 		GroupId: req.GroupId,
 		IsTop:   req.IsTop,
-		RoomId:  req.RoomId,
 	}
 
 	if newDoc, ok := d.DocService.Create(createDoc, u.Id); ok != nil {
