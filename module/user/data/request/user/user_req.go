@@ -18,8 +18,9 @@ type LoginRequest struct {
 
 // UpdateRequest 个人资料更新
 type UpdateRequest struct {
-	NickName string `json:"nickName" binding:"max=40"`
-	IconPath string `json:"iconPath" binding:"max=100"`
-	Bio      string `json:"bio" binding:"max=200"`
-	Mobile   string `json:"mobile" binding:"len=11"`
+	NickName      string `json:"nickName" binding:"max=40"`
+	IconPath      string `json:"iconPath" binding:"max=100"`
+	Bio           string `json:"bio" binding:"max=200"`
+	Mobile        string `json:"mobile" binding:"len=11"`
+	CurrentRoomId string `json:"currentRoomId" binding:"omitempty"`
 }

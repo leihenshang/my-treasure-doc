@@ -271,12 +271,13 @@ func (user *UserService) UserProfileUpdate(profile userReq.UpdateRequest, userId
 	}
 
 	if err := global.Db.Model(&u).
-		Select("NickName", "IconPath", "Bio", "Mobile").
+		Select("NickName", "IconPath", "Bio", "Mobile", "Current", "CurrentRoomId").
 		Updates(model.User{
-			Nickname: profile.NickName,
-			Avatar:   profile.NickName,
-			Bio:      profile.Bio,
-			Mobile:   profile.Mobile,
+			Nickname:      profile.NickName,
+			Avatar:        profile.NickName,
+			Bio:           profile.Bio,
+			Mobile:        profile.Mobile,
+			CurrentRoomId: profile.CurrentRoomId,
 		}).
 		Error; err != nil {
 		return u, errors.New("更新个人资料失败")
