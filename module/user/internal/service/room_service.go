@@ -91,7 +91,6 @@ func (s *RoomService) List(req room.ListRoomRequest, userId string) (res respons
 	}
 
 	var rooms []*model.Room
-
 	db := global.Db.Model(&model.Room{}).Where("user_id = ?", userId)
 	if req.Name != "" {
 		db = db.Where("name LIKE ?", "%"+req.Name+"%")
