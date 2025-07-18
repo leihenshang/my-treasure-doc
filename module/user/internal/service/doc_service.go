@@ -204,7 +204,7 @@ func setDocUpdateData(r doc.UpdateDocRequest, userId string) (map[string]any, er
 		updateData["Content"] = r.Content
 	}
 
-	if r.GroupId != "" {
+	if r.GroupId != "" && r.GroupId != "root" {
 		_, err := GetDocGroupService().Detail(r.GroupId, userId)
 		if err != nil {
 			return nil, fmt.Errorf("获取分组信息失败: %v", err)
