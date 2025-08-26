@@ -4,29 +4,30 @@
 
 宝藏文档的后端api
 
-## 使用到的库
-
-- gin framework
-- gorm
-- 配置文件
-- 日志处理
-- 缓存处理
-
-## 项目编译
+## 编译
 
 ```bash
-//linux
+# linux
 GOARCH=amd64 GOOS=linux CGO_ENABLED=0 go build -o treasure_user
 
-//windows
+# windows
 CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build
 
 
-//mac
+# mac
 CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build
 
-//减少包大小 -ldflags -s 去掉符号信息 -w 去掉调试信息 
+# 减少包大小 -ldflags -s 去掉符号信息 -w 去掉调试信息 
 go build -ldflags "-s -w" -o main-ldflags main.go 
+
+```
+
+# 打包docker镜像 
+
+```bash
+./build dev # dev 包
+
+
 
 ```
 
@@ -39,10 +40,10 @@ go build -ldflags "-s -w" -o main-ldflags main.go
 ### 计划
 
 - [x] 加入 `gin` http框架,创建main.go
-- [x] 添加配置解析库 `viper` [github地址](https://github.com/spf13/viper)
-- [x] 添加日志库 `zap` [github地址](https://github.com/uber-go/zap)
-- [x] 添加orm库 `gorm` [github地址](https://github.com/go-gorm/gorm)
-- [x] 添加redis库 `go-redis` [github地址](https://github.com/go-redis/redis)
+- [x] 添加配置解析库 `viper` [github地址](https:# github.com/spf13/viper)
+- [x] 添加日志库 `zap` [github地址](https:# github.com/uber-go/zap)
+- [x] 添加orm库 `gorm` [github地址](https:# github.com/go-gorm/gorm)
+- [x] 添加redis库 `go-redis` [github地址](https:# github.com/go-redis/redis)
 
 ### 其他
 
@@ -52,7 +53,7 @@ docker run  --rm \
     --mount type=bind,source="D:\my-project\api-doc-go\backend",target=/app  \
     -p 2021:2021  \
     golang:alpine \
-    sh -c  "go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct && cd /app/user && go run main.go"
+    sh -c  "go env -w GO111MODULE=on && go env -w GOPROXY=https:# goproxy.cn,direct && cd /app/user && go run main.go"
 ```
 
 ### 生成模型
@@ -75,12 +76,6 @@ docker run -d --name treasure-doc \
 -v /home/debian/project/treasure-doc/config.toml:/app/config.toml \
 treasure-doc
 
-docker run --rm --name treasure-doc \
--p 2021:2021 \
--v /home/debian/project/treasure-doc/web:/app/web \
--v /home/debian/project/treasure-doc/files:/app/files \
--v /home/debian/project/treasure-doc/config.toml:/app/config.toml \
-treasure-doc
 
 # 调试
 docker run --rm --name treasure-doc -it \
@@ -106,14 +101,4 @@ sudo docker tag docker.linkedbus.com/alpine:latest alpine:latest
 
 sudo chmod 777 treasure-doc.tar.gz
 
-```
-
-```shell
-docker run -d --name treasure-doc \
---restart=always \
--p 2021:2021 \
--v ${REPLACE}/treasure-doc/web:/app/web \
--v ${REPLACE}/treasure-doc/files:/app/files \
--v ${REPLACE}/treasure-doc/config.toml:/app/config.toml \
-treasure-doc
 ```
