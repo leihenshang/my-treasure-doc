@@ -1,7 +1,9 @@
 package hottop
 
 import (
+	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,21 +18,60 @@ import (
 type Source string
 
 const (
-	SourceITHome     Source = "ithome"
-	SourceZhihu      Source = "zhihu"
-	SourceWeibo      Source = "weibo"
-	SourceBilibili   Source = "bilibili"
-	SourceBaidu      Source = "baidu"
-	SourceV2EX       Source = "v2ex"
-	SourceGitHub     Source = "github"
-	SourceDouyin     Source = "douyin"
-	SourceKuaishou   Source = "kuaishou"
-	SourceToutiao    Source = "toutiao"
-	SourceJuejin     Source = "juejin"
-	Source36Kr       Source = "36kr"
-	SourceCSDN       Source = "csdn"
-	SourceTieba      Source = "tieba"
-	SourceZhihuDaily Source = "zhihu-daily"
+	SourceITHome        Source = "ithome"
+	SourceZhihu         Source = "zhihu"
+	SourceWeibo         Source = "weibo"
+	SourceBilibili      Source = "bilibili"
+	SourceBaidu         Source = "baidu"
+	SourceV2EX          Source = "v2ex"
+	SourceGitHub        Source = "github"
+	SourceDouyin        Source = "douyin"
+	SourceKuaishou      Source = "kuaishou"
+	SourceToutiao       Source = "toutiao"
+	SourceJuejin        Source = "juejin"
+	Source36Kr          Source = "36kr"
+	SourceCSDN          Source = "csdn"
+	SourceTieba         Source = "tieba"
+	SourceZhihuDaily    Source = "zhihu-daily"
+	SourceCoolapk       Source = "coolapk"
+	SourceHupu          Source = "hupu"
+	SourceHuxiu         Source = "huxiu"
+	SourceJianshu       Source = "jianshu"
+	SourceSmzdm         Source = "smzdm"
+	SourceSspai         Source = "sspai"
+	SourceNetease       Source = "netease"
+	SourceQQ            Source = "qq"
+	SourceAcfun         Source = "acfun"
+	Source51CTO         Source = "51cto"
+	Source52Pojie       Source = "52pojie"
+	SourceDoubanGroup   Source = "douban-group"
+	SourceDgtle         Source = "dgtle"
+	SourceDoubanMovie   Source = "douban-movie"
+	SourceEarthquake    Source = "earthquake"
+	SourceGameres       Source = "gameres"
+	SourceGeekpark      Source = "geekpark"
+	SourceGenshin       Source = "genshin"
+	SourceGuokr         Source = "guokr"
+	SourceHackernews    Source = "hackernews"
+	SourceHelloGitHub   Source = "hellogithub"
+	SourceHistory       Source = "history"
+	SourceHonkai        Source = "honkai"
+	SourceHostloc       Source = "hostloc"
+	SourceIfanr         Source = "ifanr"
+	SourceIthomeXijiayi Source = "ithome-xijiayi"
+	SourceMiyoushe      Source = "miyoushe"
+	SourceNewsmth       Source = "newsmth"
+	SourceNgabbs        Source = "ngabbs"
+	SourceNodeseek      Source = "nodeseek"
+	SourceNytimes       Source = "nytimes"
+	SourceProducthunt   Source = "producthunt"
+	SourceSinaNews      Source = "sina-news"
+	SourceSina          Source = "sina"
+	SourceStarrail      Source = "starrail"
+	SourceThepaper      Source = "thepaper"
+	SourceWeatheralarm  Source = "weatheralarm"
+	SourceWeread        Source = "weread"
+	SourceYystv         Source = "yystv"
 )
 
 type Spider struct {
@@ -127,6 +168,162 @@ func NewSpider() *Spider {
 			SourceZhihuDaily: {
 				Url:   "https://daily.zhihu.com/api/4/news/latest",
 				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+			},
+			SourceCoolapk: {
+				Url:   "https://api.coolapk.com/v6/page/dataList?url=%2Ffeed%2Fdigest%3Ftype%3D12%26isIncludeTop%3D1&title=%E4%BB%8A%E6%97%A5%E7%83%AD%E9%97%A8&subTitle=&page=1",
+				Agent: `Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36`,
+			},
+			SourceHupu: {
+				Url:   "https://bbs.hupu.com/all-gambia",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+			},
+			SourceHuxiu: {
+				Url:   "https://www.huxiu.com/",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+			},
+			SourceJianshu: {
+				Url:   "https://www.jianshu.com/",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+			},
+			SourceSmzdm: {
+				Url:   "https://www.smzdm.com/top/",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+			},
+			SourceSspai: {
+				Url:   "https://sspai.com/api/v1/articles?offset=0&limit=20&sort=popular",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+			},
+			SourceNetease: {
+				Url:   "https://m.163.com/fe/api/hot/news/flow",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+			},
+			SourceQQ: {
+				Url:   "https://r.inews.qq.com/gw/event/hot_ranking_list?page_size=50",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+			},
+			SourceAcfun: {
+				Url:   "https://www.acfun.cn/rest/pc-direct/rank/channel?channelId=&rankLimit=30&rankPeriod=DAY",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+			},
+			Source51CTO: {
+				Url:   "https://api-media.51cto.com/index/index/recommend",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+			},
+			Source52Pojie: {
+				Url:   "https://www.52pojie.cn/forum.php?mod=guide&view=digest&rss=1",
+				Agent: `Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36`,
+			},
+			SourceDoubanGroup: {
+				Url:   "https://www.douban.com/group/explore",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+			},
+			SourceDgtle: {
+				Url:   "https://opser.api.dgtle.com/v2/news/index",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceDoubanMovie: {
+				Url:   "https://movie.douban.com/chart/",
+				Agent: `Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15`,
+			},
+			SourceEarthquake: {
+				Url:   "https://news.ceic.ac.cn/speedsearch.html",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceGameres: {
+				Url:   "https://www.gameres.com",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceGeekpark: {
+				Url:   "https://mainssl.geekpark.net/api/v2",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceGenshin: {
+				Url:   "https://bbs-api-static.miyoushe.com/painter/wapi/getNewsList?client_type=4&gids=2&page_size=20",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceGuokr: {
+				Url:   "https://www.guokr.com/beta/proxy/science_api/articles?limit=30",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0`,
+			},
+			SourceHackernews: {
+				Url:   "https://news.ycombinator.com/",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36`,
+			},
+			SourceHelloGitHub: {
+				Url:   "https://abroad.hellogithub.com/v1/?sort_by=featured&tid=&page=1",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceHistory: {
+				Url:   "https://baike.baidu.com/cms/home/eventsOnHistory/01.json",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceHonkai: {
+				Url:   "https://bbs-api-static.miyoushe.com/painter/wapi/getNewsList?client_type=4&gids=1&page_size=20",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceHostloc: {
+				Url:   "https://hostloc.com/forum.php?mod=guide&view=hot&rss=1",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceIfanr: {
+				Url:   "https://sso.ifanr.com/api/v5/wp/buzz/?limit=20&offset=0",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceMiyoushe: {
+				Url:   "https://bbs-api-static.miyoushe.com/painter/wapi/getNewsList?client_type=4&gids=1&page_size=30",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceNewsmth: {
+				Url:   "https://wap.newsmth.net/wap/api/hot/global",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceNgabbs: {
+				Url:   "https://ngabbs.com/nuke.php?__lib=load_topic&__act=load_topic_reply_ladder2&opt=1&all=1",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceNodeseek: {
+				Url:   "https://www.nodeseek.com/rss",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceNytimes: {
+				Url:   "https://rsshub.app/nytimes",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceProducthunt: {
+				Url:   "https://www.producthunt.com/",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceSinaNews: {
+				Url:   "https://news.sina.com.cn/zt_d/top_news/",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceSina: {
+				Url:   "https://s.weibo.com/top/summary",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceStarrail: {
+				Url:   "https://bbs-api-static.miyoushe.com/painter/wapi/getNewsList?client_type=4&gids=6&page_size=20",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceThepaper: {
+				Url:   "https://www.thepaper.cn/",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceWeatheralarm: {
+				Url:   "http://www.nmc.cn/rest/findAlarm",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceWeread: {
+				Url:   "https://weread.qq.com/web/bookListInCategory/rising",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceYystv: {
+				Url:   "https://www.yystv.cn/",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
+			},
+			SourceIthomeXijiayi: {
+				Url:   "https://www.ithome.com/zt/xijiayi",
+				Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
 			},
 		},
 		HttpClient: &http.Client{
@@ -1366,4 +1563,2487 @@ func (s *Spider) GetZhihuDaily() (*HotData, error) {
 		Total:       len(listData),
 		Data:        listData,
 	}, nil
+}
+
+// ============== 酷安 ==============
+func (s *Spider) GetCoolapk() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[SourceCoolapk].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[SourceCoolapk].Agent)
+	request.Header.Add("X-Requested-With", "XMLHttpRequest")
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	if data, ok := result["data"].([]interface{}); ok {
+		for _, item := range data {
+			if v, ok := item.(map[string]interface{}); ok {
+				title := ""
+				if t, ok := v["title"].(string); ok {
+					title = t
+				}
+
+				cover := ""
+				if c, ok := v["pic"].(string); ok {
+					cover = c
+				}
+
+				author := ""
+				if a, ok := v["username"].(string); ok {
+					author = a
+				}
+
+				hot := 0
+				if h, ok := v["like_num"].(float64); ok {
+					hot = int(h)
+				}
+
+				id := 0
+				if idFloat, ok := v["id"].(float64); ok {
+					id = int(idFloat)
+				}
+
+				listData = append(listData, &HotItem{
+					ID:        id,
+					Title:     title,
+					Cover:     cover,
+					Author:    author,
+					Timestamp: time.Now().Unix(),
+					Hot:       hot,
+					URL:       fmt.Sprintf("https://www.coolapk.com/feed/%d", id),
+					MobileURL: fmt.Sprintf("https://www.coolapk.com/feed/%d", id),
+				})
+			}
+		}
+	}
+
+	return &HotData{
+		Name:        "coolapk",
+		Title:       "酷安",
+		Type:        "热门",
+		Description: "发现科技新生活",
+		Link:        "https://www.coolapk.com/",
+		Total:       len(listData),
+		Data:        listData,
+	}, nil
+}
+
+// ============== 虎扑 ==============
+func (s *Spider) GetHupu() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[SourceHupu].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[SourceHupu].Agent)
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	document, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	document.Find(".bbsHotPit .list-item").Each(func(i int, selection *goquery.Selection) {
+		title := strings.TrimSpace(selection.Find(".textSpan").Text())
+		href, exists := selection.Find("a").Attr("href")
+		if !exists {
+			return
+		}
+
+		author := strings.TrimSpace(selection.Find(".author").Text())
+		replyStr := strings.TrimSpace(selection.Find(".reply").Text())
+		replyNum := 0
+		if match := regexp.MustCompile(`(\d+)`).FindStringSubmatch(replyStr); len(match) > 1 {
+			replyNum, _ = strconv.Atoi(match[1])
+		}
+
+		listData = append(listData, &HotItem{
+			ID:        i + 1,
+			Title:     title,
+			Author:    author,
+			Timestamp: time.Now().Unix(),
+			Hot:       replyNum,
+			URL:       fmt.Sprintf("https://bbs.hupu.com%s", href),
+			MobileURL: fmt.Sprintf("https://bbs.hupu.com%s", href),
+		})
+	})
+
+	return &HotData{
+		Name:        "hupu",
+		Title:       "虎扑",
+		Type:        "热帖",
+		Description: "虎扑篮球社区",
+		Link:        "https://bbs.hupu.com/",
+		Total:       len(listData),
+		Data:        listData,
+	}, nil
+}
+
+// ============== 虎嗅 ==============
+func (s *Spider) GetHuxiu() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[SourceHuxiu].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[SourceHuxiu].Agent)
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	bodyStr := string(bodyBytes)
+
+	// 提取window.__INITIAL_STATE__数据
+	re := regexp.MustCompile(`window\.__INITIAL_STATE__\s*=\s*({.*?});`)
+	match := re.FindStringSubmatch(bodyStr)
+	if len(match) < 2 {
+		return nil, fmt.Errorf("无法找到INITIAL_STATE数据")
+	}
+
+	var initialState map[string]interface{}
+	if err := json.Unmarshal([]byte(match[1]), &initialState); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	if homeData, ok := initialState["home"].(map[string]interface{}); ok {
+		if hotNewsList, ok := homeData["hotNewsList"].([]interface{}); ok {
+			for _, item := range hotNewsList {
+				if v, ok := item.(map[string]interface{}); ok {
+					title := ""
+					if t, ok := v["title"].(string); ok {
+						title = t
+					}
+
+					summary := ""
+					if s, ok := v["summary"].(string); ok {
+						summary = s
+					}
+
+					newsID := 0
+					if id, ok := v["newsId"].(float64); ok {
+						newsID = int(id)
+					}
+
+					listData = append(listData, &HotItem{
+						ID:        newsID,
+						Title:     title,
+						Desc:      summary,
+						Timestamp: time.Now().Unix(),
+						Hot:       0,
+						URL:       fmt.Sprintf("https://www.huxiu.com/article/%d.html", newsID),
+						MobileURL: fmt.Sprintf("https://m.huxiu.com/article/%d.html", newsID),
+					})
+				}
+			}
+		}
+	}
+
+	return &HotData{
+		Name:        "huxiu",
+		Title:       "虎嗅",
+		Type:        "24小时",
+		Description: "虎嗅网 - 商业科技新媒体",
+		Link:        "https://www.huxiu.com/",
+		Total:       len(listData),
+		Data:        listData,
+	}, nil
+}
+
+// ============== 简书 ==============
+func (s *Spider) GetJianshu() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[SourceJianshu].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[SourceJianshu].Agent)
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	document, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	document.Find(".note-list li").Each(func(i int, selection *goquery.Selection) {
+		title := strings.TrimSpace(selection.Find(".title").Text())
+		if title == "" {
+			return
+		}
+
+		href, exists := selection.Find(".title").Attr("href")
+		if !exists {
+			return
+		}
+
+		author := strings.TrimSpace(selection.Find(".nickname").Text())
+		abstract := strings.TrimSpace(selection.Find(".abstract").Text())
+
+		// 提取文章ID
+		id := 0
+		if match := regexp.MustCompile(`/p/([a-f0-9]+)`).FindStringSubmatch(href); len(match) > 1 {
+			// 简书的ID是字符串格式，这里用索引代替
+			id = i + 1
+		}
+
+		listData = append(listData, &HotItem{
+			ID:        id,
+			Title:     title,
+			Desc:      abstract,
+			Author:    author,
+			Timestamp: time.Now().Unix(),
+			Hot:       0,
+			URL:       fmt.Sprintf("https://www.jianshu.com%s", href),
+			MobileURL: fmt.Sprintf("https://www.jianshu.com%s", href),
+		})
+	})
+
+	return &HotData{
+		Name:        "jianshu",
+		Title:       "简书",
+		Type:        "热门",
+		Description: "简书 - 创作你的创作",
+		Link:        "https://www.jianshu.com/",
+		Total:       len(listData),
+		Data:        listData,
+	}, nil
+}
+
+// ============== 什么值得买 ==============
+func (s *Spider) GetSmzdm() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[SourceSmzdm].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[SourceSmzdm].Agent)
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	document, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	document.Find(".z-feed-content").Each(func(i int, selection *goquery.Selection) {
+		title := strings.TrimSpace(selection.Find(".z-feed-title").Text())
+		if title == "" {
+			return
+		}
+
+		href, exists := selection.Find(".z-feed-title a").Attr("href")
+		if !exists {
+			return
+		}
+
+		// 提取商品ID
+		id := 0
+		if match := regexp.MustCompile(`/p/(\d+)`).FindStringSubmatch(href); len(match) > 1 {
+			id, _ = strconv.Atoi(match[1])
+		}
+
+		price := strings.TrimSpace(selection.Find(".z-highlight").Text())
+		worth := 0
+		if worthStr := strings.TrimSpace(selection.Find(".z-icon-worth").Parent().Text()); worthStr != "" {
+			if match := regexp.MustCompile(`(\d+)`).FindStringSubmatch(worthStr); len(match) > 1 {
+				worth, _ = strconv.Atoi(match[1])
+			}
+		}
+
+		listData = append(listData, &HotItem{
+			ID:        id,
+			Title:     fmt.Sprintf("%s %s", title, price),
+			Desc:      price,
+			Timestamp: time.Now().Unix(),
+			Hot:       worth,
+			URL:       fmt.Sprintf("https://www.smzdm.com%s", href),
+			MobileURL: fmt.Sprintf("https://m.smzdm.com%s", href),
+		})
+	})
+
+	return &HotData{
+		Name:        "smzdm",
+		Title:       "什么值得买",
+		Type:        "热门",
+		Description: "什么值得买 - 消费决策平台",
+		Link:        "https://www.smzdm.com/",
+		Total:       len(listData),
+		Data:        listData,
+	}, nil
+}
+
+// ============== 少数派 ==============
+func (s *Spider) GetSspai() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[SourceSspai].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[SourceSspai].Agent)
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	var result []map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for i, item := range result {
+		title := ""
+		if t, ok := item["title"].(string); ok {
+			title = t
+		}
+
+		summary := ""
+		if s, ok := item["summary"].(string); ok {
+			summary = s
+		}
+
+		id := 0
+		if idFloat, ok := item["id"].(float64); ok {
+			id = int(idFloat)
+		}
+
+		author := ""
+		if authorMap, ok := item["author"].(map[string]interface{}); ok {
+			if nickname, ok := authorMap["nickname"].(string); ok {
+				author = nickname
+			}
+		}
+
+		listData = append(listData, &HotItem{
+			ID:        id,
+			Title:     title,
+			Desc:      summary,
+			Author:    author,
+			Timestamp: time.Now().Unix(),
+			Hot:       0,
+			URL:       fmt.Sprintf("https://sspai.com/post/%d", id),
+			MobileURL: fmt.Sprintf("https://sspai.com/post/%d", id),
+		})
+
+		if i >= 19 { // 限制为20条
+			break
+		}
+	}
+
+	return &HotData{
+		Name:        "sspai",
+		Title:       "少数派",
+		Type:        "热门文章",
+		Description: "少数派 - 高效工作，品质生活",
+		Link:        "https://sspai.com/",
+		Total:       len(listData),
+		Data:        listData,
+	}, nil
+}
+
+// ============== 网易新闻 ==============
+func (s *Spider) GetNetease() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[SourceNetease].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[SourceNetease].Agent)
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	if data, ok := result["data"].(map[string]interface{}); ok {
+		if list, ok := data["list"].([]interface{}); ok {
+			for _, item := range list {
+				if v, ok := item.(map[string]interface{}); ok {
+					title := ""
+					if t, ok := v["title"].(string); ok {
+						title = t
+					}
+
+					cover := ""
+					if img, ok := v["imgsrc"].(string); ok {
+						cover = img
+					}
+
+					author := ""
+					if source, ok := v["source"].(string); ok {
+						author = source
+					}
+
+					timestamp := int64(0)
+					if ptime, ok := v["ptime"].(string); ok {
+						if t, err := time.Parse("2006-01-02 15:04:05", ptime); err == nil {
+							timestamp = t.Unix()
+						}
+					}
+
+					docid := ""
+					if id, ok := v["docid"].(string); ok {
+						docid = id
+					}
+
+					listData = append(listData, &HotItem{
+						ID:        0,
+						Title:     title,
+						Cover:     cover,
+						Author:    author,
+						Timestamp: timestamp,
+						Hot:       0,
+						URL:       fmt.Sprintf("https://www.163.com/dy/article/%s.html", docid),
+						MobileURL: fmt.Sprintf("https://m.163.com/dy/article/%s.html", docid),
+					})
+				}
+			}
+		}
+	}
+
+	return &HotData{
+		Name:  "netease",
+		Title: "网易新闻",
+		Type:  "热点榜",
+		Link:  "https://m.163.com/hot",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 腾讯新闻 ==============
+func (s *Spider) GetQQ() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[SourceQQ].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[SourceQQ].Agent)
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	if data, ok := result["data"].(map[string]interface{}); ok {
+		if idlist, ok := data["idlist"].([]interface{}); ok && len(idlist) > 0 {
+			if newslist, ok := idlist[0].(map[string]interface{})["newslist"].([]interface{}); ok {
+				// Skip the first item as it seems to be a header
+				for i := 1; i < len(newslist); i++ {
+					if v, ok := newslist[i].(map[string]interface{}); ok {
+						title := ""
+						if t, ok := v["title"].(string); ok {
+							title = t
+						}
+
+						desc := ""
+						if abstract, ok := v["abstract"].(string); ok {
+							desc = abstract
+						}
+
+						cover := ""
+						if img, ok := v["miniProShareImage"].(string); ok {
+							cover = img
+						}
+
+						author := ""
+						if source, ok := v["source"].(string); ok {
+							author = source
+						}
+
+						timestamp := int64(0)
+						if ts, ok := v["timestamp"].(float64); ok {
+							timestamp = int64(ts)
+						}
+
+						id := ""
+						if itemID, ok := v["id"].(string); ok {
+							id = itemID
+						}
+
+						hotScore := 0
+						if hotEvent, ok := v["hotEvent"].(map[string]interface{}); ok {
+							if score, ok := hotEvent["hotScore"].(float64); ok {
+								hotScore = int(score)
+							}
+						}
+
+						listData = append(listData, &HotItem{
+							ID:        0,
+							Title:     title,
+							Desc:      desc,
+							Cover:     cover,
+							Author:    author,
+							Timestamp: timestamp,
+							Hot:       hotScore,
+							URL:       fmt.Sprintf("https://new.qq.com/rain/a/%s", id),
+							MobileURL: fmt.Sprintf("https://view.inews.qq.com/k/%s", id),
+						})
+					}
+				}
+			}
+		}
+	}
+
+	return &HotData{
+		Name:  "qq",
+		Title: "腾讯新闻",
+		Type:  "热点榜",
+		Link:  "https://news.qq.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 51CTO ==============
+func (s *Spider) Get51CTO() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[Source51CTO].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[Source51CTO].Agent)
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	if data, ok := result["data"].(map[string]interface{}); ok {
+		if innerData, ok := data["data"].(map[string]interface{}); ok {
+			if list, ok := innerData["list"].([]interface{}); ok {
+				for _, item := range list {
+					if v, ok := item.(map[string]interface{}); ok {
+						title := ""
+						if t, ok := v["title"].(string); ok {
+							title = t
+						}
+
+						desc := ""
+						if d, ok := v["abstract"].(string); ok {
+							desc = d
+						}
+
+						cover := ""
+						if img, ok := v["cover"].(string); ok {
+							cover = img
+						}
+
+						timestamp := int64(0)
+						if ts, ok := v["pubdate"].(float64); ok {
+							timestamp = int64(ts)
+						}
+
+						sourceID := ""
+						if id, ok := v["source_id"].(string); ok {
+							sourceID = id
+						}
+
+						listData = append(listData, &HotItem{
+							ID:        0,
+							Title:     title,
+							Desc:      desc,
+							Cover:     cover,
+							Timestamp: timestamp,
+							Hot:       0,
+							URL:       fmt.Sprintf("https://www.51cto.com/article/%s.html", sourceID),
+							MobileURL: fmt.Sprintf("https://www.51cto.com/article/%s.html", sourceID),
+						})
+					}
+				}
+			}
+		}
+	}
+
+	return &HotData{
+		Name:  "51cto",
+		Title: "51CTO",
+		Type:  "推荐榜",
+		Link:  "https://www.51cto.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 吾爱破解 ==============
+func (s *Spider) Get52Pojie() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[Source52Pojie].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[Source52Pojie].Agent)
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	// 需要处理RSS解析，这里简化实现
+	// 实际实现需要解析RSS XML内容
+
+	return &HotData{
+		Name:  "52pojie",
+		Title: "吾爱破解",
+		Type:  "最新精华",
+		Link:  "https://www.52pojie.cn/",
+		Total: 0,
+		Data:  []*HotItem{},
+	}, nil
+}
+
+// ============== 豆瓣讨论 ==============
+func (s *Spider) GetDoubanGroup() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[SourceDoubanGroup].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[SourceDoubanGroup].Agent)
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	// 需要HTML解析，这里简化实现
+	// 实际实现需要使用goquery解析HTML
+
+	return &HotData{
+		Name:  "douban-group",
+		Title: "豆瓣讨论",
+		Type:  "讨论精选",
+		Link:  "https://www.douban.com/group/explore",
+		Total: 0,
+		Data:  []*HotItem{},
+	}, nil
+}
+
+// ============== AcFun ==============
+func (s *Spider) GetAcfun() (*HotData, error) {
+	var Body io.Reader
+	request, err := http.NewRequest("GET", s.UrlMap[SourceAcfun].Url, Body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("User-Agent", s.UrlMap[SourceAcfun].Agent)
+	request.Header.Add("Referer", "https://www.acfun.cn/rank/list/?cid=-1&pcid=-1&range=DAY")
+
+	res, err := s.HttpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	if data, ok := result["data"].(map[string]interface{}); ok {
+		if rankList, ok := data["rankList"].([]interface{}); ok {
+			for _, item := range rankList {
+				if v, ok := item.(map[string]interface{}); ok {
+					title := ""
+					if t, ok := v["contentTitle"].(string); ok {
+						title = t
+					}
+
+					desc := ""
+					if d, ok := v["contentDesc"].(string); ok {
+						desc = d
+					}
+
+					cover := ""
+					if img, ok := v["coverUrl"].(string); ok {
+						cover = img
+					}
+
+					author := ""
+					if user, ok := v["userName"].(string); ok {
+						author = user
+					}
+
+					timestamp := int64(0)
+					if ts, ok := v["contributeTime"].(float64); ok {
+						timestamp = int64(ts)
+					}
+
+					dougaId := ""
+					if id, ok := v["dougaId"].(string); ok {
+						dougaId = id
+					}
+
+					likeCount := 0
+					if likes, ok := v["likeCount"].(float64); ok {
+						likeCount = int(likes)
+					}
+
+					listData = append(listData, &HotItem{
+						ID:        0,
+						Title:     title,
+						Desc:      desc,
+						Cover:     cover,
+						Author:    author,
+						Timestamp: timestamp,
+						Hot:       likeCount,
+						URL:       fmt.Sprintf("https://www.acfun.cn/v/ac%s", dougaId),
+						MobileURL: fmt.Sprintf("https://m.acfun.cn/v/?ac=%s", dougaId),
+					})
+				}
+			}
+		}
+	}
+
+	return &HotData{
+		Name:  "acfun",
+		Title: "AcFun",
+		Type:  "排行榜",
+		Link:  "https://www.acfun.cn/rank/list/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 数字尾巴 ==============
+func (s *Spider) GetDgtle() (*HotData, error) {
+	urlConf := s.UrlMap[SourceDgtle]
+	if urlConf == nil {
+		return nil, fmt.Errorf("url config not found for dgtle")
+	}
+
+	resp, err := s.HttpClient.Get(urlConf.Url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result struct {
+		Data struct {
+			Items []struct {
+				ID        int    `json:"id"`
+				Title     string `json:"title"`
+				Content   string `json:"content"`
+				Cover     string `json:"cover"`
+				From      string `json:"from"`
+				Membernum int    `json:"membernum"`
+				CreatedAt string `json:"created_at"`
+				Type      string `json:"type"`
+			} `json:"items"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range result.Data.Items {
+		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.CreatedAt)
+
+		listData = append(listData, &HotItem{
+			ID:        item.ID,
+			Title:     item.Title,
+			Desc:      item.Content,
+			Cover:     item.Cover,
+			Author:    item.From,
+			Timestamp: timestamp.Unix(),
+			Hot:       item.Membernum,
+			URL:       fmt.Sprintf("https://www.dgtle.com/news-%d-%s.html", item.ID, item.Type),
+			MobileURL: fmt.Sprintf("https://m.dgtle.com/news-details/%d", item.ID),
+		})
+	}
+
+	return &HotData{
+		Name:  "dgtle",
+		Title: "数字尾巴",
+		Type:  "热门文章",
+		Link:  "https://www.dgtle.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 豆瓣电影 ==============
+func (s *Spider) GetDoubanMovie() (*HotData, error) {
+	urlConf := s.UrlMap[SourceDoubanMovie]
+	if urlConf == nil {
+		return nil, fmt.Errorf("url config not found for douban-movie")
+	}
+
+	req, err := http.NewRequest("GET", urlConf.Url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", urlConf.Agent)
+
+	resp, err := s.HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	doc.Find(".article tr.item").Each(func(i int, s *goquery.Selection) {
+		url, _ := s.Find("a").Attr("href")
+		score := s.Find(".rating_nums").Text()
+		if score == "" {
+			score = "0.0"
+		}
+		title := s.Find("a").AttrOr("title", "")
+		cover := s.Find("img").AttrOr("src", "")
+
+		// 从URL中提取ID
+		id := 0
+		if url != "" {
+			if strings.Contains(url, "/subject/") {
+				parts := strings.Split(url, "/")
+				if len(parts) >= 5 {
+					id, _ = strconv.Atoi(parts[4])
+				}
+			}
+		}
+
+		listData = append(listData, &HotItem{
+			ID:        id,
+			Title:     fmt.Sprintf("【%s】%s", score, title),
+			Cover:     cover,
+			URL:       url,
+			MobileURL: url,
+		})
+	})
+
+	return &HotData{
+		Name:  "douban-movie",
+		Title: "豆瓣电影",
+		Type:  "新片榜",
+		Link:  "https://movie.douban.com/chart",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 中国地震台 ==============
+func (s *Spider) GetEarthquake() (*HotData, error) {
+	urlConf := s.UrlMap[SourceEarthquake]
+	if urlConf == nil {
+		return nil, fmt.Errorf("url config not found for earthquake")
+	}
+
+	resp, err := s.HttpClient.Get(urlConf.Url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// 使用正则表达式提取JSON数据
+	re := regexp.MustCompile(`const newdata = (\[.*?\]);`)
+	match := re.FindSubmatch(body)
+	if match == nil {
+		return nil, fmt.Errorf("no earthquake data found")
+	}
+
+	var earthquakes []struct {
+		NEW_DID    string  `json:"NEW_DID"`
+		LOCATION_C string  `json:"LOCATION_C"`
+		M          float64 `json:"M"`
+		O_TIME     string  `json:"O_TIME"`
+		EPI_LAT    float64 `json:"EPI_LAT"`
+		EPI_LON    float64 `json:"EPI_LON"`
+		EPI_DEPTH  float64 `json:"EPI_DEPTH"`
+		SAVE_TIME  string  `json:"SAVE_TIME"`
+	}
+
+	if err := json.Unmarshal(match[1], &earthquakes); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	mappings := map[string]string{
+		"O_TIME":     "发震时刻(UTC+8)",
+		"LOCATION_C": "参考位置",
+		"M":          "震级(M)",
+		"EPI_LAT":    "纬度(°)",
+		"EPI_LON":    "经度(°)",
+		"EPI_DEPTH":  "深度(千米)",
+		"SAVE_TIME":  "录入时间",
+	}
+
+	for _, eq := range earthquakes {
+		var contentBuilder []string
+		for key, desc := range mappings {
+			var value string
+			switch key {
+			case "O_TIME", "LOCATION_C", "SAVE_TIME":
+				value = eq.O_TIME
+				if key == "LOCATION_C" {
+					value = eq.LOCATION_C
+				} else if key == "SAVE_TIME" {
+					value = eq.SAVE_TIME
+				}
+			case "M", "EPI_LAT", "EPI_LON", "EPI_DEPTH":
+				value = fmt.Sprintf("%.1f", eq.M)
+				if key == "EPI_LAT" {
+					value = fmt.Sprintf("%.2f", eq.EPI_LAT)
+				} else if key == "EPI_LON" {
+					value = fmt.Sprintf("%.2f", eq.EPI_LON)
+				} else if key == "EPI_DEPTH" {
+					value = fmt.Sprintf("%.0f", eq.EPI_DEPTH)
+				}
+			}
+			contentBuilder = append(contentBuilder, fmt.Sprintf("%s：%s", desc, value))
+		}
+
+		timestamp, _ := time.Parse("2006-01-02 15:04:05", eq.O_TIME)
+
+		listData = append(listData, &HotItem{
+			ID:        0,
+			Title:     fmt.Sprintf("%s发生%.1f级地震", eq.LOCATION_C, eq.M),
+			Desc:      strings.Join(contentBuilder, "\n"),
+			Timestamp: timestamp.Unix(),
+			URL:       "https://news.ceic.ac.cn/",
+			MobileURL: "https://news.ceic.ac.cn/",
+		})
+	}
+
+	return &HotData{
+		Name:  "earthquake",
+		Title: "中国地震台",
+		Type:  "地震速报",
+		Link:  "https://news.ceic.ac.cn/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== GameRes游资网 ==============
+func (s *Spider) GetGameres() (*HotData, error) {
+	urlConf := s.UrlMap[SourceGameres]
+	if urlConf == nil {
+		return nil, fmt.Errorf("url config not found for gameres")
+	}
+
+	req, err := http.NewRequest("GET", urlConf.Url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", urlConf.Agent)
+
+	resp, err := s.HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	doc.Find(".article-list .article-item").Each(func(i int, s *goquery.Selection) {
+		title := s.Find(".article-title a").Text()
+		url, _ := s.Find(".article-title a").Attr("href")
+		if !strings.HasPrefix(url, "http") {
+			url = "https://www.gameres.com" + url
+		}
+
+		cover := s.Find(".article-cover img").AttrOr("src", "")
+		if !strings.HasPrefix(cover, "http") && cover != "" {
+			cover = "https://www.gameres.com" + cover
+		}
+
+		author := s.Find(".article-author").Text()
+		publishTime := s.Find(".article-time").Text()
+
+		timestamp := time.Now().Unix()
+		if publishTime != "" {
+			if t, err := time.Parse("2006-01-02", publishTime); err == nil {
+				timestamp = t.Unix()
+			}
+		}
+
+		// 从URL中提取ID
+		id := 0
+		if url != "" {
+			if strings.Contains(url, "/article/") {
+				parts := strings.Split(url, "/")
+				if len(parts) >= 4 {
+					idStr := parts[len(parts)-1]
+					if strings.Contains(idStr, ".") {
+						idStr = strings.Split(idStr, ".")[0]
+					}
+					id, _ = strconv.Atoi(idStr)
+				}
+			}
+		}
+
+		listData = append(listData, &HotItem{
+			ID:        id,
+			Title:     title,
+			Cover:     cover,
+			Author:    author,
+			Timestamp: timestamp,
+			URL:       url,
+			MobileURL: url,
+		})
+	})
+
+	return &HotData{
+		Name:  "gameres",
+		Title: "GameRes游资网",
+		Type:  "资讯",
+		Link:  "https://www.gameres.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 极客公园 ==============
+func (s *Spider) GetGeekpark() (*HotData, error) {
+	urlConf := s.UrlMap[SourceGeekpark]
+	if urlConf == nil {
+		return nil, fmt.Errorf("url config not found for geekpark")
+	}
+
+	resp, err := s.HttpClient.Get(urlConf.Url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result struct {
+		Data []struct {
+			ID          int    `json:"id"`
+			Title       string `json:"title"`
+			Description string `json:"description"`
+			Cover       string `json:"cover"`
+			Author      string `json:"author"`
+			ReadCount   int    `json:"read_count"`
+			CreatedAt   string `json:"created_at"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range result.Data {
+		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.CreatedAt)
+
+		listData = append(listData, &HotItem{
+			ID:        item.ID,
+			Title:     item.Title,
+			Desc:      item.Description,
+			Cover:     item.Cover,
+			Author:    item.Author,
+			Timestamp: timestamp.Unix(),
+			Hot:       item.ReadCount,
+			URL:       fmt.Sprintf("https://www.geekpark.net/news/%d", item.ID),
+			MobileURL: fmt.Sprintf("https://m.geekpark.net/news/%d", item.ID),
+		})
+	}
+
+	return &HotData{
+		Name:  "geekpark",
+		Title: "极客公园",
+		Type:  "热门文章",
+		Link:  "https://www.geekpark.net/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 原神 ==============
+func (s *Spider) GetGenshin() (*HotData, error) {
+	urlConf := s.UrlMap[SourceGenshin]
+	if urlConf == nil {
+		return nil, fmt.Errorf("url config not found for genshin")
+	}
+
+	resp, err := s.HttpClient.Get(urlConf.Url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result struct {
+		Data struct {
+			List []struct {
+				Post struct {
+					PostID    int    `json:"post_id"`
+					Subject   string `json:"subject"`
+					Content   string `json:"content"`
+					Cover     string `json:"cover"`
+					CreatedAt int64  `json:"created_at"`
+					Author    struct {
+						Nickname string `json:"nickname"`
+					} `json:"user"`
+				} `json:"post"`
+			} `json:"list"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range result.Data.List {
+		post := item.Post
+
+		listData = append(listData, &HotItem{
+			ID:        post.PostID,
+			Title:     post.Subject,
+			Desc:      post.Content,
+			Cover:     post.Cover,
+			Author:    post.Author.Nickname,
+			Timestamp: post.CreatedAt,
+			URL:       fmt.Sprintf("https://bbs.mihoyo.com/ys/article/%d", post.PostID),
+			MobileURL: fmt.Sprintf("https://m.bbs.mihoyo.com/ys/article/%d", post.PostID),
+		})
+	}
+
+	return &HotData{
+		Name:  "genshin",
+		Title: "原神",
+		Type:  "动态",
+		Link:  "https://bbs.mihoyo.com/ys/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// GetGuokr 获取果壳热门文章
+func (s *Spider) GetGuokr() (*HotData, error) {
+	urlConf := s.UrlMap[SourceGuokr]
+	if urlConf == nil {
+		return nil, fmt.Errorf("url config not found for guokr")
+	}
+
+	resp, err := s.HttpClient.Get(urlConf.Url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result struct {
+		Data []struct {
+			ID         string `json:"id"`
+			Title      string `json:"title"`
+			Summary    string `json:"summary"`
+			SmallImage string `json:"small_image"`
+			Author     struct {
+				Nickname string `json:"nickname"`
+			} `json:"author"`
+			DateModified string `json:"date_modified"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range result.Data {
+		timestamp, _ := time.Parse(time.RFC3339, item.DateModified)
+		idInt, _ := strconv.Atoi(item.ID)
+		listData = append(listData, &HotItem{
+			ID:        idInt,
+			Title:     item.Title,
+			Desc:      item.Summary,
+			Cover:     item.SmallImage,
+			Author:    item.Author.Nickname,
+			Timestamp: timestamp.Unix(),
+			URL:       fmt.Sprintf("https://www.guokr.com/article/%s", item.ID),
+			MobileURL: fmt.Sprintf("https://m.guokr.com/article/%s", item.ID),
+		})
+	}
+
+	return &HotData{
+		Name:  "guokr",
+		Title: "果壳",
+		Type:  "热门文章",
+		Link:  "https://www.guokr.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// GetHackernews 获取Hacker News热门文章
+func (s *Spider) GetHackernews() (*HotData, error) {
+	urlConf := s.UrlMap[SourceHackernews]
+	if urlConf == nil {
+		return nil, fmt.Errorf("url config not found for hackernews")
+	}
+
+	resp, err := s.HttpClient.Get(urlConf.Url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	doc.Find(".athing").Each(func(i int, s *goquery.Selection) {
+		id := s.AttrOr("id", "")
+		title := s.Find(".titleline a").First().Text()
+		url := s.Find(".titleline a").First().AttrOr("href", "")
+
+		if id != "" && title != "" {
+			// 获取分数
+			scoreText := doc.Find(fmt.Sprintf("#score_%s", id)).Text()
+			var hot int
+			if scoreMatch := regexp.MustCompile(`\d+`).FindString(scoreText); scoreMatch != "" {
+				if score, err := strconv.Atoi(scoreMatch); err == nil {
+					hot = score
+				}
+			}
+
+			// 将字符串ID转换为int
+			idInt, _ := strconv.Atoi(id)
+
+			// 处理相对URL
+			if !strings.HasPrefix(url, "http") && !strings.HasPrefix(url, "//") {
+				url = "https://news.ycombinator.com/" + url
+			}
+
+			listData = append(listData, &HotItem{
+				ID:    idInt,
+				Title: title,
+				Hot:   hot,
+				URL:   url,
+			})
+		}
+	})
+
+	return &HotData{
+		Name:  "hackernews",
+		Title: "Hacker News",
+		Type:  "Popular",
+		Link:  "https://news.ycombinator.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// GetHelloGitHub 获取HelloGitHub热门仓库
+func (s *Spider) GetHelloGitHub() (*HotData, error) {
+	urlConf := s.UrlMap[SourceHelloGitHub]
+	if urlConf == nil {
+		return nil, fmt.Errorf("url config not found for hellogithub")
+	}
+
+	resp, err := s.HttpClient.Get(urlConf.Url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result struct {
+		Data struct {
+			Data []struct {
+				ItemID      string `json:"item_id"`
+				Title       string `json:"title"`
+				Summary     string `json:"summary"`
+				Author      string `json:"author"`
+				UpdatedAt   string `json:"updated_at"`
+				ClicksTotal int    `json:"clicks_total"`
+			} `json:"data"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range result.Data.Data {
+		timestamp, _ := time.Parse(time.RFC3339, item.UpdatedAt)
+		hot := item.ClicksTotal
+		idInt, _ := strconv.Atoi(item.ItemID)
+		listData = append(listData, &HotItem{
+			ID:        idInt,
+			Title:     item.Title,
+			Desc:      item.Summary,
+			Author:    item.Author,
+			Timestamp: timestamp.Unix(),
+			Hot:       hot,
+			URL:       fmt.Sprintf("https://hellogithub.com/repository/%s", item.ItemID),
+			MobileURL: fmt.Sprintf("https://hellogithub.com/repository/%s", item.ItemID),
+		})
+	}
+
+	return &HotData{
+		Name:  "hellogithub",
+		Title: "HelloGitHub",
+		Type:  "热门仓库",
+		Link:  "https://hellogithub.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// GetHistory 获取历史上的今天
+func (s *Spider) GetHistory() (*HotData, error) {
+	urlConf := s.UrlMap[SourceHistory]
+	if urlConf == nil {
+		return nil, fmt.Errorf("url config not found for history")
+	}
+
+	// 获取当前日期
+	now := time.Now()
+	month := now.Month()
+	day := now.Day()
+
+	// 构建URL，使用当前月份
+	url := fmt.Sprintf("https://baike.baidu.com/cms/home/eventsOnHistory/%02d.json", month)
+
+	resp, err := s.HttpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]map[string][]struct {
+		Title    string `json:"title"`
+		Desc     string `json:"desc"`
+		Year     string `json:"year"`
+		Link     string `json:"link"`
+		PicShare string `json:"pic_share"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	// 获取当前日期的数据
+	monthKey := fmt.Sprintf("%02d", month)
+	dayKey := fmt.Sprintf("%02d%02d", month, day)
+	dayData := result[monthKey][dayKey]
+
+	var listData []*HotItem
+	for i, item := range dayData {
+		listData = append(listData, &HotItem{
+			ID:        i,
+			Title:     strings.TrimSpace(item.Title),
+			Desc:      strings.TrimSpace(item.Desc),
+			Cover:     item.PicShare,
+			Author:    "",
+			Timestamp: 0,
+			Hot:       0,
+			URL:       item.Link,
+			MobileURL: item.Link,
+		})
+	}
+
+	return &HotData{
+		Name:  "history",
+		Title: "历史上的今天",
+		Type:  fmt.Sprintf("%02d-%02d", month, day),
+		Link:  "https://baike.baidu.com/calendar",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// GetHonkai 获取崩坏3最新动态
+func (s *Spider) GetHonkai() (*HotData, error) {
+	urlConf := s.UrlMap[SourceHonkai]
+	if urlConf == nil {
+		return nil, fmt.Errorf("url config not found for honkai")
+	}
+
+	resp, err := s.HttpClient.Get(urlConf.Url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result struct {
+		Data struct {
+			List []struct {
+				Post struct {
+					PostID     int      `json:"post_id"`
+					Subject    string   `json:"subject"`
+					Content    string   `json:"content"`
+					Cover      string   `json:"cover"`
+					Images     []string `json:"images"`
+					ViewStatus int      `json:"view_status"`
+					CreatedAt  int64    `json:"created_at"`
+				} `json:"post"`
+				User struct {
+					Nickname string `json:"nickname"`
+				} `json:"user"`
+			} `json:"list"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range result.Data.List {
+		post := item.Post
+
+		// 获取封面图，优先使用cover，如果没有则使用第一张图片
+		cover := post.Cover
+		if cover == "" && len(post.Images) > 0 {
+			cover = post.Images[0]
+		}
+
+		listData = append(listData, &HotItem{
+			ID:        post.PostID,
+			Title:     post.Subject,
+			Desc:      post.Content,
+			Cover:     cover,
+			Author:    item.User.Nickname,
+			Timestamp: post.CreatedAt,
+			Hot:       post.ViewStatus,
+			URL:       fmt.Sprintf("https://www.miyoushe.com/bh3/article/%d", post.PostID),
+			MobileURL: fmt.Sprintf("https://m.miyoushe.com/bh3/#/article/%d", post.PostID),
+		})
+	}
+
+	return &HotData{
+		Name:  "honkai",
+		Title: "崩坏3",
+		Type:  "最新动态",
+		Link:  "https://www.miyoushe.com/bh3/home/6",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// GetHostloc 获取hostloc论坛热门帖子
+func (s *Spider) GetHostloc() (*HotData, error) {
+	urlConf := s.UrlMap[SourceHostloc]
+	resp, err := s.HttpClient.Get(urlConf.Url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// 解析RSS XML
+	feed, err := ParseRSS(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range feed.Channel.Items {
+		// 将字符串Guid转换为int
+		idInt, _ := strconv.Atoi(item.Guid)
+		listData = append(listData, &HotItem{
+			ID:        idInt,
+			Title:     item.Title,
+			Desc:      item.Description,
+			Author:    item.Author,
+			Timestamp: parseTime(item.PubDate),
+			URL:       item.Link,
+			MobileURL: item.Link,
+		})
+	}
+
+	return &HotData{
+		Name:  "hostloc",
+		Title: "全球主机交流论坛",
+		Type:  "热门帖子",
+		Link:  "https://hostloc.com/forum.php?mod=guide&view=hot",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// GetIfanr 获取爱范儿快讯数据
+func (s *Spider) GetIfanr() (*HotData, error) {
+	urlConf := s.UrlMap[SourceIfanr]
+	resp, err := s.HttpClient.Get(urlConf.Url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Data []struct {
+			ID      string `json:"id"`
+			Title   string `json:"title"`
+			Content string `json:"content"`
+			Time    int64  `json:"time"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range result.Data {
+		idInt, _ := strconv.Atoi(item.ID)
+		listData = append(listData, &HotItem{
+			ID:        idInt,
+			Title:     item.Title,
+			Desc:      item.Content,
+			Timestamp: item.Time,
+			URL:       fmt.Sprintf("https://www.ifanr.com/buzz/%s", item.ID),
+			MobileURL: fmt.Sprintf("https://www.ifanr.com/buzz/%s", item.ID),
+		})
+	}
+
+	return &HotData{
+		Name:  "ifanr",
+		Title: "爱范儿",
+		Type:  "快讯",
+		Link:  "https://www.ifanr.com/buzz",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// GetIthomeXijiayi 获取IT之家喜加一游戏动态
+func (s *Spider) GetIthomeXijiayi() (*HotData, error) {
+	urlConf := s.UrlMap[SourceIthomeXijiayi]
+	resp, err := s.HttpClient.Get(urlConf.Url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	doc.Find(".blk-container .list-item").Each(func(i int, s *goquery.Selection) {
+		id := s.AttrOr("data-id", "")
+		title := s.Find(".title").Text()
+		desc := s.Find(".desc").Text()
+		timeStr := s.Find(".time").Text()
+
+		timestamp := parseTime(timeStr)
+		url := fmt.Sprintf("https://www.ithome.com/zt/xijiayi#%s", id)
+
+		idInt, _ := strconv.Atoi(id)
+		listData = append(listData, &HotItem{
+			ID:        idInt,
+			Title:     strings.TrimSpace(title),
+			Desc:      strings.TrimSpace(desc),
+			Timestamp: timestamp,
+			URL:       url,
+			MobileURL: url,
+		})
+	})
+
+	return &HotData{
+		Name:  "ithome-xijiayi",
+		Title: "IT之家喜加一",
+		Type:  "游戏动态",
+		Link:  "https://www.ithome.com/zt/xijiayi",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 米游社 ==============
+func (s *Spider) GetMiyoushe() (*HotData, error) {
+	url := s.UrlMap[SourceMiyoushe].Url
+	agent := s.UrlMap[SourceMiyoushe].Agent
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("创建请求失败: %v", err)
+	}
+	req.Header.Set("User-Agent", agent)
+
+	resp, err := s.HttpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("请求失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("HTTP错误: %s", resp.Status)
+	}
+
+	var result struct {
+		Data struct {
+			List []struct {
+				Post struct {
+					PostID     string   `json:"post_id"`
+					Subject    string   `json:"subject"`
+					Content    string   `json:"content"`
+					Cover      string   `json:"cover"`
+					Images     []string `json:"images"`
+					CreatedAt  int64    `json:"created_at"`
+					ViewStatus int      `json:"view_status"`
+				} `json:"post"`
+				User struct {
+					Nickname string `json:"nickname"`
+				} `json:"user"`
+			} `json:"list"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("解析JSON失败: %v", err)
+	}
+
+	var listData []*HotItem
+	for _, item := range result.Data.List {
+		post := item.Post
+		cover := post.Cover
+		if cover == "" && len(post.Images) > 0 {
+			cover = post.Images[0]
+		}
+
+		idInt, _ := strconv.Atoi(post.PostID)
+		listData = append(listData, &HotItem{
+			ID:        idInt,
+			Title:     strings.TrimSpace(post.Subject),
+			Desc:      strings.TrimSpace(post.Content),
+			Cover:     cover,
+			Author:    item.User.Nickname,
+			Timestamp: post.CreatedAt,
+			Hot:       post.ViewStatus,
+			URL:       fmt.Sprintf("https://www.miyoushe.com/ys/article/%s", post.PostID),
+			MobileURL: fmt.Sprintf("https://m.miyoushe.com/ys/#/article/%s", post.PostID),
+		})
+	}
+
+	return &HotData{
+		Name:  "miyoushe",
+		Title: "米游社",
+		Type:  "最新公告",
+		Link:  "https://www.miyoushe.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 水木社区 ==============
+func (s *Spider) GetNewsmth() (*HotData, error) {
+	url := s.UrlMap[SourceNewsmth].Url
+	agent := s.UrlMap[SourceNewsmth].Agent
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("创建请求失败: %v", err)
+	}
+	req.Header.Set("User-Agent", agent)
+
+	resp, err := s.HttpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("请求失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("HTTP错误: %s", resp.Status)
+	}
+
+	var result struct {
+		Data struct {
+			Topics []struct {
+				FirstArticleID string `json:"firstArticleId"`
+				Article        struct {
+					TopicID  string `json:"topicId"`
+					Subject  string `json:"subject"`
+					Body     string `json:"body"`
+					PostTime int64  `json:"postTime"`
+					Account  struct {
+						Name string `json:"name"`
+					} `json:"account"`
+				} `json:"article"`
+				Board struct {
+					Title string `json:"title"`
+				} `json:"board"`
+			} `json:"topics"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("解析JSON失败: %v", err)
+	}
+
+	var listData []*HotItem
+	for _, topic := range result.Data.Topics {
+		post := topic.Article
+		url := fmt.Sprintf("https://wap.newsmth.net/article/%s?title=%s&from=home", post.TopicID, topic.Board.Title)
+
+		idInt, _ := strconv.Atoi(topic.FirstArticleID)
+		listData = append(listData, &HotItem{
+			ID:        idInt,
+			Title:     strings.TrimSpace(post.Subject),
+			Desc:      strings.TrimSpace(post.Body),
+			Author:    post.Account.Name,
+			Timestamp: post.PostTime,
+			URL:       url,
+			MobileURL: url,
+		})
+	}
+
+	return &HotData{
+		Name:  "newsmth",
+		Title: "水木社区",
+		Type:  "热门话题",
+		Link:  "https://www.newsmth.net/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== NGA ==============
+func (s *Spider) GetNgabbs() (*HotData, error) {
+	url := s.UrlMap[SourceNgabbs].Url
+	agent := s.UrlMap[SourceNgabbs].Agent
+
+	body := strings.NewReader("__output=14")
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return nil, fmt.Errorf("创建请求失败: %v", err)
+	}
+	req.Header.Set("User-Agent", agent)
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Host", "ngabbs.com")
+	req.Header.Set("Referer", "https://ngabbs.com/")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Content-Length", "11")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("Accept-Language", "zh-Hans-CN;q=1")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-User-Agent", "NGA_skull/7.3.1(iPhone13,2;iOS 17.2.1)")
+
+	resp, err := s.HttpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("请求失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("HTTP错误: %s", resp.Status)
+	}
+
+	var result struct {
+		Result [][]struct {
+			Tid      string `json:"tid"`
+			Subject  string `json:"subject"`
+			Author   string `json:"author"`
+			Replies  int    `json:"replies"`
+			Postdate int64  `json:"postdate"`
+			Tpcurl   string `json:"tpcurl"`
+		} `json:"result"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("解析JSON失败: %v", err)
+	}
+
+	var listData []*HotItem
+	for _, item := range result.Result[0] {
+		tidInt, _ := strconv.Atoi(item.Tid)
+	listData = append(listData, &HotItem{
+		ID:        tidInt,
+		Title:     strings.TrimSpace(item.Subject),
+		Author:    item.Author,
+		Hot:       item.Replies,
+		Timestamp: item.Postdate,
+		URL:       fmt.Sprintf("https://bbs.nga.cn%s", item.Tpcurl),
+		MobileURL: fmt.Sprintf("https://bbs.nga.cn%s", item.Tpcurl),
+		})
+	}
+
+	return &HotData{
+		Name:  "ngabbs",
+		Title: "NGA",
+		Type:  "论坛热帖",
+		Link:  "https://ngabbs.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== NodeSeek ==============
+func (s *Spider) GetNodeseek() (*HotData, error) {
+	url := s.UrlMap[SourceNodeseek].Url
+	resp, err := s.HttpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var rssData struct {
+		Channel struct {
+			Item []struct {
+				Title       string `xml:"title"`
+				Link        string `xml:"link"`
+				Description string `xml:"description"`
+				PubDate     string `xml:"pubDate"`
+			} `xml:"item"`
+		} `xml:"channel"`
+	}
+
+	err = xml.Unmarshal(body, &rssData)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range rssData.Channel.Item {
+		timestamp, _ := time.Parse(time.RFC1123, item.PubDate)
+
+		listData = append(listData, &HotItem{
+			ID:        len(listData)+1,
+			Title:     item.Title,
+			Desc:      item.Description,
+			Timestamp: timestamp.Unix(),
+			URL:       item.Link,
+			MobileURL: item.Link,
+		})
+	}
+
+	return &HotData{
+		Name:  "nodeseek",
+		Title: "NodeSeek",
+		Type:  "技术社区",
+		Link:  "https://www.nodeseek.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 纽约时报 ==============
+func (s *Spider) GetNytimes() (*HotData, error) {
+	url := s.UrlMap[SourceNytimes].Url
+	resp, err := s.HttpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var rssData struct {
+		Channel struct {
+			Item []struct {
+				Title       string `xml:"title"`
+				Link        string `xml:"link"`
+				Description string `xml:"description"`
+				PubDate     string `xml:"pubDate"`
+			} `xml:"item"`
+		} `xml:"channel"`
+	}
+
+	err = xml.Unmarshal(body, &rssData)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range rssData.Channel.Item {
+		timestamp, _ := time.Parse(time.RFC1123, item.PubDate)
+
+		listData = append(listData, &HotItem{
+			ID:        len(listData) + 1,
+			Title:     item.Title,
+			Desc:      item.Description,
+			Timestamp: timestamp.Unix(),
+			URL:       item.Link,
+			MobileURL: item.Link,
+		})
+	}
+
+	return &HotData{
+		Name:  "nytimes",
+		Title: "纽约时报",
+		Type:  "国际新闻",
+		Link:  "https://www.nytimes.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== Product Hunt ==============
+func (s *Spider) GetProducthunt() (*HotData, error) {
+	url := s.UrlMap[SourceProducthunt].Url
+	resp, err := s.HttpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// 使用正则表达式提取产品信息
+	re := regexp.MustCompile(`<div data-test="post-item"[^>]*>.*?<a[^>]*href="([^"]*)"[^>]*>.*?<h3[^>]*>([^<]*)</h3>.*?<div[^>]*>([^<]*)</div>`)
+	matches := re.FindAllStringSubmatch(string(body), -1)
+
+	var listData []*HotItem
+	for i, match := range matches {
+		if len(match) >= 4 {
+			url := "https://www.producthunt.com" + match[1]
+
+			listData = append(listData, &HotItem{
+			ID:        i + 1,
+			Title:     strings.TrimSpace(match[2]),
+			Desc:      strings.TrimSpace(match[3]),
+			Timestamp: time.Now().Unix(),
+			URL:       url,
+			MobileURL: url,
+		})
+		}
+	}
+
+	return &HotData{
+		Name:  "producthunt",
+		Title: "Product Hunt",
+		Type:  "产品发现",
+		Link:  "https://www.producthunt.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 新浪新闻 ==============
+func (s *Spider) GetSinaNews() (*HotData, error) {
+	url := s.UrlMap[SourceSinaNews].Url
+	resp, err := s.HttpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// 使用正则表达式提取新闻信息
+	re := regexp.MustCompile(`<a[^>]*href="([^"]*)"[^>]*>([^<]*)</a>`)
+	matches := re.FindAllStringSubmatch(string(body), -1)
+
+	var listData []*HotItem
+	for i, match := range matches {
+		if len(match) >= 3 && strings.Contains(match[1], "news.sina.com.cn") {
+			url := match[1]
+			if !strings.HasPrefix(url, "http") {
+				url = "https:" + url
+			}
+
+			listData = append(listData, &HotItem{
+				ID:        i+1,
+				Title:     strings.TrimSpace(match[2]),
+				Timestamp: time.Now().Unix(),
+				URL:       url,
+				MobileURL: url,
+			})
+		}
+	}
+
+	return &HotData{
+		Name:  "sina-news",
+		Title: "新浪新闻",
+		Type:  "新闻资讯",
+		Link:  "https://news.sina.com.cn/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 新浪微博 ==============
+func (s *Spider) GetSina() (*HotData, error) {
+	url := s.UrlMap[SourceSina].Url
+	resp, err := s.HttpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// 使用正则表达式提取微博热搜信息
+	re := regexp.MustCompile(`<a[^>]*href="([^"]*weibo.com[^"]*)"[^>]*>([^<]*)</a>`)
+	matches := re.FindAllStringSubmatch(string(body), -1)
+
+	var listData []*HotItem
+	for i, match := range matches {
+		if len(match) >= 3 {
+			url := match[1]
+			if !strings.HasPrefix(url, "http") {
+				url = "https:" + url
+			}
+
+			listData = append(listData, &HotItem{
+				ID:        i+1,
+				Title:     strings.TrimSpace(match[2]),
+				Timestamp: time.Now().Unix(),
+				URL:       url,
+				MobileURL: url,
+			})
+		}
+	}
+
+	return &HotData{
+		Name:  "sina",
+		Title: "微博热搜",
+		Type:  "社交媒体",
+		Link:  "https://s.weibo.com/top/summary",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 星穹铁道 ==============
+func (s *Spider) GetStarrail() (*HotData, error) {
+	url := s.UrlMap[SourceStarrail].Url
+	resp, err := s.HttpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var jsonData struct {
+		Data struct {
+			List []struct {
+				Post struct {
+					PostId    int64  `json:"post_id"`
+					Subject   string `json:"subject"`
+					Content   string `json:"content"`
+					CreatedAt int64  `json:"created_at"`
+					ViewCnt   int    `json:"view_cnt"`
+				} `json:"post"`
+			} `json:"list"`
+		} `json:"data"`
+	}
+
+	err = json.Unmarshal(body, &jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range jsonData.Data.List {
+		post := item.Post
+		url := fmt.Sprintf("https://bbs.miyoushe.com/detail/%d", post.PostId)
+
+		listData = append(listData, &HotItem{
+		ID:        int(post.PostId),
+		Title:     post.Subject,
+		Desc:      post.Content,
+		Timestamp: post.CreatedAt,
+		Hot:       post.ViewCnt,
+		URL:       url,
+		MobileURL: url,
+		})
+	}
+
+	return &HotData{
+		Name:  "starrail",
+		Title: "星穹铁道",
+		Type:  "游戏资讯",
+		Link:  "https://bbs.miyoushe.com/ys/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 澎湃新闻 ==============
+func (s *Spider) GetThepaper() (*HotData, error) {
+	url := s.UrlMap[SourceThepaper].Url
+	resp, err := s.HttpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// 使用正则表达式提取新闻信息
+	re := regexp.MustCompile(`<a[^>]*href="([^"]*thepaper.cn[^"]*)"[^>]*>([^<]*)</a>`)
+	matches := re.FindAllStringSubmatch(string(body), -1)
+
+	var listData []*HotItem
+	for i, match := range matches {
+		if len(match) >= 3 {
+			url := match[1]
+			if !strings.HasPrefix(url, "http") {
+				url = "https:" + url
+			}
+
+			listData = append(listData, &HotItem{
+				ID:        i+1,
+				Title:     strings.TrimSpace(match[2]),
+				Timestamp: time.Now().Unix(),
+				URL:       url,
+				MobileURL: url,
+			})
+		}
+	}
+
+	return &HotData{
+		Name:  "thepaper",
+		Title: "澎湃新闻",
+		Type:  "新闻资讯",
+		Link:  "https://www.thepaper.cn/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 气象预警 ==============
+func (s *Spider) GetWeatheralarm() (*HotData, error) {
+	url := s.UrlMap[SourceWeatheralarm].Url
+	resp, err := s.HttpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var jsonData struct {
+		Data []struct {
+			Alertid   string `json:"alertid"`
+			Title     string `json:"title"`
+			Issuetime string `json:"issuetime"`
+			Pic       string `json:"pic"`
+		} `json:"data"`
+	}
+
+	err = json.Unmarshal(body, &jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, item := range jsonData.Data {
+		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.Issuetime)
+		url := fmt.Sprintf("http://www.nmc.cn/publish/alarm.html?alertid=%s", item.Alertid)
+
+		alertidInt, _ := strconv.Atoi(item.Alertid)
+	listData = append(listData, &HotItem{
+		ID:        alertidInt,
+		Title:     item.Title,
+		Desc:      fmt.Sprintf("发布时间: %s", item.Issuetime),
+		Cover:     item.Pic,
+		Timestamp: timestamp.Unix(),
+		URL:       url,
+		MobileURL: url,
+		})
+	}
+
+	return &HotData{
+		Name:  "weatheralarm",
+		Title: "气象预警",
+		Type:  "气象信息",
+		Link:  "http://www.nmc.cn/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 微信读书 ==============
+func (s *Spider) GetWeread() (*HotData, error) {
+	url := s.UrlMap[SourceWeread].Url
+	resp, err := s.HttpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var jsonData struct {
+		Books []struct {
+			BookId       string `json:"bookId"`
+			Title        string `json:"title"`
+			Author       string `json:"author"`
+			Intro        string `json:"intro"`
+			Cover        string `json:"cover"`
+			PublishTime  int64  `json:"publishTime"`
+			ReadingCount int    `json:"readingCount"`
+		} `json:"books"`
+	}
+
+	err = json.Unmarshal(body, &jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	for _, book := range jsonData.Books {
+		cover := strings.Replace(book.Cover, "_s.jpg", "_l.jpg", 1)
+		url := fmt.Sprintf("https://weread.qq.com/web/bookDetail/%s", book.BookId)
+
+		bookIdInt, _ := strconv.Atoi(book.BookId)
+	listData = append(listData, &HotItem{
+		ID:        bookIdInt,
+		Title:     book.Title,
+		Author:    book.Author,
+		Desc:      book.Intro,
+		Cover:     cover,
+		Timestamp: book.PublishTime,
+		Hot:       book.ReadingCount,
+		URL:       url,
+		MobileURL: url,
+		})
+	}
+
+	return &HotData{
+		Name:  "weread",
+		Title: "微信读书",
+		Type:  "图书排行",
+		Link:  "https://weread.qq.com/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// ============== 游研社 ==============
+func (s *Spider) GetYystv() (*HotData, error) {
+	url := s.UrlMap[SourceYystv].Url
+	resp, err := s.HttpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// 使用正则表达式提取文章信息
+	re := regexp.MustCompile(`<a[^>]*href="([^"]*yystv.cn[^"]*)"[^>]*>([^<]*)</a>`)
+	matches := re.FindAllStringSubmatch(string(body), -1)
+
+	var listData []*HotItem
+	for i, match := range matches {
+		if len(match) >= 3 {
+			url := match[1]
+			if !strings.HasPrefix(url, "http") {
+				url = "https:" + url
+			}
+
+			listData = append(listData, &HotItem{
+			ID:        i+1,
+			Title:     strings.TrimSpace(match[2]),
+			Timestamp: time.Now().Unix(),
+			URL:       url,
+			MobileURL: url,
+		})
+		}
+	}
+
+	return &HotData{
+		Name:  "yystv",
+		Title: "游研社",
+		Type:  "游戏资讯",
+		Link:  "https://www.yystv.cn/",
+		Total: len(listData),
+		Data:  listData,
+	}, nil
+}
+
+// RSSFeed RSS订阅数据结构
+type RSSFeed struct {
+	Channel struct {
+		Items []RSSItem `xml:"item"`
+	} `xml:"channel"`
+}
+
+// RSSItem RSS项目结构
+type RSSItem struct {
+	Title       string `xml:"title"`
+	Link        string `xml:"link"`
+	Description string `xml:"description"`
+	PubDate     string `xml:"pubDate"`
+	Guid        string `xml:"guid"`
+	Author      string `xml:"author"`
+}
+
+// ParseRSS 解析RSS XML内容
+func ParseRSS(body io.Reader) (*RSSFeed, error) {
+	var feed RSSFeed
+	decoder := xml.NewDecoder(body)
+	err := decoder.Decode(&feed)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse RSS: %v", err)
+	}
+	return &feed, nil
+}
+
+// parseTime 解析各种时间格式为Unix时间戳
+func parseTime(timeStr string) int64 {
+	if timeStr == "" {
+		return time.Now().Unix()
+	}
+
+	// 尝试多种时间格式
+	formats := []string{
+		time.RFC1123,
+		time.RFC1123Z,
+		time.RFC822,
+		time.RFC822Z,
+		time.RFC3339,
+		"Mon, 2 Jan 2006 15:04:05 -0700",
+		"2006-01-02T15:04:05Z",
+		"2006-01-02 15:04:05",
+		"2006-01-02",
+	}
+
+	for _, format := range formats {
+		if t, err := time.Parse(format, timeStr); err == nil {
+			return t.Unix()
+		}
+	}
+
+	// 如果所有格式都失败，返回当前时间
+	return time.Now().Unix()
 }
