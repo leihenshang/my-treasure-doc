@@ -548,15 +548,24 @@ func (s *Spider) GetWeibo() (*HotData, error) {
 							timestamp = int64(onboardTime)
 						}
 
-						listData = append(listData, &HotItem{
-							ID:        int(v["itemid"].(float64)),
-							Title:     title,
-							Desc:      wordScheme,
-							Timestamp: timestamp,
-							Hot:       hot,
-							URL:       fmt.Sprintf("https://s.weibo.com/weibo?q=%s&t=31&band_rank=1&Refer=top", strings.ReplaceAll(wordScheme, "#", "")),
-							MobileURL: v["scheme"].(string),
-						})
+						itemID := 0
+					if id, ok := v["itemid"].(float64); ok {
+						itemID = int(id)
+					} else if idStr, ok := v["itemid"].(string); ok {
+						if id, err := strconv.Atoi(idStr); err == nil {
+							itemID = id
+						}
+					}
+					
+					listData = append(listData, &HotItem{
+						ID:        itemID,
+						Title:     title,
+						Desc:      wordScheme,
+						Timestamp: timestamp,
+						Hot:       hot,
+						URL:       fmt.Sprintf("https://s.weibo.com/weibo?q=%s&t=31&band_rank=1&Refer=top", strings.ReplaceAll(wordScheme, "#", "")),
+						MobileURL: v["scheme"].(string),
+					})
 					}
 				}
 			}
@@ -1923,45 +1932,52 @@ func (s *Spider) GetSspai() (*HotData, error) {
 	}
 	defer res.Body.Close()
 
-	var result []map[string]interface{}
+	var result map[string]interface{}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
 	var listData []*HotItem
-	for i, item := range result {
-		title := ""
-		if t, ok := item["title"].(string); ok {
-			title = t
-		}
-
-		summary := ""
-		if s, ok := item["summary"].(string); ok {
-			summary = s
-		}
-
-		id := 0
-		if idFloat, ok := item["id"].(float64); ok {
-			id = int(idFloat)
-		}
-
-		author := ""
-		if authorMap, ok := item["author"].(map[string]interface{}); ok {
-			if nickname, ok := authorMap["nickname"].(string); ok {
-				author = nickname
+	var dataList []interface{}
+	if data, ok := result["data"].([]interface{}); ok {
+		dataList = data
+	}
+	
+	for i, item := range dataList {
+		if itemMap, ok := item.(map[string]interface{}); ok {
+			title := ""
+			if t, ok := itemMap["title"].(string); ok {
+				title = t
 			}
-		}
 
-		listData = append(listData, &HotItem{
-			ID:        id,
-			Title:     title,
-			Desc:      summary,
-			Author:    author,
-			Timestamp: time.Now().Unix(),
-			Hot:       0,
-			URL:       fmt.Sprintf("https://sspai.com/post/%d", id),
-			MobileURL: fmt.Sprintf("https://sspai.com/post/%d", id),
-		})
+			summary := ""
+			if s, ok := itemMap["summary"].(string); ok {
+				summary = s
+			}
+
+			id := 0
+			if idFloat, ok := itemMap["id"].(float64); ok {
+				id = int(idFloat)
+			}
+
+			author := ""
+			if authorMap, ok := itemMap["author"].(map[string]interface{}); ok {
+				if nickname, ok := authorMap["nickname"].(string); ok {
+					author = nickname
+				}
+			}
+
+			listData = append(listData, &HotItem{
+				ID:        id,
+				Title:     title,
+				Desc:      summary,
+				Author:    author,
+				Timestamp: time.Now().Unix(),
+				Hot:       0,
+				URL:       fmt.Sprintf("https://sspai.com/post/%d", id),
+				MobileURL: fmt.Sprintf("https://sspai.com/post/%d", id),
+			})
+		}
 
 		if i >= 19 { // 限制为20条
 			break
