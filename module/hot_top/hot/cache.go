@@ -10,15 +10,21 @@ type HotCache struct {
 	Cache map[Source]*HotCacheItem
 }
 
+var hotCache *HotCache
+var hotCacheOnce sync.Once
+
 type HotCacheItem struct {
 	LastUpdateTime time.Time
 	HotData        *HotData
 }
 
-func NewHotCache() *HotCache {
-	return &HotCache{
-		Cache: make(map[Source]*HotCacheItem),
-	}
+func NewHotCache(len int) *HotCache {
+	hotCacheOnce.Do(func() {
+		hotCache = &HotCache{
+			Cache: make(map[Source]*HotCacheItem, len),
+		}
+	})
+	return hotCache
 }
 
 func (c *HotCache) Get(source Source) (*HotCacheItem, bool) {
