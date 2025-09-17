@@ -11,7 +11,7 @@ func Start() {
 			fmt.Printf("Get1 %s failed,url: [%s], err: %v", k, v, err)
 			continue
 		}
-		fmt.Printf("Get1 %s success,url: [%s], data: %+v", k, v, resp.Data)
+		fmt.Printf("Get1 %s success,url: [%s], data: %s", k, v, resp.Data.ToJsonWithErr())
 		hotCache.Set(k, resp)
 	}
 }
