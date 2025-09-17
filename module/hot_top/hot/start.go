@@ -1,6 +1,9 @@
 package hot
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func Start() {
 	NewSpider()
@@ -14,6 +17,26 @@ func Start() {
 		fmt.Printf("Get1 %s success,url: [%s], data: %s", k, v, resp.Data.ToJsonWithErr())
 		hotCache.Set(k, resp)
 	}
+	go TickerGet()
+}
+
+func TickerGet() {
+	fmt.Println("TickerGet start!")
+	tk := time.NewTicker(time.Second * 5)
+	defer tk.Stop()
+
+	for range tk.C {
+		for _, k := range GetHotCache().GetExpired(time.Hour) {
+			resp, err := Get1(k)
+			if err != nil {
+				fmt.Printf("Get1 %s failed, err: %v", k, err)
+				continue
+			}
+			fmt.Printf("Get1 %s success,data: %s", k, resp.Data.ToJsonWithErr())
+			hotCache.Set(k, resp)
+		}
+	}
+
 }
 
 func Get1(k Source) (*HotData, error) {

@@ -7,7 +7,7 @@ import (
 
 type HotCache struct {
 	lock  *sync.RWMutex
-	Cache map[Source]*HotCacheItem
+	cache map[Source]*HotCacheItem
 }
 
 var hotCache *HotCache
@@ -22,7 +22,7 @@ func NewHotCache(len int) *HotCache {
 	hotCacheOnce.Do(func() {
 		hotCache = &HotCache{
 			lock:  &sync.RWMutex{},
-			Cache: make(map[Source]*HotCacheItem, len),
+			cache: make(map[Source]*HotCacheItem, len),
 		}
 	})
 	return hotCache
@@ -35,7 +35,7 @@ func GetHotCache() *HotCache {
 func (c *HotCache) Get(source Source) (*HotCacheItem, bool) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	item, ok := c.Cache[source]
+	item, ok := c.cache[source]
 	if !ok {
 		return &HotCacheItem{}, false
 
@@ -43,11 +43,23 @@ func (c *HotCache) Get(source Source) (*HotCacheItem, bool) {
 	return item, true
 }
 
+func (c *HotCache) GetExpired(t time.Duration) []Source {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	var res []Source
+	for k, v := range c.cache {
+		if time.Since(v.LastUpdateTime) > t {
+			res = append(res, k)
+		}
+	}
+	return res
+}
+
 func (c *HotCache) Set(source Source, data *HotData) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if data != nil {
-		c.Cache[source] = &HotCacheItem{
+		c.cache[source] = &HotCacheItem{
 			LastUpdateTime: time.Now(),
 			HotData:        data,
 		}
