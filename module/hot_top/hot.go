@@ -95,7 +95,7 @@ type HotData struct {
 }
 
 type HotItem struct {
-	ID        int    `json:"id"`
+	ID        string `json:"id"`
 	Title     string `json:"title"`
 	Cover     string `json:"cover"`
 	Timestamp int64  `json:"timestamp"`
@@ -384,7 +384,7 @@ func (s *Spider) GetItHome() (*HotData, error) {
 		hot, _ := strconv.Atoi(hotStr)
 
 		hotItem := &HotItem{
-			ID:        100000,
+			ID:        "100000",
 			Title:     title,
 			Cover:     cover,
 			Timestamp: timestamp.Unix(),
@@ -395,7 +395,7 @@ func (s *Spider) GetItHome() (*HotData, error) {
 
 		if idStr := replaceItHomeLink(href, true); idStr != href {
 			if id, err := strconv.Atoi(idStr); err == nil {
-				hotItem.ID = id
+				hotItem.ID = strconv.Itoa(id) // 使用 strconv.Itoa 将 int 转换为 string
 			}
 		}
 
@@ -462,9 +462,15 @@ func (s *Spider) GetZhihu() (*HotData, error) {
 
 				hot := 0
 				if detailText, ok := v["detail_text"].(string); ok {
-					if matches := regexp.MustCompile(`(\\d+(\\.\\d+)?)`).FindStringSubmatch(detailText); len(matches) > 0 {
+					// 匹配纯数字、小数，以及带"万"字的数字
+					if matches := regexp.MustCompile(`(\d+(?:\.\d+)?)\s*(?:万|w)?`).FindStringSubmatch(detailText); len(matches) > 0 {
 						if val, err := strconv.ParseFloat(matches[1], 64); err == nil {
-							hot = int(val * 10000)
+							// 如果包含"万"字或"w"，乘以10000
+							if strings.Contains(detailText, "万") || strings.Contains(detailText, "w") {
+								hot = int(val * 10000)
+							} else {
+								hot = int(val)
+							}
 						}
 					}
 				}
@@ -475,7 +481,7 @@ func (s *Spider) GetZhihu() (*HotData, error) {
 				}
 
 				listData = append(listData, &HotItem{
-					ID:        int(target["id"].(float64)),
+					ID:        strconv.Itoa(int(target["id"].(float64))),
 					Title:     title,
 					Cover:     cover,
 					Timestamp: timestamp,
@@ -549,23 +555,23 @@ func (s *Spider) GetWeibo() (*HotData, error) {
 						}
 
 						itemID := 0
-					if id, ok := v["itemid"].(float64); ok {
-						itemID = int(id)
-					} else if idStr, ok := v["itemid"].(string); ok {
-						if id, err := strconv.Atoi(idStr); err == nil {
-							itemID = id
+						if id, ok := v["itemid"].(float64); ok {
+							itemID = int(id)
+						} else if idStr, ok := v["itemid"].(string); ok {
+							if id, err := strconv.Atoi(idStr); err == nil {
+								itemID = id
+							}
 						}
-					}
-					
-					listData = append(listData, &HotItem{
-						ID:        itemID,
-						Title:     title,
-						Desc:      wordScheme,
-						Timestamp: timestamp,
-						Hot:       hot,
-						URL:       fmt.Sprintf("https://s.weibo.com/weibo?q=%s&t=31&band_rank=1&Refer=top", strings.ReplaceAll(wordScheme, "#", "")),
-						MobileURL: v["scheme"].(string),
-					})
+
+						listData = append(listData, &HotItem{
+							ID:        strconv.Itoa(itemID),
+							Title:     title,
+							Desc:      wordScheme,
+							Timestamp: timestamp,
+							Hot:       hot,
+							URL:       fmt.Sprintf("https://s.weibo.com/weibo?q=%s&t=31&band_rank=1&Refer=top", strings.ReplaceAll(wordScheme, "#", "")),
+							MobileURL: v["scheme"].(string),
+						})
 					}
 				}
 			}
@@ -649,7 +655,7 @@ func (s *Spider) GetBilibili() (*HotData, error) {
 					}
 
 					listData = append(listData, &HotItem{
-						ID:        0,
+						ID:        "0",
 						Title:     title,
 						Desc:      desc,
 						Cover:     cover,
@@ -751,7 +757,7 @@ func (s *Spider) GetBaidu() (*HotData, error) {
 						}
 
 						listData = append(listData, &HotItem{
-							ID:        int(v["index"].(float64)),
+							ID:        strconv.Itoa(int(v["index"].(float64))),
 							Title:     title,
 							Desc:      desc,
 							Cover:     cover,
@@ -827,7 +833,7 @@ func (s *Spider) GetV2EX() (*HotData, error) {
 		}
 
 		listData = append(listData, &HotItem{
-			ID:        int(v["id"].(float64)),
+			ID:        strconv.Itoa(int(v["id"].(float64))),
 			Title:     title,
 			Desc:      content,
 			Author:    author,
@@ -906,7 +912,7 @@ func (s *Spider) GetGitHub() (*HotData, error) {
 		}
 
 		listData = append(listData, &HotItem{
-			ID:        i + 1,
+			ID:        strconv.Itoa(i + 1),
 			Title:     fmt.Sprintf("%s/%s", owner, repoName),
 			Desc:      desc,
 			Author:    language,
@@ -1000,7 +1006,7 @@ func (s *Spider) GetDouyin() (*HotData, error) {
 					}
 
 					listData = append(listData, &HotItem{
-						ID:        i + 1,
+						ID:        strconv.Itoa(i + 1),
 						Title:     title,
 						Timestamp: eventTime,
 						Hot:       hotValue,
@@ -1089,7 +1095,7 @@ func (s *Spider) GetKuaishou() (*HotData, error) {
 							}
 
 							listData = append(listData, &HotItem{
-								ID:        i + 1,
+								ID:        strconv.Itoa(i + 1),
 								Title:     title,
 								Cover:     poster,
 								Timestamp: time.Now().Unix(),
@@ -1162,7 +1168,7 @@ func (s *Spider) GetToutiao() (*HotData, error) {
 				}
 
 				listData = append(listData, &HotItem{
-					ID:        i + 1,
+					ID:        strconv.Itoa(i + 1),
 					Title:     title,
 					Cover:     imageURL,
 					Timestamp: time.Now().Unix(),
@@ -1234,7 +1240,7 @@ func (s *Spider) GetJuejin() (*HotData, error) {
 				}
 
 				listData = append(listData, &HotItem{
-					ID:        i + 1,
+					ID:        strconv.Itoa(i + 1),
 					Title:     title,
 					Author:    authorName,
 					Timestamp: time.Now().Unix(),
@@ -1328,7 +1334,7 @@ func (s *Spider) Get36Kr() (*HotData, error) {
 				}
 
 				listData = append(listData, &HotItem{
-					ID:        i + 1,
+					ID:        strconv.Itoa(i + 1),
 					Title:     title,
 					Cover:     cover,
 					Author:    author,
@@ -1402,7 +1408,7 @@ func (s *Spider) GetCSDN() (*HotData, error) {
 				}
 
 				listData = append(listData, &HotItem{
-					ID:        i + 1,
+					ID:        strconv.Itoa(i + 1),
 					Title:     title,
 					Cover:     cover,
 					Author:    author,
@@ -1478,7 +1484,7 @@ func (s *Spider) GetTieba() (*HotData, error) {
 						}
 
 						listData = append(listData, &HotItem{
-							ID:        i + 1,
+							ID:        strconv.Itoa(i + 1),
 							Title:     title,
 							Desc:      desc,
 							Cover:     cover,
@@ -1551,7 +1557,7 @@ func (s *Spider) GetZhihuDaily() (*HotData, error) {
 				}
 
 				listData = append(listData, &HotItem{
-					ID:        i + 1,
+					ID:        strconv.Itoa(i + 1),
 					Title:     title,
 					Cover:     cover,
 					Timestamp: time.Now().Unix(),
@@ -1625,7 +1631,7 @@ func (s *Spider) GetCoolapk() (*HotData, error) {
 				}
 
 				listData = append(listData, &HotItem{
-					ID:        id,
+					ID:        strconv.Itoa(id),
 					Title:     title,
 					Cover:     cover,
 					Author:    author,
@@ -1685,7 +1691,7 @@ func (s *Spider) GetHupu() (*HotData, error) {
 		}
 
 		listData = append(listData, &HotItem{
-			ID:        i + 1,
+			ID:        strconv.Itoa(i + 1),
 			Title:     title,
 			Author:    author,
 			Timestamp: time.Now().Unix(),
@@ -1760,7 +1766,7 @@ func (s *Spider) GetHuxiu() (*HotData, error) {
 					}
 
 					listData = append(listData, &HotItem{
-						ID:        newsID,
+						ID:        strconv.Itoa(newsID),
 						Title:     title,
 						Desc:      summary,
 						Timestamp: time.Now().Unix(),
@@ -1827,7 +1833,7 @@ func (s *Spider) GetJianshu() (*HotData, error) {
 		}
 
 		listData = append(listData, &HotItem{
-			ID:        id,
+			ID:        strconv.Itoa(id),
 			Title:     title,
 			Desc:      abstract,
 			Author:    author,
@@ -1896,7 +1902,7 @@ func (s *Spider) GetSmzdm() (*HotData, error) {
 		}
 
 		listData = append(listData, &HotItem{
-			ID:        id,
+			ID:        strconv.Itoa(id),
 			Title:     fmt.Sprintf("%s %s", title, price),
 			Desc:      price,
 			Timestamp: time.Now().Unix(),
@@ -1942,7 +1948,7 @@ func (s *Spider) GetSspai() (*HotData, error) {
 	if data, ok := result["data"].([]interface{}); ok {
 		dataList = data
 	}
-	
+
 	for i, item := range dataList {
 		if itemMap, ok := item.(map[string]interface{}); ok {
 			title := ""
@@ -1968,7 +1974,7 @@ func (s *Spider) GetSspai() (*HotData, error) {
 			}
 
 			listData = append(listData, &HotItem{
-				ID:        id,
+				ID:        strconv.Itoa(id),
 				Title:     title,
 				Desc:      summary,
 				Author:    author,
@@ -2048,7 +2054,7 @@ func (s *Spider) GetNetease() (*HotData, error) {
 					}
 
 					listData = append(listData, &HotItem{
-						ID:        0,
+						ID:        "0",
 						Title:     title,
 						Cover:     cover,
 						Author:    author,
@@ -2137,7 +2143,7 @@ func (s *Spider) GetQQ() (*HotData, error) {
 						}
 
 						listData = append(listData, &HotItem{
-							ID:        0,
+							ID:        "0",
 							Title:     title,
 							Desc:      desc,
 							Cover:     cover,
@@ -2215,7 +2221,7 @@ func (s *Spider) Get51CTO() (*HotData, error) {
 						}
 
 						listData = append(listData, &HotItem{
-							ID:        0,
+							ID:        "0",
 							Title:     title,
 							Desc:      desc,
 							Cover:     cover,
@@ -2358,7 +2364,7 @@ func (s *Spider) GetAcfun() (*HotData, error) {
 					}
 
 					listData = append(listData, &HotItem{
-						ID:        0,
+						ID:        "0",
 						Title:     title,
 						Desc:      desc,
 						Cover:     cover,
@@ -2425,7 +2431,7 @@ func (s *Spider) GetDgtle() (*HotData, error) {
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.CreatedAt)
 
 		listData = append(listData, &HotItem{
-			ID:        item.ID,
+			ID:        strconv.Itoa(item.ID),
 			Title:     item.Title,
 			Desc:      item.Content,
 			Cover:     item.Cover,
@@ -2493,7 +2499,7 @@ func (s *Spider) GetDoubanMovie() (*HotData, error) {
 		}
 
 		listData = append(listData, &HotItem{
-			ID:        id,
+			ID:        strconv.Itoa(id),
 			Title:     fmt.Sprintf("【%s】%s", score, title),
 			Cover:     cover,
 			URL:       url,
@@ -2590,7 +2596,7 @@ func (s *Spider) GetEarthquake() (*HotData, error) {
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", eq.O_TIME)
 
 		listData = append(listData, &HotItem{
-			ID:        0,
+			ID:        "0",
 			Title:     fmt.Sprintf("%s发生%.1f级地震", eq.LOCATION_C, eq.M),
 			Desc:      strings.Join(contentBuilder, "\n"),
 			Timestamp: timestamp.Unix(),
@@ -2672,7 +2678,7 @@ func (s *Spider) GetGameres() (*HotData, error) {
 		}
 
 		listData = append(listData, &HotItem{
-			ID:        id,
+			ID:        strconv.Itoa(id),
 			Title:     title,
 			Cover:     cover,
 			Author:    author,
@@ -2731,7 +2737,7 @@ func (s *Spider) GetGeekpark() (*HotData, error) {
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.CreatedAt)
 
 		listData = append(listData, &HotItem{
-			ID:        item.ID,
+			ID:        strconv.Itoa(item.ID),
 			Title:     item.Title,
 			Desc:      item.Description,
 			Cover:     item.Cover,
@@ -2797,7 +2803,7 @@ func (s *Spider) GetGenshin() (*HotData, error) {
 		post := item.Post
 
 		listData = append(listData, &HotItem{
-			ID:        post.PostID,
+			ID:        strconv.Itoa(post.PostID),
 			Title:     post.Subject,
 			Desc:      post.Content,
 			Cover:     post.Cover,
@@ -2858,7 +2864,7 @@ func (s *Spider) GetGuokr() (*HotData, error) {
 		timestamp, _ := time.Parse(time.RFC3339, item.DateModified)
 		idInt, _ := strconv.Atoi(item.ID)
 		listData = append(listData, &HotItem{
-			ID:        idInt,
+			ID:        strconv.Itoa(idInt),
 			Title:     item.Title,
 			Desc:      item.Summary,
 			Cover:     item.SmallImage,
@@ -2927,7 +2933,7 @@ func (s *Spider) GetHackernews() (*HotData, error) {
 			}
 
 			listData = append(listData, &HotItem{
-				ID:    idInt,
+				ID:    strconv.Itoa(idInt),
 				Title: title,
 				Hot:   hot,
 				URL:   url,
@@ -2986,7 +2992,7 @@ func (s *Spider) GetHelloGitHub() (*HotData, error) {
 		hot := item.ClicksTotal
 		idInt, _ := strconv.Atoi(item.ItemID)
 		listData = append(listData, &HotItem{
-			ID:        idInt,
+			ID:        strconv.Itoa(idInt),
 			Title:     item.Title,
 			Desc:      item.Summary,
 			Author:    item.Author,
@@ -3053,7 +3059,7 @@ func (s *Spider) GetHistory() (*HotData, error) {
 	var listData []*HotItem
 	for i, item := range dayData {
 		listData = append(listData, &HotItem{
-			ID:        i,
+			ID:        strconv.Itoa(i),
 			Title:     strings.TrimSpace(item.Title),
 			Desc:      strings.TrimSpace(item.Desc),
 			Cover:     item.PicShare,
@@ -3127,7 +3133,7 @@ func (s *Spider) GetHonkai() (*HotData, error) {
 		}
 
 		listData = append(listData, &HotItem{
-			ID:        post.PostID,
+			ID:        strconv.Itoa(post.PostID),
 			Title:     post.Subject,
 			Desc:      post.Content,
 			Cover:     cover,
@@ -3169,7 +3175,7 @@ func (s *Spider) GetHostloc() (*HotData, error) {
 		// 将字符串Guid转换为int
 		idInt, _ := strconv.Atoi(item.Guid)
 		listData = append(listData, &HotItem{
-			ID:        idInt,
+			ID:        strconv.Itoa(idInt),
 			Title:     item.Title,
 			Desc:      item.Description,
 			Author:    item.Author,
@@ -3215,7 +3221,7 @@ func (s *Spider) GetIfanr() (*HotData, error) {
 	for _, item := range result.Data {
 		idInt, _ := strconv.Atoi(item.ID)
 		listData = append(listData, &HotItem{
-			ID:        idInt,
+			ID:        strconv.Itoa(idInt),
 			Title:     item.Title,
 			Desc:      item.Content,
 			Timestamp: item.Time,
@@ -3260,7 +3266,7 @@ func (s *Spider) GetIthomeXijiayi() (*HotData, error) {
 
 		idInt, _ := strconv.Atoi(id)
 		listData = append(listData, &HotItem{
-			ID:        idInt,
+			ID:        strconv.Itoa(idInt),
 			Title:     strings.TrimSpace(title),
 			Desc:      strings.TrimSpace(desc),
 			Timestamp: timestamp,
@@ -3333,7 +3339,7 @@ func (s *Spider) GetMiyoushe() (*HotData, error) {
 
 		idInt, _ := strconv.Atoi(post.PostID)
 		listData = append(listData, &HotItem{
-			ID:        idInt,
+			ID:        strconv.Itoa(idInt),
 			Title:     strings.TrimSpace(post.Subject),
 			Desc:      strings.TrimSpace(post.Content),
 			Cover:     cover,
@@ -3407,7 +3413,7 @@ func (s *Spider) GetNewsmth() (*HotData, error) {
 
 		idInt, _ := strconv.Atoi(topic.FirstArticleID)
 		listData = append(listData, &HotItem{
-			ID:        idInt,
+			ID:        strconv.Itoa(idInt),
 			Title:     strings.TrimSpace(post.Subject),
 			Desc:      strings.TrimSpace(post.Body),
 			Author:    post.Account.Name,
@@ -3476,14 +3482,14 @@ func (s *Spider) GetNgabbs() (*HotData, error) {
 	var listData []*HotItem
 	for _, item := range result.Result[0] {
 		tidInt, _ := strconv.Atoi(item.Tid)
-	listData = append(listData, &HotItem{
-		ID:        tidInt,
-		Title:     strings.TrimSpace(item.Subject),
-		Author:    item.Author,
-		Hot:       item.Replies,
-		Timestamp: item.Postdate,
-		URL:       fmt.Sprintf("https://bbs.nga.cn%s", item.Tpcurl),
-		MobileURL: fmt.Sprintf("https://bbs.nga.cn%s", item.Tpcurl),
+		listData = append(listData, &HotItem{
+			ID:        strconv.Itoa(tidInt),
+			Title:     strings.TrimSpace(item.Subject),
+			Author:    item.Author,
+			Hot:       item.Replies,
+			Timestamp: item.Postdate,
+			URL:       fmt.Sprintf("https://bbs.nga.cn%s", item.Tpcurl),
+			MobileURL: fmt.Sprintf("https://bbs.nga.cn%s", item.Tpcurl),
 		})
 	}
 
@@ -3532,7 +3538,7 @@ func (s *Spider) GetNodeseek() (*HotData, error) {
 		timestamp, _ := time.Parse(time.RFC1123, item.PubDate)
 
 		listData = append(listData, &HotItem{
-			ID:        len(listData)+1,
+			ID:        strconv.Itoa(len(listData) + 1),
 			Title:     item.Title,
 			Desc:      item.Description,
 			Timestamp: timestamp.Unix(),
@@ -3586,7 +3592,7 @@ func (s *Spider) GetNytimes() (*HotData, error) {
 		timestamp, _ := time.Parse(time.RFC1123, item.PubDate)
 
 		listData = append(listData, &HotItem{
-			ID:        len(listData) + 1,
+			ID:        strconv.Itoa(len(listData) + 1),
 			Title:     item.Title,
 			Desc:      item.Description,
 			Timestamp: timestamp.Unix(),
@@ -3629,13 +3635,13 @@ func (s *Spider) GetProducthunt() (*HotData, error) {
 			url := "https://www.producthunt.com" + match[1]
 
 			listData = append(listData, &HotItem{
-			ID:        i + 1,
-			Title:     strings.TrimSpace(match[2]),
-			Desc:      strings.TrimSpace(match[3]),
-			Timestamp: time.Now().Unix(),
-			URL:       url,
-			MobileURL: url,
-		})
+				ID:        strconv.Itoa(i + 1),
+				Title:     strings.TrimSpace(match[2]),
+				Desc:      strings.TrimSpace(match[3]),
+				Timestamp: time.Now().Unix(),
+				URL:       url,
+				MobileURL: url,
+			})
 		}
 	}
 
@@ -3676,7 +3682,7 @@ func (s *Spider) GetSinaNews() (*HotData, error) {
 			}
 
 			listData = append(listData, &HotItem{
-				ID:        i+1,
+				ID:        strconv.Itoa(i + 1),
 				Title:     strings.TrimSpace(match[2]),
 				Timestamp: time.Now().Unix(),
 				URL:       url,
@@ -3722,7 +3728,7 @@ func (s *Spider) GetSina() (*HotData, error) {
 			}
 
 			listData = append(listData, &HotItem{
-				ID:        i+1,
+				ID:        strconv.Itoa(i + 1),
 				Title:     strings.TrimSpace(match[2]),
 				Timestamp: time.Now().Unix(),
 				URL:       url,
@@ -3780,13 +3786,13 @@ func (s *Spider) GetStarrail() (*HotData, error) {
 		url := fmt.Sprintf("https://bbs.miyoushe.com/detail/%d", post.PostId)
 
 		listData = append(listData, &HotItem{
-		ID:        int(post.PostId),
-		Title:     post.Subject,
-		Desc:      post.Content,
-		Timestamp: post.CreatedAt,
-		Hot:       post.ViewCnt,
-		URL:       url,
-		MobileURL: url,
+			ID:        strconv.Itoa(int(post.PostId)),
+			Title:     post.Subject,
+			Desc:      post.Content,
+			Timestamp: post.CreatedAt,
+			Hot:       post.ViewCnt,
+			URL:       url,
+			MobileURL: url,
 		})
 	}
 
@@ -3827,7 +3833,7 @@ func (s *Spider) GetThepaper() (*HotData, error) {
 			}
 
 			listData = append(listData, &HotItem{
-				ID:        i+1,
+				ID:        strconv.Itoa(i + 1),
 				Title:     strings.TrimSpace(match[2]),
 				Timestamp: time.Now().Unix(),
 				URL:       url,
@@ -3879,15 +3885,14 @@ func (s *Spider) GetWeatheralarm() (*HotData, error) {
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.Issuetime)
 		url := fmt.Sprintf("http://www.nmc.cn/publish/alarm.html?alertid=%s", item.Alertid)
 
-		alertidInt, _ := strconv.Atoi(item.Alertid)
-	listData = append(listData, &HotItem{
-		ID:        alertidInt,
-		Title:     item.Title,
-		Desc:      fmt.Sprintf("发布时间: %s", item.Issuetime),
-		Cover:     item.Pic,
-		Timestamp: timestamp.Unix(),
-		URL:       url,
-		MobileURL: url,
+		listData = append(listData, &HotItem{
+			ID:        item.Alertid,
+			Title:     item.Title,
+			Desc:      fmt.Sprintf("发布时间: %s", item.Issuetime),
+			Cover:     item.Pic,
+			Timestamp: timestamp.Unix(),
+			URL:       url,
+			MobileURL: url,
 		})
 	}
 
@@ -3937,17 +3942,16 @@ func (s *Spider) GetWeread() (*HotData, error) {
 		cover := strings.Replace(book.Cover, "_s.jpg", "_l.jpg", 1)
 		url := fmt.Sprintf("https://weread.qq.com/web/bookDetail/%s", book.BookId)
 
-		bookIdInt, _ := strconv.Atoi(book.BookId)
-	listData = append(listData, &HotItem{
-		ID:        bookIdInt,
-		Title:     book.Title,
-		Author:    book.Author,
-		Desc:      book.Intro,
-		Cover:     cover,
-		Timestamp: book.PublishTime,
-		Hot:       book.ReadingCount,
-		URL:       url,
-		MobileURL: url,
+		listData = append(listData, &HotItem{
+			ID:        book.BookId,
+			Title:     book.Title,
+			Author:    book.Author,
+			Desc:      book.Intro,
+			Cover:     cover,
+			Timestamp: book.PublishTime,
+			Hot:       book.ReadingCount,
+			URL:       url,
+			MobileURL: url,
 		})
 	}
 
@@ -3988,12 +3992,12 @@ func (s *Spider) GetYystv() (*HotData, error) {
 			}
 
 			listData = append(listData, &HotItem{
-			ID:        i+1,
-			Title:     strings.TrimSpace(match[2]),
-			Timestamp: time.Now().Unix(),
-			URL:       url,
-			MobileURL: url,
-		})
+				ID:        strconv.Itoa(i + 1),
+				Title:     strings.TrimSpace(match[2]),
+				Timestamp: time.Now().Unix(),
+				URL:       url,
+				MobileURL: url,
+			})
 		}
 	}
 
