@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_GetList(t *testing.T) {
+func Test_GetItHome(t *testing.T) {
 	spider := NewSpider()
 	result, err := spider.GetItHome()
 	if err != nil {
@@ -453,7 +453,12 @@ func Test_GetYystv(t *testing.T) {
 }
 
 func printData(result *HotData) {
+	if result == nil || len(result.Data) == 0 {
+		fmt.Println("result is empty")
+		return
+	}
+
 	for _, v := range result.Data {
-		fmt.Printf("id:%d,title:%s,hot:%d,\n", v.ID, v.Title, v.Hot)
+		fmt.Printf("id:%d,title:%s,hot:%d,url: %s\n", v.ID, v.Title, v.Hot, v.URL)
 	}
 }
