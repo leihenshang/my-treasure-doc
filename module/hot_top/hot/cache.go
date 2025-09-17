@@ -11,7 +11,7 @@ type HotCache struct {
 }
 
 var hotCache *HotCache
-var hotCacheOnce sync.Once
+var hotCacheOnce *sync.Once = &sync.Once{}
 
 type HotCacheItem struct {
 	LastUpdateTime time.Time
@@ -21,9 +21,14 @@ type HotCacheItem struct {
 func NewHotCache(len int) *HotCache {
 	hotCacheOnce.Do(func() {
 		hotCache = &HotCache{
+			lock:  &sync.RWMutex{},
 			Cache: make(map[Source]*HotCacheItem, len),
 		}
 	})
+	return hotCache
+}
+
+func GetHotCache() *HotCache {
 	return hotCache
 }
 

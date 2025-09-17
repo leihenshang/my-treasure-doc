@@ -10,10 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var spider *hot.Spider
-
 func main() {
-	spider = hot.NewSpider()
+	hot.Start()
 	r := gin.New()
 	InitRouter(r)
 	r.Use(Cors())
@@ -46,82 +44,42 @@ func InitRouter(r *gin.Engine) {
 	route := r.Group("/").Use(Cors())
 
 	route.GET("/baidu", func(c *gin.Context) {
-		resp, err := spider.GetBaidu()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
-
+		resp, _ := hot.GetHotCache().Get(hot.SourceBaidu)
 		c.JSON(http.StatusOK, resp)
 	})
 
 	route.GET("/ithome", func(c *gin.Context) {
-		resp, err := spider.GetItHome()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
-
+		resp, _ := hot.GetHotCache().Get(hot.SourceITHome)
 		c.JSON(http.StatusOK, resp)
 	})
 
 	route.GET("/weibo", func(c *gin.Context) {
-		resp, err := spider.GetWeibo()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
-
+		resp, _ := hot.GetHotCache().Get(hot.SourceWeibo)
 		c.JSON(http.StatusOK, resp)
 	})
 
 	route.GET("/36kr", func(c *gin.Context) {
-		resp, err := spider.Get36Kr()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
-
+		resp, _ := hot.GetHotCache().Get(hot.Source36Kr)
 		c.JSON(http.StatusOK, resp)
 	})
 
 	route.GET("/douyin", func(c *gin.Context) {
-		resp, err := spider.GetDouyin()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
-
+		resp, _ := hot.GetHotCache().Get(hot.SourceDouyin)
 		c.JSON(http.StatusOK, resp)
 	})
 
 	route.GET("/bilibili", func(c *gin.Context) {
-		resp, err := spider.GetBilibili()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
-
+		resp, _ := hot.GetHotCache().Get(hot.SourceBilibili)
 		c.JSON(http.StatusOK, resp)
 	})
 
 	route.GET("/sspai", func(c *gin.Context) {
-		resp, err := spider.GetSspai()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
-
+		resp, _ := hot.GetHotCache().Get(hot.SourceSspai)
 		c.JSON(http.StatusOK, resp)
 	})
 
 	route.GET("/zhihu", func(c *gin.Context) {
-		resp, err := spider.GetZhihu()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
-
+		resp, _ := hot.GetHotCache().Get(hot.SourceZhihu)
 		c.JSON(http.StatusOK, resp)
 	})
 
