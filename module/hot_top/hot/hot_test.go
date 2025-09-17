@@ -1,4 +1,4 @@
-package hottop
+package hot
 
 import (
 	"fmt"

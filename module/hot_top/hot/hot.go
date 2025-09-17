@@ -1,4 +1,4 @@
-package hottop
+package hot
 
 import (
 	"bytes"
@@ -85,6 +85,7 @@ type UrlConf struct {
 }
 
 type HotData struct {
+	Code        int        `json:"code"`
 	Name        string     `json:"name"`
 	Title       string     `json:"title"`
 	Type        string     `json:"type"`
@@ -403,6 +404,7 @@ func (s *Spider) GetItHome() (*HotData, error) {
 	})
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "ithome",
 		Title:       "IT之家",
 		Type:        "热榜",
@@ -494,6 +496,7 @@ func (s *Spider) GetZhihu() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "zhihu",
 		Title: "知乎",
 		Type:  "热榜",
@@ -579,6 +582,7 @@ func (s *Spider) GetWeibo() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "weibo",
 		Title:       "微博",
 		Type:        "热搜榜",
@@ -671,6 +675,7 @@ func (s *Spider) GetBilibili() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "bilibili",
 		Title:       "哔哩哔哩",
 		Type:        "热榜 · 全站",
@@ -774,6 +779,7 @@ func (s *Spider) GetBaidu() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "baidu",
 		Title: "百度",
 		Type:  "热搜",
@@ -845,6 +851,7 @@ func (s *Spider) GetV2EX() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "v2ex",
 		Title: "V2EX",
 		Type:  "主题榜",
@@ -924,6 +931,7 @@ func (s *Spider) GetGitHub() (*HotData, error) {
 	})
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "github",
 		Title:       "GitHub",
 		Type:        "趋势榜",
@@ -1019,6 +1027,7 @@ func (s *Spider) GetDouyin() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "douyin",
 		Title:       "抖音",
 		Type:        "热榜",
@@ -1111,6 +1120,7 @@ func (s *Spider) GetKuaishou() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "kuaishou",
 		Title:       "快手",
 		Type:        "热榜",
@@ -1181,6 +1191,7 @@ func (s *Spider) GetToutiao() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "toutiao",
 		Title: "今日头条",
 		Type:  "热榜",
@@ -1253,6 +1264,7 @@ func (s *Spider) GetJuejin() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "juejin",
 		Title: "稀土掘金",
 		Type:  "文章榜",
@@ -1283,7 +1295,6 @@ func parseChineseNumber(str string) int {
 	return 0
 }
 
-// ... existing code ...
 // ============== 36氪 ==============
 func (s *Spider) Get36Kr() (*HotData, error) {
 	var Body io.Reader
@@ -1348,6 +1359,7 @@ func (s *Spider) Get36Kr() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "36kr",
 		Title:       "36氪",
 		Type:        "热榜",
@@ -1422,6 +1434,7 @@ func (s *Spider) GetCSDN() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "csdn",
 		Title:       "CSDN",
 		Type:        "热榜",
@@ -1500,6 +1513,7 @@ func (s *Spider) GetTieba() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "tieba",
 		Title:       "百度贴吧",
 		Type:        "热议榜",
@@ -1570,6 +1584,7 @@ func (s *Spider) GetZhihuDaily() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "zhihu-daily",
 		Title:       "知乎日报",
 		Type:        "日报",
@@ -1645,6 +1660,7 @@ func (s *Spider) GetCoolapk() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "coolapk",
 		Title:       "酷安",
 		Type:        "热门",
@@ -1702,6 +1718,7 @@ func (s *Spider) GetHupu() (*HotData, error) {
 	})
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "hupu",
 		Title:       "虎扑",
 		Type:        "热帖",
@@ -1780,6 +1797,7 @@ func (s *Spider) GetHuxiu() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "huxiu",
 		Title:       "虎嗅",
 		Type:        "24小时",
@@ -1845,6 +1863,7 @@ func (s *Spider) GetJianshu() (*HotData, error) {
 	})
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "jianshu",
 		Title:       "简书",
 		Type:        "热门",
@@ -1913,6 +1932,7 @@ func (s *Spider) GetSmzdm() (*HotData, error) {
 	})
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "smzdm",
 		Title:       "什么值得买",
 		Type:        "热门",
@@ -1991,6 +2011,7 @@ func (s *Spider) GetSspai() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:        http.StatusOK,
 		Name:        "sspai",
 		Title:       "少数派",
 		Type:        "热门文章",
@@ -2069,6 +2090,7 @@ func (s *Spider) GetNetease() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "netease",
 		Title: "网易新闻",
 		Type:  "热点榜",
@@ -2160,6 +2182,7 @@ func (s *Spider) GetQQ() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "qq",
 		Title: "腾讯新闻",
 		Type:  "热点榜",
@@ -2237,6 +2260,7 @@ func (s *Spider) Get51CTO() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "51cto",
 		Title: "51CTO",
 		Type:  "推荐榜",
@@ -2265,6 +2289,7 @@ func (s *Spider) Get52Pojie() (*HotData, error) {
 	// 实际实现需要解析RSS XML内容
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "52pojie",
 		Title: "吾爱破解",
 		Type:  "最新精华",
@@ -2293,6 +2318,7 @@ func (s *Spider) GetDoubanGroup() (*HotData, error) {
 	// 实际实现需要使用goquery解析HTML
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "douban-group",
 		Title: "豆瓣讨论",
 		Type:  "讨论精选",
@@ -2380,6 +2406,7 @@ func (s *Spider) GetAcfun() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "acfun",
 		Title: "AcFun",
 		Type:  "排行榜",
@@ -2444,6 +2471,7 @@ func (s *Spider) GetDgtle() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "dgtle",
 		Title: "数字尾巴",
 		Type:  "热门文章",
@@ -2508,6 +2536,7 @@ func (s *Spider) GetDoubanMovie() (*HotData, error) {
 	})
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "douban-movie",
 		Title: "豆瓣电影",
 		Type:  "新片榜",
@@ -2606,6 +2635,7 @@ func (s *Spider) GetEarthquake() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "earthquake",
 		Title: "中国地震台",
 		Type:  "地震速报",
@@ -2689,6 +2719,7 @@ func (s *Spider) GetGameres() (*HotData, error) {
 	})
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "gameres",
 		Title: "GameRes游资网",
 		Type:  "资讯",
@@ -2750,6 +2781,7 @@ func (s *Spider) GetGeekpark() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "geekpark",
 		Title: "极客公园",
 		Type:  "热门文章",
@@ -2815,6 +2847,7 @@ func (s *Spider) GetGenshin() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "genshin",
 		Title: "原神",
 		Type:  "动态",
@@ -2876,6 +2909,7 @@ func (s *Spider) GetGuokr() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "guokr",
 		Title: "果壳",
 		Type:  "热门文章",
@@ -2942,6 +2976,7 @@ func (s *Spider) GetHackernews() (*HotData, error) {
 	})
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "hackernews",
 		Title: "Hacker News",
 		Type:  "Popular",
@@ -3004,6 +3039,7 @@ func (s *Spider) GetHelloGitHub() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "hellogithub",
 		Title: "HelloGitHub",
 		Type:  "热门仓库",
@@ -3072,6 +3108,7 @@ func (s *Spider) GetHistory() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "history",
 		Title: "历史上的今天",
 		Type:  fmt.Sprintf("%02d-%02d", month, day),
@@ -3146,6 +3183,7 @@ func (s *Spider) GetHonkai() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "honkai",
 		Title: "崩坏3",
 		Type:  "最新动态",
@@ -3186,6 +3224,7 @@ func (s *Spider) GetHostloc() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "hostloc",
 		Title: "全球主机交流论坛",
 		Type:  "热门帖子",
@@ -3231,6 +3270,7 @@ func (s *Spider) GetIfanr() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "ifanr",
 		Title: "爱范儿",
 		Type:  "快讯",
@@ -3276,6 +3316,7 @@ func (s *Spider) GetIthomeXijiayi() (*HotData, error) {
 	})
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "ithome-xijiayi",
 		Title: "IT之家喜加一",
 		Type:  "游戏动态",
@@ -3352,6 +3393,7 @@ func (s *Spider) GetMiyoushe() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "miyoushe",
 		Title: "米游社",
 		Type:  "最新公告",
@@ -3424,6 +3466,7 @@ func (s *Spider) GetNewsmth() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "newsmth",
 		Title: "水木社区",
 		Type:  "热门话题",
@@ -3494,6 +3537,7 @@ func (s *Spider) GetNgabbs() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "ngabbs",
 		Title: "NGA",
 		Type:  "论坛热帖",
@@ -3548,6 +3592,7 @@ func (s *Spider) GetNodeseek() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "nodeseek",
 		Title: "NodeSeek",
 		Type:  "技术社区",
@@ -3602,6 +3647,7 @@ func (s *Spider) GetNytimes() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "nytimes",
 		Title: "纽约时报",
 		Type:  "国际新闻",
@@ -3646,6 +3692,7 @@ func (s *Spider) GetProducthunt() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "producthunt",
 		Title: "Product Hunt",
 		Type:  "产品发现",
@@ -3692,6 +3739,7 @@ func (s *Spider) GetSinaNews() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "sina-news",
 		Title: "新浪新闻",
 		Type:  "新闻资讯",
@@ -3738,6 +3786,7 @@ func (s *Spider) GetSina() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "sina",
 		Title: "微博热搜",
 		Type:  "社交媒体",
@@ -3797,6 +3846,7 @@ func (s *Spider) GetStarrail() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "starrail",
 		Title: "星穹铁道",
 		Type:  "游戏资讯",
@@ -3843,6 +3893,7 @@ func (s *Spider) GetThepaper() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "thepaper",
 		Title: "澎湃新闻",
 		Type:  "新闻资讯",
@@ -3897,6 +3948,7 @@ func (s *Spider) GetWeatheralarm() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "weatheralarm",
 		Title: "气象预警",
 		Type:  "气象信息",
@@ -3956,6 +4008,7 @@ func (s *Spider) GetWeread() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "weread",
 		Title: "微信读书",
 		Type:  "图书排行",
@@ -4002,6 +4055,7 @@ func (s *Spider) GetYystv() (*HotData, error) {
 	}
 
 	return &HotData{
+		Code:  http.StatusOK,
 		Name:  "yystv",
 		Title: "游研社",
 		Type:  "游戏资讯",
