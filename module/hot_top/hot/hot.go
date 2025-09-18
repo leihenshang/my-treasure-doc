@@ -3031,24 +3031,35 @@ func (s *Spider) GetIthomeXijiayi() (*HotData, error) {
 	}
 
 	var listData []*HotItem
-	doc.Find(".blk-container .list-item").Each(func(i int, s *goquery.Selection) {
-		id := s.AttrOr("data-id", "")
-		title := s.Find(".title").Text()
-		desc := s.Find(".desc").Text()
-		timeStr := s.Find(".time").Text()
+	counter := 1
+	doc.Find(".newslist li").Each(func(i int, s *goquery.Selection) {
+		href := s.Find("a").AttrOr("href", "")
+		timeStr := s.Find("span.time").Text()
+		title := s.Find(".newsbody h2").Text()
+		desc := s.Find(".newsbody p").Text()
+		cover := s.Find("img").AttrOr("data-original", "")
+		hotStr := s.Find(".comment").Text()
 
+		// 提取时间戳
 		timestamp := parseTime(timeStr)
-		url := fmt.Sprintf("https://www.ithome.com/zt/xijiayi#%s", id)
 
-		idInt, _ := strconv.Atoi(id)
+		// 提取热度值
+		hot := 0
+		if hotStr != "" {
+			hot, _ = strconv.Atoi(strings.TrimSpace(strings.ReplaceAll(hotStr, `\D`, "")))
+		}
+
 		listData = append(listData, &HotItem{
-			ID:        strconv.Itoa(idInt),
+			ID:        strconv.Itoa(counter),
 			Title:     strings.TrimSpace(title),
 			Desc:      strings.TrimSpace(desc),
+			Cover:     cover,
 			Timestamp: timestamp,
-			URL:       url,
-			MobileURL: url,
+			Hot:       hot,
+			URL:       href,
+			MobileURL: href,
 		})
+		counter++
 	})
 
 	return &HotData{
