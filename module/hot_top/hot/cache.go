@@ -1,6 +1,7 @@
 package hot
 
 import (
+	"fastduck/treasure-doc/module/hot_top/model"
 	"maps"
 	"sync"
 	"time"
@@ -8,22 +9,22 @@ import (
 
 type HotCache struct {
 	lock  *sync.RWMutex
-	cache map[Source]*HotCacheItem
+	cache map[model.Source]*HotCacheItem
 }
 
 var hotCache *HotCache
 var hotCacheOnce *sync.Once = &sync.Once{}
 
 type HotCacheItem struct {
-	LastUpdateTime time.Time `json:"lastUpdateTime"`
-	HotData        *HotData  `json:"hotData"`
+	LastUpdateTime time.Time      `json:"lastUpdateTime"`
+	HotData        *model.HotData `json:"hotData"`
 }
 
 func NewHotCache(len int) *HotCache {
 	hotCacheOnce.Do(func() {
 		hotCache = &HotCache{
 			lock:  &sync.RWMutex{},
-			cache: make(map[Source]*HotCacheItem, len),
+			cache: make(map[model.Source]*HotCacheItem, len),
 		}
 	})
 	return hotCache
@@ -33,7 +34,7 @@ func GetHotCache() *HotCache {
 	return hotCache
 }
 
-func (c *HotCache) Get(source Source) (*HotCacheItem, bool) {
+func (c *HotCache) Get(source model.Source) (*HotCacheItem, bool) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	item, ok := c.cache[source]
@@ -44,18 +45,18 @@ func (c *HotCache) Get(source Source) (*HotCacheItem, bool) {
 	return item, true
 }
 
-func (c *HotCache) GetAllMap() map[Source]*HotCacheItem {
+func (c *HotCache) GetAllMap() map[model.Source]*HotCacheItem {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	resp := make(map[Source]*HotCacheItem, len(c.cache))
+	resp := make(map[model.Source]*HotCacheItem, len(c.cache))
 	maps.Copy(resp, c.cache)
 	return resp
 }
 
-func (c *HotCache) GetExpired(t time.Duration) []Source {
+func (c *HotCache) GetExpired(t time.Duration) []model.Source {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	var res []Source
+	var res []model.Source
 	for k, v := range c.cache {
 		if time.Since(v.LastUpdateTime) > t {
 			res = append(res, k)
@@ -64,7 +65,7 @@ func (c *HotCache) GetExpired(t time.Duration) []Source {
 	return res
 }
 
-func (c *HotCache) Set(source Source, data *HotData) {
+func (c *HotCache) Set(source model.Source, data *model.HotData) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if data != nil {

@@ -1,6 +1,7 @@
 package hot
 
 import (
+	"fastduck/treasure-doc/module/hot_top/model"
 	"fmt"
 	"testing"
 )
@@ -461,7 +462,7 @@ func Test_GetYystv(t *testing.T) {
 	printData(result)
 }
 
-func printData(result *HotData) {
+func printData(result *model.HotData) {
 	if result == nil || len(result.Data) == 0 {
 		fmt.Println("result is empty")
 		return

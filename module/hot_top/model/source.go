@@ -1,4 +1,4 @@
-package hot
+package model
 
 import "encoding/json"
 

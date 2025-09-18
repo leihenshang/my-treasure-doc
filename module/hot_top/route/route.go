@@ -19,5 +19,7 @@ func InitRouter(r *gin.Engine) *gin.Engine {
 	route.GET("all", func(c *gin.Context) {
 		c.JSON(http.StatusOK, hot.GetHotCache().GetAllMap())
 	})
+
+	
 	return r
 }

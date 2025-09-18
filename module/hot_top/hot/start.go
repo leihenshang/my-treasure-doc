@@ -1,6 +1,7 @@
 package hot
 
 import (
+	"fastduck/treasure-doc/module/hot_top/model"
 	"fmt"
 	"sync"
 	"time"
@@ -30,7 +31,7 @@ func (h *Hot) Start() {
 
 func TickerGetHot(expireTime time.Duration) {
 	fmt.Println("TickerGetHot start!")
-	var sources []Source
+	var sources []model.Source
 	for k := range UrlConfMap {
 		sources = append(sources, k)
 	}
@@ -45,7 +46,7 @@ func TickerGetHot(expireTime time.Duration) {
 	}
 }
 
-func setHotCacheBySource(sources []Source) {
+func setHotCacheBySource(sources []model.Source) {
 	for _, k := range sources {
 		resp, err := GetHotBySource(k)
 		if err != nil {
@@ -57,115 +58,115 @@ func setHotCacheBySource(sources []Source) {
 	}
 }
 
-func GetHotBySource(k Source) (*HotData, error) {
+func GetHotBySource(k model.Source) (*model.HotData, error) {
 	switch k {
-	case SourceITHome:
+	case model.SourceITHome:
 		return GetSpider().GetItHome()
-	case SourceZhihu:
+	case model.SourceZhihu:
 		return GetSpider().GetZhihu()
-	case SourceWeibo:
+	case model.SourceWeibo:
 		return GetSpider().GetWeibo()
-	case SourceBilibili:
+	case model.SourceBilibili:
 		return GetSpider().GetBilibili()
-	case SourceBaidu:
+	case model.SourceBaidu:
 		return GetSpider().GetBaidu()
-	case SourceV2EX:
+	case model.SourceV2EX:
 		return GetSpider().GetV2EX()
-	case SourceGitHub:
+	case model.SourceGitHub:
 		return GetSpider().GetGitHub()
-	case SourceDouyin:
+	case model.SourceDouyin:
 		return GetSpider().GetDouyin()
-	case SourceKuaishou:
+	case model.SourceKuaishou:
 		return GetSpider().GetKuaishou()
-	case SourceToutiao:
+	case model.SourceToutiao:
 		return GetSpider().GetToutiao()
-	case SourceJuejin:
+	case model.SourceJuejin:
 		return GetSpider().GetJuejin()
-	case Source36Kr:
+	case model.Source36Kr:
 		return GetSpider().Get36Kr()
-	case SourceCSDN:
+	case model.SourceCSDN:
 		return GetSpider().GetCSDN()
-	case SourceTieba:
+	case model.SourceTieba:
 		return GetSpider().GetTieba()
-	case SourceZhihuDaily:
+	case model.SourceZhihuDaily:
 		return GetSpider().GetZhihuDaily()
-	case SourceCoolapk:
+	case model.SourceCoolapk:
 		return GetSpider().GetCoolapk()
-	case SourceHupu:
+	case model.SourceHupu:
 		return GetSpider().GetHupu()
-	case SourceHuxiu:
+	case model.SourceHuxiu:
 		return GetSpider().GetHuxiu()
-	case SourceJianshu:
+	case model.SourceJianshu:
 		return GetSpider().GetJianshu()
-	case SourceSmzdm:
+	case model.SourceSmzdm:
 		return GetSpider().GetSmzdm()
-	case SourceSspai:
+	case model.SourceSspai:
 		return GetSpider().GetSspai()
-	case SourceNetease:
+	case model.SourceNetease:
 		return GetSpider().GetNetease()
-	case SourceQQ:
+	case model.SourceQQ:
 		return GetSpider().GetQQ()
-	case SourceAcfun:
+	case model.SourceAcfun:
 		return GetSpider().GetAcfun()
-	case Source51CTO:
+	case model.Source51CTO:
 		return GetSpider().Get51CTO()
-	case Source52Pojie:
+	case model.Source52Pojie:
 		return GetSpider().Get52Pojie()
-	case SourceDoubanGroup:
+	case model.SourceDoubanGroup:
 		return GetSpider().GetDoubanGroup()
-	case SourceDgtle:
+	case model.SourceDgtle:
 		return GetSpider().GetDgtle()
-	case SourceDoubanMovie:
+	case model.SourceDoubanMovie:
 		return GetSpider().GetDoubanMovie()
-	case SourceEarthquake:
+	case model.SourceEarthquake:
 		return GetSpider().GetEarthquake()
-	case SourceGameres:
+	case model.SourceGameres:
 		return GetSpider().GetGameres()
-	case SourceGeekpark:
+	case model.SourceGeekpark:
 		return GetSpider().GetGeekpark()
-	case SourceGenshin:
+	case model.SourceGenshin:
 		return GetSpider().GetGenshin()
-	case SourceGuokr:
+	case model.SourceGuokr:
 		return GetSpider().GetGuokr()
-	case SourceHackernews:
+	case model.SourceHackernews:
 		return GetSpider().GetHackernews()
-	case SourceHelloGitHub:
+	case model.SourceHelloGitHub:
 		return GetSpider().GetHelloGitHub()
-	case SourceHistory:
+	case model.SourceHistory:
 		return GetSpider().GetHistory()
-	case SourceHonkai:
+	case model.SourceHonkai:
 		return GetSpider().GetHonkai()
-	case SourceHostloc:
+	case model.SourceHostloc:
 		return GetSpider().GetHostloc()
-	case SourceIfanr:
+	case model.SourceIfanr:
 		return GetSpider().GetIfanr()
-	case SourceIthomeXijiayi:
+	case model.SourceIthomeXijiayi:
 		return GetSpider().GetIthomeXijiayi()
-	case SourceMiyoushe:
+	case model.SourceMiyoushe:
 		return GetSpider().GetMiyoushe()
-	case SourceNewsmth:
+	case model.SourceNewsmth:
 		return GetSpider().GetNewsmth()
-	case SourceNgabbs:
+	case model.SourceNgabbs:
 		return GetSpider().GetNgabbs()
-	case SourceNodeseek:
+	case model.SourceNodeseek:
 		return GetSpider().GetNodeseek()
-	case SourceNytimes:
+	case model.SourceNytimes:
 		return GetSpider().GetNytimes()
-	case SourceProducthunt:
+	case model.SourceProducthunt:
 		return GetSpider().GetProducthunt()
-	case SourceSinaNews:
+	case model.SourceSinaNews:
 		return GetSpider().GetSinaNews()
-	case SourceSina:
+	case model.SourceSina:
 		return GetSpider().GetSina()
-	case SourceStarrail:
+	case model.SourceStarrail:
 		return GetSpider().GetStarrail()
-	case SourceThepaper:
+	case model.SourceThepaper:
 		return GetSpider().GetThepaper()
-	case SourceWeatheralarm:
+	case model.SourceWeatheralarm:
 		return GetSpider().GetWeatheralarm()
-	case SourceWeread:
+	case model.SourceWeread:
 		return GetSpider().GetWeread()
-	case SourceYystv:
+	case model.SourceYystv:
 		return GetSpider().GetYystv()
 	default:
 		return nil, nil

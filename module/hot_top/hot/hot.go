@@ -14,6 +14,8 @@ import (
 	"sync"
 	"time"
 
+	"fastduck/treasure-doc/module/hot_top/model"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
@@ -23,7 +25,7 @@ type UrlConf struct {
 }
 
 type Spider struct {
-	UrlMap     map[Source]*UrlConf
+	UrlMap     map[model.Source]*UrlConf
 	HttpClient *http.Client
 }
 
@@ -47,7 +49,7 @@ func GetSpider() *Spider {
 }
 
 // ============== IT之家 ==============
-func (s *Spider) GetItHome() (*HotData, error) {
+func (s *Spider) GetItHome() (*model.HotData, error) {
 	replaceItHomeLink := func(url string, getID bool) string {
 		re := regexp.MustCompile(`[html|live]/(\d+)\.htm`)
 		match := re.FindStringSubmatch(url)
@@ -64,11 +66,11 @@ func (s *Spider) GetItHome() (*HotData, error) {
 	}
 
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceITHome].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceITHome].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceITHome].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceITHome].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -81,7 +83,7 @@ func (s *Spider) GetItHome() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	document.Find(".rank-box .placeholder").Each(func(i int, selection *goquery.Selection) {
 		href, exists := selection.Find("a").Attr("href")
 		if !exists {
@@ -97,7 +99,7 @@ func (s *Spider) GetItHome() (*HotData, error) {
 		hotStr = regexp.MustCompile(`\D`).ReplaceAllString(hotStr, "")
 		hot, _ := strconv.Atoi(hotStr)
 
-		hotItem := &HotItem{
+		hotItem := &model.HotItem{
 			ID:        "100000",
 			Title:     title,
 			Cover:     cover,
@@ -116,7 +118,7 @@ func (s *Spider) GetItHome() (*HotData, error) {
 		listData = append(listData, hotItem)
 	})
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "ithome",
 		Title:       "IT之家",
@@ -129,13 +131,13 @@ func (s *Spider) GetItHome() (*HotData, error) {
 }
 
 // ============== 知乎 ==============
-func (s *Spider) GetZhihu() (*HotData, error) {
+func (s *Spider) GetZhihu() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceZhihu].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceZhihu].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceZhihu].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceZhihu].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -148,7 +150,7 @@ func (s *Spider) GetZhihu() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].([]interface{}); ok {
 		for _, item := range data {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -195,7 +197,7 @@ func (s *Spider) GetZhihu() (*HotData, error) {
 					timestamp = int64(created)
 				}
 
-				listData = append(listData, &HotItem{
+				listData = append(listData, &model.HotItem{
 					ID:        strconv.Itoa(int(target["id"].(float64))),
 					Title:     title,
 					Cover:     cover,
@@ -208,7 +210,7 @@ func (s *Spider) GetZhihu() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "zhihu",
 		Title: "知乎",
@@ -220,13 +222,13 @@ func (s *Spider) GetZhihu() (*HotData, error) {
 }
 
 // ============== 微博 ==============
-func (s *Spider) GetWeibo() (*HotData, error) {
+func (s *Spider) GetWeibo() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceWeibo].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceWeibo].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceWeibo].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceWeibo].Agent)
 	request.Header.Add("Referer", "https://s.weibo.com/top/summary?cate=realtimehot")
 	request.Header.Add("MWeibo-Pwa", "1")
 	request.Header.Add("X-Requested-With", "XMLHttpRequest")
@@ -242,7 +244,7 @@ func (s *Spider) GetWeibo() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if cards, ok := data["cards"].([]interface{}); ok && len(cards) > 0 {
 			if cardGroup, ok := cards[0].(map[string]interface{})["card_group"].([]interface{}); ok {
@@ -279,7 +281,7 @@ func (s *Spider) GetWeibo() (*HotData, error) {
 							}
 						}
 
-						listData = append(listData, &HotItem{
+						listData = append(listData, &model.HotItem{
 							ID:        strconv.Itoa(itemID),
 							Title:     title,
 							Desc:      wordScheme,
@@ -294,7 +296,7 @@ func (s *Spider) GetWeibo() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "weibo",
 		Title:       "微博",
@@ -307,13 +309,13 @@ func (s *Spider) GetWeibo() (*HotData, error) {
 }
 
 // ============== 哔哩哔哩 ==============
-func (s *Spider) GetBilibili() (*HotData, error) {
+func (s *Spider) GetBilibili() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceBilibili].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceBilibili].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceBilibili].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceBilibili].Agent)
 	request.Header.Add("Referer", "https://www.bilibili.com/ranking/all")
 
 	res, err := s.HttpClient.Do(request)
@@ -327,7 +329,7 @@ func (s *Spider) GetBilibili() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if list, ok := data["list"].([]interface{}); ok {
 			for _, item := range list {
@@ -371,7 +373,7 @@ func (s *Spider) GetBilibili() (*HotData, error) {
 						bvid = b
 					}
 
-					listData = append(listData, &HotItem{
+					listData = append(listData, &model.HotItem{
 						ID:        "0",
 						Title:     title,
 						Desc:      desc,
@@ -387,7 +389,7 @@ func (s *Spider) GetBilibili() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "bilibili",
 		Title:       "哔哩哔哩",
@@ -400,13 +402,13 @@ func (s *Spider) GetBilibili() (*HotData, error) {
 }
 
 // ============== 百度 ==============
-func (s *Spider) GetBaidu() (*HotData, error) {
+func (s *Spider) GetBaidu() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceBaidu].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceBaidu].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceBaidu].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceBaidu].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -431,7 +433,7 @@ func (s *Spider) GetBaidu() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if cards, ok := data["cards"].([]interface{}); ok && len(cards) > 0 {
 		if card, ok := cards[0].(map[string]interface{}); ok {
 			if content, ok := card["content"].([]interface{}); ok {
@@ -474,7 +476,7 @@ func (s *Spider) GetBaidu() (*HotData, error) {
 							rawUrl = ru
 						}
 
-						listData = append(listData, &HotItem{
+						listData = append(listData, &model.HotItem{
 							ID:        strconv.Itoa(int(v["index"].(float64))),
 							Title:     title,
 							Desc:      desc,
@@ -491,7 +493,7 @@ func (s *Spider) GetBaidu() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "baidu",
 		Title: "百度",
@@ -503,13 +505,13 @@ func (s *Spider) GetBaidu() (*HotData, error) {
 }
 
 // ============== V2EX ==============
-func (s *Spider) GetV2EX() (*HotData, error) {
+func (s *Spider) GetV2EX() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceV2EX].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceV2EX].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceV2EX].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceV2EX].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -522,7 +524,7 @@ func (s *Spider) GetV2EX() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, v := range list {
 		title := ""
 		if t, ok := v["title"].(string); ok {
@@ -551,7 +553,7 @@ func (s *Spider) GetV2EX() (*HotData, error) {
 			}
 		}
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(int(v["id"].(float64))),
 			Title:     title,
 			Desc:      content,
@@ -563,7 +565,7 @@ func (s *Spider) GetV2EX() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "v2ex",
 		Title: "V2EX",
@@ -575,13 +577,13 @@ func (s *Spider) GetV2EX() (*HotData, error) {
 }
 
 // ============== GitHub ==============
-func (s *Spider) GetGitHub() (*HotData, error) {
+func (s *Spider) GetGitHub() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceGitHub].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceGitHub].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceGitHub].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceGitHub].Agent)
 	request.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 
 	res, err := s.HttpClient.Do(request)
@@ -595,7 +597,7 @@ func (s *Spider) GetGitHub() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	document.Find("article.Box-row").Each(func(i int, selection *goquery.Selection) {
 		// 仓库名称
 		repoText := strings.TrimSpace(selection.Find("h2 a").Text())
@@ -631,7 +633,7 @@ func (s *Spider) GetGitHub() (*HotData, error) {
 			stars, _ = strconv.Atoi(starsStr)
 		}
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(i + 1),
 			Title:     fmt.Sprintf("%s/%s", owner, repoName),
 			Desc:      desc,
@@ -643,7 +645,7 @@ func (s *Spider) GetGitHub() (*HotData, error) {
 		})
 	})
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "github",
 		Title:       "GitHub",
@@ -656,14 +658,14 @@ func (s *Spider) GetGitHub() (*HotData, error) {
 }
 
 // ============== 抖音 ==============
-func (s *Spider) GetDouyin() (*HotData, error) {
+func (s *Spider) GetDouyin() (*model.HotData, error) {
 	// 获取抖音Cookie
 	cookieURL := "https://www.douyin.com/passport/general/login_guiding_strategy/?aid=6383"
 	cookieReq, err := http.NewRequest("GET", cookieURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	cookieReq.Header.Add("User-Agent", s.UrlMap[SourceDouyin].Agent)
+	cookieReq.Header.Add("User-Agent", s.UrlMap[model.SourceDouyin].Agent)
 
 	cookieRes, err := s.HttpClient.Do(cookieReq)
 	if err != nil {
@@ -681,11 +683,11 @@ func (s *Spider) GetDouyin() (*HotData, error) {
 	}
 
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceDouyin].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceDouyin].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceDouyin].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceDouyin].Agent)
 	if cookie != "" {
 		request.Header.Add("Cookie", fmt.Sprintf("passport_csrf_token=%s", cookie))
 	}
@@ -701,7 +703,7 @@ func (s *Spider) GetDouyin() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if wordList, ok := data["word_list"].([]interface{}); ok {
 			for i, item := range wordList {
@@ -726,7 +728,7 @@ func (s *Spider) GetDouyin() (*HotData, error) {
 						eventTime = int64(et)
 					}
 
-					listData = append(listData, &HotItem{
+					listData = append(listData, &model.HotItem{
 						ID:        strconv.Itoa(i + 1),
 						Title:     title,
 						Timestamp: eventTime,
@@ -739,7 +741,7 @@ func (s *Spider) GetDouyin() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "douyin",
 		Title:       "抖音",
@@ -752,13 +754,13 @@ func (s *Spider) GetDouyin() (*HotData, error) {
 }
 
 // ============== 快手 ==============
-func (s *Spider) GetKuaishou() (*HotData, error) {
+func (s *Spider) GetKuaishou() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceKuaishou].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceKuaishou].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceKuaishou].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceKuaishou].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -784,7 +786,7 @@ func (s *Spider) GetKuaishou() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if defaultClient, ok := apolloData["defaultClient"].(map[string]interface{}); ok {
 		if items, ok := defaultClient["$ROOT_QUERY.visionHotRank({\"page\":\"home\"})"].([]interface{}); ok {
 			for i, item := range items {
@@ -816,7 +818,7 @@ func (s *Spider) GetKuaishou() (*HotData, error) {
 								}
 							}
 
-							listData = append(listData, &HotItem{
+							listData = append(listData, &model.HotItem{
 								ID:        strconv.Itoa(i + 1),
 								Title:     title,
 								Cover:     poster,
@@ -832,7 +834,7 @@ func (s *Spider) GetKuaishou() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "kuaishou",
 		Title:       "快手",
@@ -845,13 +847,13 @@ func (s *Spider) GetKuaishou() (*HotData, error) {
 }
 
 // ============== 今日头条 ==============
-func (s *Spider) GetToutiao() (*HotData, error) {
+func (s *Spider) GetToutiao() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceToutiao].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceToutiao].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceToutiao].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceToutiao].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -864,7 +866,7 @@ func (s *Spider) GetToutiao() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].([]interface{}); ok {
 		for i, item := range data {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -890,7 +892,7 @@ func (s *Spider) GetToutiao() (*HotData, error) {
 					}
 				}
 
-				listData = append(listData, &HotItem{
+				listData = append(listData, &model.HotItem{
 					ID:        strconv.Itoa(i + 1),
 					Title:     title,
 					Cover:     imageURL,
@@ -903,7 +905,7 @@ func (s *Spider) GetToutiao() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "toutiao",
 		Title: "今日头条",
@@ -915,13 +917,13 @@ func (s *Spider) GetToutiao() (*HotData, error) {
 }
 
 // ============== 掘金 ==============
-func (s *Spider) GetJuejin() (*HotData, error) {
+func (s *Spider) GetJuejin() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceJuejin].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceJuejin].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceJuejin].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceJuejin].Agent)
 	request.Header.Add("Accept", "application/json, text/plain, */*")
 
 	res, err := s.HttpClient.Do(request)
@@ -935,7 +937,7 @@ func (s *Spider) GetJuejin() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].([]interface{}); ok {
 		for i, item := range data {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -963,7 +965,7 @@ func (s *Spider) GetJuejin() (*HotData, error) {
 					hotRank = int(hr)
 				}
 
-				listData = append(listData, &HotItem{
+				listData = append(listData, &model.HotItem{
 					ID:        strconv.Itoa(i + 1),
 					Title:     title,
 					Author:    authorName,
@@ -976,7 +978,7 @@ func (s *Spider) GetJuejin() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "juejin",
 		Title: "稀土掘金",
@@ -1009,7 +1011,7 @@ func parseChineseNumber(str string) int {
 }
 
 // ============== 36氪 ==============
-func (s *Spider) Get36Kr() (*HotData, error) {
+func (s *Spider) Get36Kr() (*model.HotData, error) {
 	//todo: 支持多个分类
 	// typeMap := map[string]string{
 	// 	"hot":     "人气榜",
@@ -1044,11 +1046,11 @@ func (s *Spider) Get36Kr() (*HotData, error) {
 		return nil, err
 	}
 	Body = strings.NewReader(string(reqBody))
-	request, err := http.NewRequest("POST", s.UrlMap[Source36Kr].Url, Body)
+	request, err := http.NewRequest("POST", s.UrlMap[model.Source36Kr].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[Source36Kr].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.Source36Kr].Agent)
 	request.Header.Set("Content-Type", "application/json; charset=utf-8")
 
 	res, err := s.HttpClient.Do(request)
@@ -1082,9 +1084,9 @@ func (s *Spider) Get36Kr() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range resp.Data.HotRankList {
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(int(item.TemplateMaterial.ItemId)),
 			Title:     item.TemplateMaterial.WidgetTitle,
 			Cover:     item.TemplateMaterial.WidgetImage,
@@ -1096,7 +1098,7 @@ func (s *Spider) Get36Kr() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "36kr",
 		Title:       "36氪",
@@ -1109,13 +1111,13 @@ func (s *Spider) Get36Kr() (*HotData, error) {
 }
 
 // ============== CSDN ==============
-func (s *Spider) GetCSDN() (*HotData, error) {
+func (s *Spider) GetCSDN() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceCSDN].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceCSDN].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceCSDN].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceCSDN].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1128,7 +1130,7 @@ func (s *Spider) GetCSDN() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].([]interface{}); ok {
 		for i, item := range data {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -1157,7 +1159,7 @@ func (s *Spider) GetCSDN() (*HotData, error) {
 					articleDetailURL = url
 				}
 
-				listData = append(listData, &HotItem{
+				listData = append(listData, &model.HotItem{
 					ID:        strconv.Itoa(i + 1),
 					Title:     title,
 					Cover:     cover,
@@ -1171,7 +1173,7 @@ func (s *Spider) GetCSDN() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "csdn",
 		Title:       "CSDN",
@@ -1184,13 +1186,13 @@ func (s *Spider) GetCSDN() (*HotData, error) {
 }
 
 // ============== 百度贴吧 ==============
-func (s *Spider) GetTieba() (*HotData, error) {
+func (s *Spider) GetTieba() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceTieba].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceTieba].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceTieba].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceTieba].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1203,7 +1205,7 @@ func (s *Spider) GetTieba() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if bangTopic, ok := data["bang_topic"].(map[string]interface{}); ok {
 			if topicList, ok := bangTopic["topic_list"].([]interface{}); ok {
@@ -1234,7 +1236,7 @@ func (s *Spider) GetTieba() (*HotData, error) {
 							topicID = id
 						}
 
-						listData = append(listData, &HotItem{
+						listData = append(listData, &model.HotItem{
 							ID:        strconv.Itoa(i + 1),
 							Title:     title,
 							Desc:      desc,
@@ -1250,7 +1252,7 @@ func (s *Spider) GetTieba() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "tieba",
 		Title:       "百度贴吧",
@@ -1263,13 +1265,13 @@ func (s *Spider) GetTieba() (*HotData, error) {
 }
 
 // ============== 知乎日报 ==============
-func (s *Spider) GetZhihuDaily() (*HotData, error) {
+func (s *Spider) GetZhihuDaily() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceZhihuDaily].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceZhihuDaily].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceZhihuDaily].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceZhihuDaily].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1282,7 +1284,7 @@ func (s *Spider) GetZhihuDaily() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if stories, ok := result["stories"].([]interface{}); ok {
 		for i, item := range stories {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -1308,7 +1310,7 @@ func (s *Spider) GetZhihuDaily() (*HotData, error) {
 					storyID = int(id)
 				}
 
-				listData = append(listData, &HotItem{
+				listData = append(listData, &model.HotItem{
 					ID:        strconv.Itoa(i + 1),
 					Title:     title,
 					Cover:     cover,
@@ -1321,7 +1323,7 @@ func (s *Spider) GetZhihuDaily() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "zhihu-daily",
 		Title:       "知乎日报",
@@ -1334,13 +1336,13 @@ func (s *Spider) GetZhihuDaily() (*HotData, error) {
 }
 
 // ============== 酷安 ==============
-func (s *Spider) GetCoolapk() (*HotData, error) {
+func (s *Spider) GetCoolapk() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceCoolapk].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceCoolapk].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceCoolapk].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceCoolapk].Agent)
 	request.Header.Add("X-Requested-With", "XMLHttpRequest")
 
 	res, err := s.HttpClient.Do(request)
@@ -1354,7 +1356,7 @@ func (s *Spider) GetCoolapk() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].([]interface{}); ok {
 		for _, item := range data {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -1383,7 +1385,7 @@ func (s *Spider) GetCoolapk() (*HotData, error) {
 					id = int(idFloat)
 				}
 
-				listData = append(listData, &HotItem{
+				listData = append(listData, &model.HotItem{
 					ID:        strconv.Itoa(id),
 					Title:     title,
 					Cover:     cover,
@@ -1397,7 +1399,7 @@ func (s *Spider) GetCoolapk() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "coolapk",
 		Title:       "酷安",
@@ -1410,13 +1412,13 @@ func (s *Spider) GetCoolapk() (*HotData, error) {
 }
 
 // ============== 虎扑 ==============
-func (s *Spider) GetHupu() (*HotData, error) {
+func (s *Spider) GetHupu() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceHupu].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceHupu].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceHupu].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceHupu].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1429,7 +1431,7 @@ func (s *Spider) GetHupu() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	document.Find(".bbsHotPit .list-item").Each(func(i int, selection *goquery.Selection) {
 		title := strings.TrimSpace(selection.Find(".textSpan").Text())
 		href, exists := selection.Find("a").Attr("href")
@@ -1444,7 +1446,7 @@ func (s *Spider) GetHupu() (*HotData, error) {
 			replyNum, _ = strconv.Atoi(match[1])
 		}
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(i + 1),
 			Title:     title,
 			Author:    author,
@@ -1455,7 +1457,7 @@ func (s *Spider) GetHupu() (*HotData, error) {
 		})
 	})
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "hupu",
 		Title:       "虎扑",
@@ -1468,13 +1470,13 @@ func (s *Spider) GetHupu() (*HotData, error) {
 }
 
 // ============== 虎嗅 ==============
-func (s *Spider) GetHuxiu() (*HotData, error) {
+func (s *Spider) GetHuxiu() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceHuxiu].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceHuxiu].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceHuxiu].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceHuxiu].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1500,7 +1502,7 @@ func (s *Spider) GetHuxiu() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if homeData, ok := initialState["home"].(map[string]interface{}); ok {
 		if hotNewsList, ok := homeData["hotNewsList"].([]interface{}); ok {
 			for _, item := range hotNewsList {
@@ -1520,7 +1522,7 @@ func (s *Spider) GetHuxiu() (*HotData, error) {
 						newsID = int(id)
 					}
 
-					listData = append(listData, &HotItem{
+					listData = append(listData, &model.HotItem{
 						ID:        strconv.Itoa(newsID),
 						Title:     title,
 						Desc:      summary,
@@ -1534,7 +1536,7 @@ func (s *Spider) GetHuxiu() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "huxiu",
 		Title:       "虎嗅",
@@ -1547,13 +1549,13 @@ func (s *Spider) GetHuxiu() (*HotData, error) {
 }
 
 // ============== 简书 ==============
-func (s *Spider) GetJianshu() (*HotData, error) {
+func (s *Spider) GetJianshu() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceJianshu].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceJianshu].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceJianshu].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceJianshu].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1566,7 +1568,7 @@ func (s *Spider) GetJianshu() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	document.Find(".note-list li").Each(func(i int, selection *goquery.Selection) {
 		title := strings.TrimSpace(selection.Find(".title").Text())
 		if title == "" {
@@ -1588,7 +1590,7 @@ func (s *Spider) GetJianshu() (*HotData, error) {
 			id = i + 1
 		}
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(id),
 			Title:     title,
 			Desc:      abstract,
@@ -1600,7 +1602,7 @@ func (s *Spider) GetJianshu() (*HotData, error) {
 		})
 	})
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "jianshu",
 		Title:       "简书",
@@ -1613,13 +1615,13 @@ func (s *Spider) GetJianshu() (*HotData, error) {
 }
 
 // ============== 什么值得买 ==============
-func (s *Spider) GetSmzdm() (*HotData, error) {
+func (s *Spider) GetSmzdm() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceSmzdm].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceSmzdm].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceSmzdm].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceSmzdm].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1632,7 +1634,7 @@ func (s *Spider) GetSmzdm() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	document.Find(".z-feed-content").Each(func(i int, selection *goquery.Selection) {
 		title := strings.TrimSpace(selection.Find(".z-feed-title").Text())
 		if title == "" {
@@ -1658,7 +1660,7 @@ func (s *Spider) GetSmzdm() (*HotData, error) {
 			}
 		}
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(id),
 			Title:     fmt.Sprintf("%s %s", title, price),
 			Desc:      price,
@@ -1669,7 +1671,7 @@ func (s *Spider) GetSmzdm() (*HotData, error) {
 		})
 	})
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "smzdm",
 		Title:       "什么值得买",
@@ -1682,13 +1684,13 @@ func (s *Spider) GetSmzdm() (*HotData, error) {
 }
 
 // ============== 少数派 ==============
-func (s *Spider) GetSspai() (*HotData, error) {
+func (s *Spider) GetSspai() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceSspai].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceSspai].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceSspai].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceSspai].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1701,7 +1703,7 @@ func (s *Spider) GetSspai() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	var dataList []interface{}
 	if data, ok := result["data"].([]interface{}); ok {
 		dataList = data
@@ -1731,7 +1733,7 @@ func (s *Spider) GetSspai() (*HotData, error) {
 				}
 			}
 
-			listData = append(listData, &HotItem{
+			listData = append(listData, &model.HotItem{
 				ID:        strconv.Itoa(id),
 				Title:     title,
 				Desc:      summary,
@@ -1748,7 +1750,7 @@ func (s *Spider) GetSspai() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:        http.StatusOK,
 		Name:        "sspai",
 		Title:       "少数派",
@@ -1761,13 +1763,13 @@ func (s *Spider) GetSspai() (*HotData, error) {
 }
 
 // ============== 网易新闻 ==============
-func (s *Spider) GetNetease() (*HotData, error) {
+func (s *Spider) GetNetease() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceNetease].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceNetease].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceNetease].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceNetease].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1780,7 +1782,7 @@ func (s *Spider) GetNetease() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if list, ok := data["list"].([]interface{}); ok {
 			for _, item := range list {
@@ -1812,7 +1814,7 @@ func (s *Spider) GetNetease() (*HotData, error) {
 						docid = id
 					}
 
-					listData = append(listData, &HotItem{
+					listData = append(listData, &model.HotItem{
 						ID:        "0",
 						Title:     title,
 						Cover:     cover,
@@ -1827,7 +1829,7 @@ func (s *Spider) GetNetease() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "netease",
 		Title: "网易新闻",
@@ -1839,13 +1841,13 @@ func (s *Spider) GetNetease() (*HotData, error) {
 }
 
 // ============== 腾讯新闻 ==============
-func (s *Spider) GetQQ() (*HotData, error) {
+func (s *Spider) GetQQ() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceQQ].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceQQ].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceQQ].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceQQ].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1858,7 +1860,7 @@ func (s *Spider) GetQQ() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if idlist, ok := data["idlist"].([]interface{}); ok && len(idlist) > 0 {
 			if newslist, ok := idlist[0].(map[string]interface{})["newslist"].([]interface{}); ok {
@@ -1902,7 +1904,7 @@ func (s *Spider) GetQQ() (*HotData, error) {
 							}
 						}
 
-						listData = append(listData, &HotItem{
+						listData = append(listData, &model.HotItem{
 							ID:        "0",
 							Title:     title,
 							Desc:      desc,
@@ -1919,7 +1921,7 @@ func (s *Spider) GetQQ() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "qq",
 		Title: "腾讯新闻",
@@ -1931,13 +1933,13 @@ func (s *Spider) GetQQ() (*HotData, error) {
 }
 
 // ============== 51CTO ==============
-func (s *Spider) Get51CTO() (*HotData, error) {
+func (s *Spider) Get51CTO() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[Source51CTO].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.Source51CTO].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[Source51CTO].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.Source51CTO].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1950,7 +1952,7 @@ func (s *Spider) Get51CTO() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if innerData, ok := data["data"].(map[string]interface{}); ok {
 			if list, ok := innerData["list"].([]interface{}); ok {
@@ -1981,7 +1983,7 @@ func (s *Spider) Get51CTO() (*HotData, error) {
 							sourceID = id
 						}
 
-						listData = append(listData, &HotItem{
+						listData = append(listData, &model.HotItem{
 							ID:        "0",
 							Title:     title,
 							Desc:      desc,
@@ -1997,7 +1999,7 @@ func (s *Spider) Get51CTO() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "51cto",
 		Title: "51CTO",
@@ -2009,13 +2011,13 @@ func (s *Spider) Get51CTO() (*HotData, error) {
 }
 
 // ============== 吾爱破解 ==============
-func (s *Spider) Get52Pojie() (*HotData, error) {
+func (s *Spider) Get52Pojie() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[Source52Pojie].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.Source52Pojie].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[Source52Pojie].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.Source52Pojie].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -2026,25 +2028,25 @@ func (s *Spider) Get52Pojie() (*HotData, error) {
 	// 需要处理RSS解析，这里简化实现
 	// 实际实现需要解析RSS XML内容
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "52pojie",
 		Title: "吾爱破解",
 		Type:  "最新精华",
 		Link:  "https://www.52pojie.cn/",
 		Total: 0,
-		Data:  []*HotItem{},
+		Data:  []*model.HotItem{},
 	}, nil
 }
 
 // ============== 豆瓣讨论 ==============
-func (s *Spider) GetDoubanGroup() (*HotData, error) {
+func (s *Spider) GetDoubanGroup() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceDoubanGroup].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceDoubanGroup].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceDoubanGroup].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceDoubanGroup].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -2058,7 +2060,7 @@ func (s *Spider) GetDoubanGroup() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	doc.Find(".article .channel-item").Each(func(i int, s *goquery.Selection) {
 		url := s.Find("h3 a").AttrOr("href", "")
 		title := s.Find("h3 a").Text()
@@ -2091,7 +2093,7 @@ func (s *Spider) GetDoubanGroup() (*HotData, error) {
 			mobileURL = fmt.Sprintf("https://m.douban.com/group/topic/%d/", id)
 		}
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(id),
 			Title:     strings.TrimSpace(title),
 			Desc:      strings.TrimSpace(desc),
@@ -2103,7 +2105,7 @@ func (s *Spider) GetDoubanGroup() (*HotData, error) {
 		})
 	})
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "douban-group",
 		Title: "豆瓣讨论",
@@ -2115,13 +2117,13 @@ func (s *Spider) GetDoubanGroup() (*HotData, error) {
 }
 
 // ============== AcFun ==============
-func (s *Spider) GetAcfun() (*HotData, error) {
+func (s *Spider) GetAcfun() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[SourceAcfun].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceAcfun].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[SourceAcfun].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceAcfun].Agent)
 	request.Header.Add("Referer", "https://www.acfun.cn/rank/list/?cid=-1&pcid=-1&range=DAY")
 
 	res, err := s.HttpClient.Do(request)
@@ -2135,7 +2137,7 @@ func (s *Spider) GetAcfun() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if rankList, ok := data["rankList"].([]interface{}); ok {
 			for _, item := range rankList {
@@ -2175,7 +2177,7 @@ func (s *Spider) GetAcfun() (*HotData, error) {
 						likeCount = int(likes)
 					}
 
-					listData = append(listData, &HotItem{
+					listData = append(listData, &model.HotItem{
 						ID:        "0",
 						Title:     title,
 						Desc:      desc,
@@ -2191,7 +2193,7 @@ func (s *Spider) GetAcfun() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "acfun",
 		Title: "AcFun",
@@ -2203,8 +2205,8 @@ func (s *Spider) GetAcfun() (*HotData, error) {
 }
 
 // ============== 数字尾巴 ==============
-func (s *Spider) GetDgtle() (*HotData, error) {
-	urlConf := s.UrlMap[SourceDgtle]
+func (s *Spider) GetDgtle() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceDgtle]
 	if urlConf == nil {
 		return nil, fmt.Errorf("url config not found for dgtle")
 	}
@@ -2239,11 +2241,11 @@ func (s *Spider) GetDgtle() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range result.Data.Items {
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.CreatedAt)
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(item.ID),
 			Title:     item.Title,
 			Desc:      item.Content,
@@ -2256,7 +2258,7 @@ func (s *Spider) GetDgtle() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "dgtle",
 		Title: "数字尾巴",
@@ -2268,8 +2270,8 @@ func (s *Spider) GetDgtle() (*HotData, error) {
 }
 
 // ============== 豆瓣电影 ==============
-func (s *Spider) GetDoubanMovie() (*HotData, error) {
-	urlConf := s.UrlMap[SourceDoubanMovie]
+func (s *Spider) GetDoubanMovie() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceDoubanMovie]
 	if urlConf == nil {
 		return nil, fmt.Errorf("url config not found for douban-movie")
 	}
@@ -2291,7 +2293,7 @@ func (s *Spider) GetDoubanMovie() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	doc.Find(".article tr.item").Each(func(i int, s *goquery.Selection) {
 		url, _ := s.Find("a").Attr("href")
 		score := s.Find(".rating_nums").Text()
@@ -2312,7 +2314,7 @@ func (s *Spider) GetDoubanMovie() (*HotData, error) {
 			}
 		}
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(id),
 			Title:     fmt.Sprintf("【%s】%s", score, title),
 			Cover:     cover,
@@ -2321,7 +2323,7 @@ func (s *Spider) GetDoubanMovie() (*HotData, error) {
 		})
 	})
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "douban-movie",
 		Title: "豆瓣电影",
@@ -2333,8 +2335,8 @@ func (s *Spider) GetDoubanMovie() (*HotData, error) {
 }
 
 // ============== 中国地震台 ==============
-func (s *Spider) GetEarthquake() (*HotData, error) {
-	urlConf := s.UrlMap[SourceEarthquake]
+func (s *Spider) GetEarthquake() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceEarthquake]
 	if urlConf == nil {
 		return nil, fmt.Errorf("url config not found for earthquake")
 	}
@@ -2372,7 +2374,7 @@ func (s *Spider) GetEarthquake() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	mappings := map[string]string{
 		"O_TIME":     "发震时刻(UTC+8)",
 		"LOCATION_C": "参考位置",
@@ -2410,7 +2412,7 @@ func (s *Spider) GetEarthquake() (*HotData, error) {
 
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", eq.O_TIME)
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        "0",
 			Title:     fmt.Sprintf("%s发生%s级地震", eq.LOCATION_C, eq.M),
 			Desc:      strings.Join(contentBuilder, "\n"),
@@ -2420,7 +2422,7 @@ func (s *Spider) GetEarthquake() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "earthquake",
 		Title: "中国地震台",
@@ -2432,8 +2434,8 @@ func (s *Spider) GetEarthquake() (*HotData, error) {
 }
 
 // ============== GameRes游资网 ==============
-func (s *Spider) GetGameres() (*HotData, error) {
-	urlConf := s.UrlMap[SourceGameres]
+func (s *Spider) GetGameres() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceGameres]
 	if urlConf == nil {
 		return nil, fmt.Errorf("url config not found for gameres")
 	}
@@ -2455,7 +2457,7 @@ func (s *Spider) GetGameres() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	doc.Find(".article-list .article-item").Each(func(i int, s *goquery.Selection) {
 		title := s.Find(".article-title a").Text()
 		url, _ := s.Find(".article-title a").Attr("href")
@@ -2493,7 +2495,7 @@ func (s *Spider) GetGameres() (*HotData, error) {
 			}
 		}
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(id),
 			Title:     title,
 			Cover:     cover,
@@ -2504,7 +2506,7 @@ func (s *Spider) GetGameres() (*HotData, error) {
 		})
 	})
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "gameres",
 		Title: "GameRes游资网",
@@ -2516,8 +2518,8 @@ func (s *Spider) GetGameres() (*HotData, error) {
 }
 
 // ============== 极客公园 ==============
-func (s *Spider) GetGeekpark() (*HotData, error) {
-	urlConf := s.UrlMap[SourceGeekpark]
+func (s *Spider) GetGeekpark() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceGeekpark]
 	if urlConf == nil {
 		return nil, fmt.Errorf("url config not found for geekpark")
 	}
@@ -2549,11 +2551,11 @@ func (s *Spider) GetGeekpark() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range result.Data {
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.CreatedAt)
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(item.ID),
 			Title:     item.Title,
 			Desc:      item.Description,
@@ -2566,7 +2568,7 @@ func (s *Spider) GetGeekpark() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "geekpark",
 		Title: "极客公园",
@@ -2578,8 +2580,8 @@ func (s *Spider) GetGeekpark() (*HotData, error) {
 }
 
 // ============== 原神 ==============
-func (s *Spider) GetGenshin() (*HotData, error) {
-	urlConf := s.UrlMap[SourceGenshin]
+func (s *Spider) GetGenshin() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceGenshin]
 	if urlConf == nil {
 		return nil, fmt.Errorf("url config not found for genshin")
 	}
@@ -2616,11 +2618,11 @@ func (s *Spider) GetGenshin() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range result.Data.List {
 		post := item.Post
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(post.PostID),
 			Title:     post.Subject,
 			Desc:      post.Content,
@@ -2632,7 +2634,7 @@ func (s *Spider) GetGenshin() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "genshin",
 		Title: "原神",
@@ -2644,8 +2646,8 @@ func (s *Spider) GetGenshin() (*HotData, error) {
 }
 
 // GetGuokr 获取果壳热门文章
-func (s *Spider) GetGuokr() (*HotData, error) {
-	urlConf := s.UrlMap[SourceGuokr]
+func (s *Spider) GetGuokr() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceGuokr]
 	if urlConf == nil {
 		return nil, fmt.Errorf("url config not found for guokr")
 	}
@@ -2676,10 +2678,10 @@ func (s *Spider) GetGuokr() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range result {
 		timestamp, _ := time.Parse(time.RFC3339, item.DateCreated)
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:    strconv.Itoa(item.ID),
 			Title: item.Title,
 			Desc:  item.Summary,
@@ -2696,7 +2698,7 @@ func (s *Spider) GetGuokr() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "guokr",
 		Title: "果壳",
@@ -2708,8 +2710,8 @@ func (s *Spider) GetGuokr() (*HotData, error) {
 }
 
 // GetHackernews 获取Hacker News热门文章
-func (s *Spider) GetHackernews() (*HotData, error) {
-	urlConf := s.UrlMap[SourceHackernews]
+func (s *Spider) GetHackernews() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceHackernews]
 	if urlConf == nil {
 		return nil, fmt.Errorf("url config not found for hackernews")
 	}
@@ -2730,7 +2732,7 @@ func (s *Spider) GetHackernews() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	doc.Find(".athing").Each(func(i int, s *goquery.Selection) {
 		id := s.AttrOr("id", "")
 		title := s.Find(".titleline a").First().Text()
@@ -2754,7 +2756,7 @@ func (s *Spider) GetHackernews() (*HotData, error) {
 				url = "https://news.ycombinator.com/" + url
 			}
 
-			listData = append(listData, &HotItem{
+			listData = append(listData, &model.HotItem{
 				ID:    strconv.Itoa(idInt),
 				Title: title,
 				Hot:   hot,
@@ -2763,7 +2765,7 @@ func (s *Spider) GetHackernews() (*HotData, error) {
 		}
 	})
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "hackernews",
 		Title: "Hacker News",
@@ -2775,8 +2777,8 @@ func (s *Spider) GetHackernews() (*HotData, error) {
 }
 
 // GetHelloGitHub 获取HelloGitHub热门仓库
-func (s *Spider) GetHelloGitHub() (*HotData, error) {
-	urlConf := s.UrlMap[SourceHelloGitHub]
+func (s *Spider) GetHelloGitHub() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceHelloGitHub]
 	if urlConf == nil {
 		return nil, fmt.Errorf("url config not found for hellogithub")
 	}
@@ -2807,10 +2809,10 @@ func (s *Spider) GetHelloGitHub() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range result.Data {
 		timestamp, _ := time.Parse("2006-01-02T15:04:05", item.UpdatedAt)
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        item.ItemID,
 			Title:     item.Title,
 			Desc:      item.Summary,
@@ -2822,7 +2824,7 @@ func (s *Spider) GetHelloGitHub() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "hellogithub",
 		Title: "HelloGitHub",
@@ -2834,8 +2836,8 @@ func (s *Spider) GetHelloGitHub() (*HotData, error) {
 }
 
 // GetHistory 获取历史上的今天
-func (s *Spider) GetHistory() (*HotData, error) {
-	urlConf := s.UrlMap[SourceHistory]
+func (s *Spider) GetHistory() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceHistory]
 	if urlConf == nil {
 		return nil, fmt.Errorf("url config not found for history")
 	}
@@ -2876,9 +2878,9 @@ func (s *Spider) GetHistory() (*HotData, error) {
 	dayKey := fmt.Sprintf("%02d%02d", month, day)
 	dayData := result[monthKey][dayKey]
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for i, item := range dayData {
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(i),
 			Title:     strings.TrimSpace(item.Title),
 			Desc:      strings.TrimSpace(item.Desc),
@@ -2891,7 +2893,7 @@ func (s *Spider) GetHistory() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "history",
 		Title: "历史上的今天",
@@ -2903,8 +2905,8 @@ func (s *Spider) GetHistory() (*HotData, error) {
 }
 
 // GetHonkai 获取崩坏3最新动态
-func (s *Spider) GetHonkai() (*HotData, error) {
-	urlConf := s.UrlMap[SourceHonkai]
+func (s *Spider) GetHonkai() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceHonkai]
 	if urlConf == nil {
 		return nil, fmt.Errorf("url config not found for honkai")
 	}
@@ -2943,7 +2945,7 @@ func (s *Spider) GetHonkai() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range result.Data.List {
 		post := item.Post
 
@@ -2953,7 +2955,7 @@ func (s *Spider) GetHonkai() (*HotData, error) {
 			cover = post.Images[0]
 		}
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(post.PostID),
 			Title:     post.Subject,
 			Desc:      post.Content,
@@ -2966,7 +2968,7 @@ func (s *Spider) GetHonkai() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "honkai",
 		Title: "崩坏3",
@@ -2978,8 +2980,8 @@ func (s *Spider) GetHonkai() (*HotData, error) {
 }
 
 // GetHostloc 获取hostloc论坛热门帖子
-func (s *Spider) GetHostloc() (*HotData, error) {
-	urlConf := s.UrlMap[SourceHostloc]
+func (s *Spider) GetHostloc() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceHostloc]
 	resp, err := s.HttpClient.Get(urlConf.Url)
 	if err != nil {
 		return nil, err
@@ -2992,11 +2994,11 @@ func (s *Spider) GetHostloc() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range feed.Channel.Items {
 		// 将字符串Guid转换为int
 		idInt, _ := strconv.Atoi(item.Guid)
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(idInt),
 			Title:     item.Title,
 			Desc:      item.Description,
@@ -3007,7 +3009,7 @@ func (s *Spider) GetHostloc() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "hostloc",
 		Title: "全球主机交流论坛",
@@ -3019,8 +3021,8 @@ func (s *Spider) GetHostloc() (*HotData, error) {
 }
 
 // GetIfanr 获取爱范儿快讯数据
-func (s *Spider) GetIfanr() (*HotData, error) {
-	urlConf := s.UrlMap[SourceIfanr]
+func (s *Spider) GetIfanr() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceIfanr]
 	resp, err := s.HttpClient.Get(urlConf.Url)
 	if err != nil {
 		return nil, err
@@ -3040,10 +3042,10 @@ func (s *Spider) GetIfanr() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range result.Data {
 		idInt, _ := strconv.Atoi(item.ID)
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(idInt),
 			Title:     item.Title,
 			Desc:      item.Content,
@@ -3053,7 +3055,7 @@ func (s *Spider) GetIfanr() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "ifanr",
 		Title: "爱范儿",
@@ -3065,8 +3067,8 @@ func (s *Spider) GetIfanr() (*HotData, error) {
 }
 
 // GetIthomeXijiayi 获取IT之家喜加一游戏动态
-func (s *Spider) GetIthomeXijiayi() (*HotData, error) {
-	urlConf := s.UrlMap[SourceIthomeXijiayi]
+func (s *Spider) GetIthomeXijiayi() (*model.HotData, error) {
+	urlConf := s.UrlMap[model.SourceIthomeXijiayi]
 	resp, err := s.HttpClient.Get(urlConf.Url)
 	if err != nil {
 		return nil, err
@@ -3078,7 +3080,7 @@ func (s *Spider) GetIthomeXijiayi() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	counter := 1
 	doc.Find(".newslist li").Each(func(i int, s *goquery.Selection) {
 		href := s.Find("a").AttrOr("href", "")
@@ -3097,7 +3099,7 @@ func (s *Spider) GetIthomeXijiayi() (*HotData, error) {
 			hot, _ = strconv.Atoi(strings.TrimSpace(strings.ReplaceAll(hotStr, `\D`, "")))
 		}
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(counter),
 			Title:     strings.TrimSpace(title),
 			Desc:      strings.TrimSpace(desc),
@@ -3110,7 +3112,7 @@ func (s *Spider) GetIthomeXijiayi() (*HotData, error) {
 		counter++
 	})
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "ithome-xijiayi",
 		Title: "IT之家喜加一",
@@ -3122,9 +3124,9 @@ func (s *Spider) GetIthomeXijiayi() (*HotData, error) {
 }
 
 // ============== 米游社 ==============
-func (s *Spider) GetMiyoushe() (*HotData, error) {
-	url := s.UrlMap[SourceMiyoushe].Url
-	agent := s.UrlMap[SourceMiyoushe].Agent
+func (s *Spider) GetMiyoushe() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceMiyoushe].Url
+	agent := s.UrlMap[model.SourceMiyoushe].Agent
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -3165,7 +3167,7 @@ func (s *Spider) GetMiyoushe() (*HotData, error) {
 		return nil, fmt.Errorf("解析JSON失败: %v", err)
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range result.Data.List {
 		post := item.Post
 		cover := post.Cover
@@ -3174,7 +3176,7 @@ func (s *Spider) GetMiyoushe() (*HotData, error) {
 		}
 
 		idInt, _ := strconv.Atoi(post.PostID)
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(idInt),
 			Title:     strings.TrimSpace(post.Subject),
 			Desc:      strings.TrimSpace(post.Content),
@@ -3187,7 +3189,7 @@ func (s *Spider) GetMiyoushe() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "miyoushe",
 		Title: "米游社",
@@ -3199,9 +3201,9 @@ func (s *Spider) GetMiyoushe() (*HotData, error) {
 }
 
 // ============== 水木社区 ==============
-func (s *Spider) GetNewsmth() (*HotData, error) {
-	url := s.UrlMap[SourceNewsmth].Url
-	agent := s.UrlMap[SourceNewsmth].Agent
+func (s *Spider) GetNewsmth() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceNewsmth].Url
+	agent := s.UrlMap[model.SourceNewsmth].Agent
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -3243,13 +3245,13 @@ func (s *Spider) GetNewsmth() (*HotData, error) {
 		return nil, fmt.Errorf("解析JSON失败: %v", err)
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, topic := range result.Data.Topics {
 		post := topic.Article
 		url := fmt.Sprintf("https://wap.newsmth.net/article/%s?title=%s&from=home", post.TopicID, topic.Board.Title)
 
 		idInt, _ := strconv.Atoi(topic.FirstArticleID)
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(idInt),
 			Title:     strings.TrimSpace(post.Subject),
 			Desc:      strings.TrimSpace(post.Body),
@@ -3260,7 +3262,7 @@ func (s *Spider) GetNewsmth() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "newsmth",
 		Title: "水木社区",
@@ -3272,9 +3274,9 @@ func (s *Spider) GetNewsmth() (*HotData, error) {
 }
 
 // ============== NGA ==============
-func (s *Spider) GetNgabbs() (*HotData, error) {
-	url := s.UrlMap[SourceNgabbs].Url
-	// agent := s.UrlMap[SourceNgabbs].Agent
+func (s *Spider) GetNgabbs() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceNgabbs].Url
+	// agent := s.UrlMap[model.SourceNgabbs].Agent
 
 	reqBody := strings.NewReader(`{ __output: "14"}`)
 	// reqBody := strings.NewReader(`__output=14`)
@@ -3334,10 +3336,10 @@ func (s *Spider) GetNgabbs() (*HotData, error) {
 		return nil, fmt.Errorf("解析JSON失败: %v", err)
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range result.Result[0] {
 		tidInt, _ := strconv.Atoi(item.Tid)
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(tidInt),
 			Title:     strings.TrimSpace(item.Subject),
 			Author:    item.Author,
@@ -3348,7 +3350,7 @@ func (s *Spider) GetNgabbs() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "ngabbs",
 		Title: "NGA",
@@ -3360,8 +3362,8 @@ func (s *Spider) GetNgabbs() (*HotData, error) {
 }
 
 // ============== NodeSeek ==============
-func (s *Spider) GetNodeseek() (*HotData, error) {
-	url := s.UrlMap[SourceNodeseek].Url
+func (s *Spider) GetNodeseek() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceNodeseek].Url
 	resp, err := s.HttpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -3389,11 +3391,11 @@ func (s *Spider) GetNodeseek() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range rssData.Channel.Item {
 		timestamp, _ := time.Parse(time.RFC1123, item.PubDate)
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(len(listData) + 1),
 			Title:     item.Title,
 			Desc:      item.Description,
@@ -3403,7 +3405,7 @@ func (s *Spider) GetNodeseek() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "nodeseek",
 		Title: "NodeSeek",
@@ -3415,8 +3417,8 @@ func (s *Spider) GetNodeseek() (*HotData, error) {
 }
 
 // ============== 纽约时报 ==============
-func (s *Spider) GetNytimes() (*HotData, error) {
-	url := s.UrlMap[SourceNytimes].Url
+func (s *Spider) GetNytimes() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceNytimes].Url
 	resp, err := s.HttpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -3444,11 +3446,11 @@ func (s *Spider) GetNytimes() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range rssData.Channel.Item {
 		timestamp, _ := time.Parse(time.RFC1123, item.PubDate)
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(len(listData) + 1),
 			Title:     item.Title,
 			Desc:      item.Description,
@@ -3458,7 +3460,7 @@ func (s *Spider) GetNytimes() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "nytimes",
 		Title: "纽约时报",
@@ -3470,8 +3472,8 @@ func (s *Spider) GetNytimes() (*HotData, error) {
 }
 
 // ============== Product Hunt ==============
-func (s *Spider) GetProducthunt() (*HotData, error) {
-	url := s.UrlMap[SourceProducthunt].Url
+func (s *Spider) GetProducthunt() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceProducthunt].Url
 	resp, err := s.HttpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -3487,12 +3489,12 @@ func (s *Spider) GetProducthunt() (*HotData, error) {
 	re := regexp.MustCompile(`<div data-test="post-item"[^>]*>.*?<a[^>]*href="([^"]*)"[^>]*>.*?<h3[^>]*>([^<]*)</h3>.*?<div[^>]*>([^<]*)</div>`)
 	matches := re.FindAllStringSubmatch(string(body), -1)
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for i, match := range matches {
 		if len(match) >= 4 {
 			url := "https://www.producthunt.com" + match[1]
 
-			listData = append(listData, &HotItem{
+			listData = append(listData, &model.HotItem{
 				ID:        strconv.Itoa(i + 1),
 				Title:     strings.TrimSpace(match[2]),
 				Desc:      strings.TrimSpace(match[3]),
@@ -3503,7 +3505,7 @@ func (s *Spider) GetProducthunt() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "producthunt",
 		Title: "Product Hunt",
@@ -3515,8 +3517,8 @@ func (s *Spider) GetProducthunt() (*HotData, error) {
 }
 
 // ============== 新浪新闻 ==============
-func (s *Spider) GetSinaNews() (*HotData, error) {
-	url := s.UrlMap[SourceSinaNews].Url
+func (s *Spider) GetSinaNews() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceSinaNews].Url
 	resp, err := s.HttpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -3532,7 +3534,7 @@ func (s *Spider) GetSinaNews() (*HotData, error) {
 	re := regexp.MustCompile(`<a[^>]*href="([^"]*)"[^>]*>([^<]*)</a>`)
 	matches := re.FindAllStringSubmatch(string(body), -1)
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for i, match := range matches {
 		if len(match) >= 3 && strings.Contains(match[1], "news.sina.com.cn") {
 			url := match[1]
@@ -3540,7 +3542,7 @@ func (s *Spider) GetSinaNews() (*HotData, error) {
 				url = "https:" + url
 			}
 
-			listData = append(listData, &HotItem{
+			listData = append(listData, &model.HotItem{
 				ID:        strconv.Itoa(i + 1),
 				Title:     strings.TrimSpace(match[2]),
 				Timestamp: time.Now().Unix(),
@@ -3550,7 +3552,7 @@ func (s *Spider) GetSinaNews() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "sina-news",
 		Title: "新浪新闻",
@@ -3562,8 +3564,8 @@ func (s *Spider) GetSinaNews() (*HotData, error) {
 }
 
 // ============== 新浪微博 ==============
-func (s *Spider) GetSina() (*HotData, error) {
-	url := s.UrlMap[SourceSina].Url
+func (s *Spider) GetSina() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceSina].Url
 	resp, err := s.HttpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -3579,7 +3581,7 @@ func (s *Spider) GetSina() (*HotData, error) {
 	re := regexp.MustCompile(`<a[^>]*href="([^"]*weibo.com[^"]*)"[^>]*>([^<]*)</a>`)
 	matches := re.FindAllStringSubmatch(string(body), -1)
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for i, match := range matches {
 		if len(match) >= 3 {
 			url := match[1]
@@ -3587,7 +3589,7 @@ func (s *Spider) GetSina() (*HotData, error) {
 				url = "https:" + url
 			}
 
-			listData = append(listData, &HotItem{
+			listData = append(listData, &model.HotItem{
 				ID:        strconv.Itoa(i + 1),
 				Title:     strings.TrimSpace(match[2]),
 				Timestamp: time.Now().Unix(),
@@ -3597,7 +3599,7 @@ func (s *Spider) GetSina() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "sina",
 		Title: "微博热搜",
@@ -3609,8 +3611,8 @@ func (s *Spider) GetSina() (*HotData, error) {
 }
 
 // ============== 星穹铁道 ==============
-func (s *Spider) GetStarrail() (*HotData, error) {
-	url := s.UrlMap[SourceStarrail].Url
+func (s *Spider) GetStarrail() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceStarrail].Url
 	resp, err := s.HttpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -3641,12 +3643,12 @@ func (s *Spider) GetStarrail() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range jsonData.Data.List {
 		post := item.Post
 		url := fmt.Sprintf("https://bbs.miyoushe.com/detail/%d", post.PostId)
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(int(post.PostId)),
 			Title:     post.Subject,
 			Desc:      post.Content,
@@ -3657,7 +3659,7 @@ func (s *Spider) GetStarrail() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "starrail",
 		Title: "星穹铁道",
@@ -3669,8 +3671,8 @@ func (s *Spider) GetStarrail() (*HotData, error) {
 }
 
 // ============== 澎湃新闻 ==============
-func (s *Spider) GetThepaper() (*HotData, error) {
-	url := s.UrlMap[SourceThepaper].Url
+func (s *Spider) GetThepaper() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceThepaper].Url
 	resp, err := s.HttpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -3686,7 +3688,7 @@ func (s *Spider) GetThepaper() (*HotData, error) {
 	re := regexp.MustCompile(`<a[^>]*href="([^"]*thepaper.cn[^"]*)"[^>]*>([^<]*)</a>`)
 	matches := re.FindAllStringSubmatch(string(body), -1)
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for i, match := range matches {
 		if len(match) >= 3 {
 			url := match[1]
@@ -3694,7 +3696,7 @@ func (s *Spider) GetThepaper() (*HotData, error) {
 				url = "https:" + url
 			}
 
-			listData = append(listData, &HotItem{
+			listData = append(listData, &model.HotItem{
 				ID:        strconv.Itoa(i + 1),
 				Title:     strings.TrimSpace(match[2]),
 				Timestamp: time.Now().Unix(),
@@ -3704,7 +3706,7 @@ func (s *Spider) GetThepaper() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "thepaper",
 		Title: "澎湃新闻",
@@ -3716,8 +3718,8 @@ func (s *Spider) GetThepaper() (*HotData, error) {
 }
 
 // ============== 气象预警 ==============
-func (s *Spider) GetWeatheralarm() (*HotData, error) {
-	url := s.UrlMap[SourceWeatheralarm].Url
+func (s *Spider) GetWeatheralarm() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceWeatheralarm].Url
 	resp, err := s.HttpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -3747,12 +3749,12 @@ func (s *Spider) GetWeatheralarm() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, item := range jsonData.Data.Page.List {
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.Issuetime)
 		url := fmt.Sprintf("http://www.nmc.cn/publish/alarm.html?alertid=%s", item.Alertid)
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        item.Alertid,
 			Title:     item.Title,
 			Desc:      fmt.Sprintf("发布时间: %s", item.Issuetime),
@@ -3763,7 +3765,7 @@ func (s *Spider) GetWeatheralarm() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "weatheralarm",
 		Title: "气象预警",
@@ -3775,8 +3777,8 @@ func (s *Spider) GetWeatheralarm() (*HotData, error) {
 }
 
 // ============== 微信读书 ==============
-func (s *Spider) GetWeread() (*HotData, error) {
-	url := s.UrlMap[SourceWeread].Url
+func (s *Spider) GetWeread() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceWeread].Url
 	resp, err := s.HttpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -3805,12 +3807,12 @@ func (s *Spider) GetWeread() (*HotData, error) {
 		return nil, err
 	}
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for _, book := range jsonData.Books {
 		cover := strings.Replace(book.Cover, "_s.jpg", "_l.jpg", 1)
 		url := fmt.Sprintf("https://weread.qq.com/web/bookDetail/%s", book.BookId)
 
-		listData = append(listData, &HotItem{
+		listData = append(listData, &model.HotItem{
 			ID:        book.BookId,
 			Title:     book.Title,
 			Author:    book.Author,
@@ -3823,7 +3825,7 @@ func (s *Spider) GetWeread() (*HotData, error) {
 		})
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "weread",
 		Title: "微信读书",
@@ -3835,8 +3837,8 @@ func (s *Spider) GetWeread() (*HotData, error) {
 }
 
 // ============== 游研社 ==============
-func (s *Spider) GetYystv() (*HotData, error) {
-	url := s.UrlMap[SourceYystv].Url
+func (s *Spider) GetYystv() (*model.HotData, error) {
+	url := s.UrlMap[model.SourceYystv].Url
 	resp, err := s.HttpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -3852,7 +3854,7 @@ func (s *Spider) GetYystv() (*HotData, error) {
 	re := regexp.MustCompile(`<a[^>]*href="([^"]*yystv.cn[^"]*)"[^>]*>([^<]*)</a>`)
 	matches := re.FindAllStringSubmatch(string(body), -1)
 
-	var listData []*HotItem
+	var listData []*model.HotItem
 	for i, match := range matches {
 		if len(match) >= 3 {
 			url := match[1]
@@ -3860,7 +3862,7 @@ func (s *Spider) GetYystv() (*HotData, error) {
 				url = "https:" + url
 			}
 
-			listData = append(listData, &HotItem{
+			listData = append(listData, &model.HotItem{
 				ID:        strconv.Itoa(i + 1),
 				Title:     strings.TrimSpace(match[2]),
 				Timestamp: time.Now().Unix(),
@@ -3870,7 +3872,7 @@ func (s *Spider) GetYystv() (*HotData, error) {
 		}
 	}
 
-	return &HotData{
+	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "yystv",
 		Title: "游研社",
