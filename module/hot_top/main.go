@@ -13,7 +13,6 @@ import (
 
 func main() {
 	hot.NewHot(time.Hour).Start()
-
 	r := gin.New()
 	route.InitRouter(r).Use(route.MiddleWareCors())
 

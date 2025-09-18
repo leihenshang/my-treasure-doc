@@ -75,3 +75,11 @@ func (c *HotCache) Set(source model.Source, data *model.HotData) {
 		}
 	}
 }
+
+func (c *HotCache) SetWithLastUpdateTime(source model.Source, data *HotCacheItem) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	if data != nil {
+		c.cache[source] = data
+	}
+}

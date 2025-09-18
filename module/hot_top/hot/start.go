@@ -1,11 +1,16 @@
 package hot
 
 import (
+	"encoding/json"
 	"fastduck/treasure-doc/module/hot_top/model"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
+
+var SaveFilePath = "file_cache"
 
 type Hot struct {
 	HotExpiredTime time.Duration
@@ -26,6 +31,7 @@ func NewHot(hotExpiredTime time.Duration) *Hot {
 func (h *Hot) Start() {
 	NewSpider()
 	NewHotCache(len(UrlConfMap))
+
 	go TickerGetHot(time.Hour)
 }
 
@@ -33,10 +39,18 @@ func TickerGetHot(expireTime time.Duration) {
 	fmt.Println("TickerGetHot start!")
 	var sources []model.Source
 	for k := range UrlConfMap {
+		resp, err := GetHotFromFileCache(SaveFilePath, k, expireTime)
+		if err != nil {
+			fmt.Printf("TickerGet [%s] from file cache failed, err: %v\n", k, err)
+		} else if resp != nil {
+			GetHotCache().SetWithLastUpdateTime(k, resp)
+			continue
+		}
+
 		sources = append(sources, k)
 	}
-	setHotCacheBySource(sources)
 
+	setHotCacheBySource(sources)
 	tk := time.NewTicker(time.Second * 10)
 	defer tk.Stop()
 	for t := range tk.C {
@@ -55,7 +69,63 @@ func setHotCacheBySource(sources []model.Source) {
 		}
 		fmt.Printf("TickerGet [%s] success, dataLen: %d\n", k, len(resp.Data))
 		GetHotCache().Set(k, resp)
+		if err := SaveHotFromFileCache(SaveFilePath, k, resp); err != nil {
+			fmt.Printf("TickerGet [%s] save file failed, err: %v\n", k, err)
+		}
 	}
+}
+
+func SaveHotFromFileCache(path string, source model.Source, resp *model.HotData) error {
+	if resp == nil {
+		return fmt.Errorf("source: [%s], resp is nil", source)
+	}
+	savePath := filepath.Join(path, fmt.Sprintf("%s.json", source))
+	if _, err := os.Stat(filepath.Dir(savePath)); os.IsNotExist(err) {
+		if err := os.MkdirAll(filepath.Dir(savePath), os.ModePerm); err != nil {
+			return fmt.Errorf("source: [%s], mkdir failed, err: %v", source, err)
+		}
+	}
+
+	cacheItem := &HotCacheItem{
+		LastUpdateTime: time.Now(),
+		HotData:        resp,
+	}
+	if f, err := os.Create(savePath); err != nil {
+		return fmt.Errorf("source: [%s], create file failed, err: %v", source, err)
+	} else {
+		if err := json.NewEncoder(f).Encode(cacheItem); err != nil {
+			return fmt.Errorf("source: [%s], save file failed, err: %v", source, err)
+		}
+		if err := f.Close(); err != nil {
+			return fmt.Errorf("source: [%s], close file failed, err: %v", source, err)
+		}
+	}
+
+	return nil
+}
+
+func GetHotFromFileCache(path string, source model.Source, expireTime time.Duration) (*HotCacheItem, error) {
+	var resp *HotCacheItem = &HotCacheItem{}
+	savePath := filepath.Join(path, fmt.Sprintf("%s.json", source))
+	if _, err := os.Stat(savePath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("source: [%s], file not exist, err: %v", source, err)
+	}
+	if f, err := os.Open(savePath); err != nil {
+		return nil, fmt.Errorf("source: [%s], open file failed, err: %v", source, err)
+	} else {
+		defer f.Close()
+		if err := json.NewDecoder(f).Decode(resp); err != nil {
+			return nil, fmt.Errorf("source: [%s], decode file failed, err: %v", source, err)
+		}
+	}
+	if resp == nil || resp.HotData == nil {
+		return nil, fmt.Errorf("source: [%s], resp is nil", source)
+	}
+	if time.Since(resp.LastUpdateTime) > expireTime {
+		return nil, fmt.Errorf("source: [%s], cache expired, lastUpdateTime: %s", source, resp.LastUpdateTime.Format(time.DateTime))
+	}
+
+	return resp, nil
 }
 
 func GetHotBySource(k model.Source) (*model.HotData, error) {
