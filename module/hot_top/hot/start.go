@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	"log"
 )
 
 var SaveFilePath = "file_cache"
@@ -36,13 +38,14 @@ func (h *Hot) Start() {
 }
 
 func TickerGetHot(expireTime time.Duration) {
-	fmt.Println("TickerGetHot start!")
+	log.Println("TickerGetHot start!")
 	var sources []model.Source
 	for k := range UrlConfMap {
 		resp, err := GetHotFromFileCache(SaveFilePath, k, expireTime)
 		if err != nil {
-			fmt.Printf("TickerGet [%s] from file cache failed, err: %v\n", k, err)
+			log.Printf("TickerGet [%s] from file cache failed, err: %v\n", string(k), err)
 		} else if resp != nil {
+			log.Printf("TickerGet [%s] from file cache success, dataLen: %d\n", string(k), len(resp.HotData.Data))
 			GetHotCache().SetWithLastUpdateTime(k, resp)
 			continue
 		}
@@ -55,7 +58,7 @@ func TickerGetHot(expireTime time.Duration) {
 	defer tk.Stop()
 	for t := range tk.C {
 		current := t.Format(time.DateTime)
-		fmt.Printf("check TickerGetHot expire time: %s\n", current)
+		log.Printf("check TickerGetHot expire time: %s\n", current)
 		setHotCacheBySource(GetHotCache().GetExpired(expireTime))
 	}
 }
@@ -64,13 +67,13 @@ func setHotCacheBySource(sources []model.Source) {
 	for _, k := range sources {
 		resp, err := GetHotBySource(k)
 		if err != nil {
-			fmt.Printf("TickerGet [%s] failed, err: %v\n", k, err)
+			log.Printf("TickerGet [%s] failed, err: %v\n", string(k), err)
 			continue
 		}
-		fmt.Printf("TickerGet [%s] success, dataLen: %d\n", k, len(resp.Data))
+		log.Printf("TickerGet [%s] success, dataLen: %d\n", string(k), len(resp.Data))
 		GetHotCache().Set(k, resp)
 		if err := SaveHotFromFileCache(SaveFilePath, k, resp); err != nil {
-			fmt.Printf("TickerGet [%s] save file failed, err: %v\n", k, err)
+			log.Printf("TickerGet [%s] save file failed, err: %v\n", k, err)
 		}
 	}
 }
@@ -108,7 +111,7 @@ func GetHotFromFileCache(path string, source model.Source, expireTime time.Durat
 	var resp *HotCacheItem = &HotCacheItem{}
 	savePath := filepath.Join(path, fmt.Sprintf("%s.json", source))
 	if _, err := os.Stat(savePath); os.IsNotExist(err) {
-		return nil, fmt.Errorf("source: [%s], file not exist, err: %v", source, err)
+		return nil, nil
 	}
 	if f, err := os.Open(savePath); err != nil {
 		return nil, fmt.Errorf("source: [%s], open file failed, err: %v", source, err)
