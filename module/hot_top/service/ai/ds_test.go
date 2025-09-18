@@ -1,9 +1,15 @@
 package ai
 
-import "testing"
+import (
+	"fastduck/treasure-doc/module/hot_top/conf"
+	"testing"
+)
 
 func Test_DeepSeek_Call(t *testing.T) {
-	ds, err := NewAiDeepSeek("sk-")
+	if err := conf.InitConf("conf.toml"); err != nil {
+		t.Fatal(err)
+	}
+	ds, err := NewAiDeepSeek(conf.GetConf().DeepSeekToken)
 	if err != nil {
 		t.Fatal(err)
 	}
