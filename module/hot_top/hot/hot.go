@@ -2310,14 +2310,14 @@ func (s *Spider) GetEarthquake() (*HotData, error) {
 	}
 
 	var earthquakes []struct {
-		NEW_DID    string  `json:"NEW_DID"`
-		LOCATION_C string  `json:"LOCATION_C"`
-		M          float64 `json:"M"`
-		O_TIME     string  `json:"O_TIME"`
-		EPI_LAT    float64 `json:"EPI_LAT"`
-		EPI_LON    float64 `json:"EPI_LON"`
-		EPI_DEPTH  float64 `json:"EPI_DEPTH"`
-		SAVE_TIME  string  `json:"SAVE_TIME"`
+		NEW_DID    string `json:"NEW_DID"`
+		LOCATION_C string `json:"LOCATION_C"`
+		M          string `json:"M"`
+		O_TIME     string `json:"O_TIME"`
+		EPI_LAT    string `json:"EPI_LAT"`
+		EPI_LON    string `json:"EPI_LON"`
+		EPI_DEPTH  int64  `json:"EPI_DEPTH"`
+		SAVE_TIME  string `json:"SAVE_TIME"`
 	}
 
 	if err := json.Unmarshal(match[1], &earthquakes); err != nil {
@@ -2348,13 +2348,13 @@ func (s *Spider) GetEarthquake() (*HotData, error) {
 					value = eq.SAVE_TIME
 				}
 			case "M", "EPI_LAT", "EPI_LON", "EPI_DEPTH":
-				value = fmt.Sprintf("%.1f", eq.M)
+				value = eq.M
 				if key == "EPI_LAT" {
-					value = fmt.Sprintf("%.2f", eq.EPI_LAT)
+					value = eq.EPI_LAT
 				} else if key == "EPI_LON" {
-					value = fmt.Sprintf("%.2f", eq.EPI_LON)
+					value = eq.EPI_LON
 				} else if key == "EPI_DEPTH" {
-					value = fmt.Sprintf("%.0f", eq.EPI_DEPTH)
+					value = strconv.FormatInt(eq.EPI_DEPTH, 10)
 				}
 			}
 			contentBuilder = append(contentBuilder, fmt.Sprintf("%s：%s", desc, value))
@@ -2364,7 +2364,7 @@ func (s *Spider) GetEarthquake() (*HotData, error) {
 
 		listData = append(listData, &HotItem{
 			ID:        "0",
-			Title:     fmt.Sprintf("%s发生%.1f级地震", eq.LOCATION_C, eq.M),
+			Title:     fmt.Sprintf("%s发生%s级地震", eq.LOCATION_C, eq.M),
 			Desc:      strings.Join(contentBuilder, "\n"),
 			Timestamp: timestamp.Unix(),
 			URL:       "https://news.ceic.ac.cn/",
