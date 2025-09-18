@@ -272,6 +272,15 @@ func Test_GetGuokr(t *testing.T) {
 	printData(result)
 }
 
+func Test_Get36Kr(t *testing.T) {
+	spider := NewSpider()
+	result, err := spider.Get36Kr()
+	if err != nil {
+		t.Errorf("Get36kr failed, err: %v", err)
+	}
+	printData(result)
+}
+
 func Test_GetHackernews(t *testing.T) {
 	spider := NewSpider()
 	result, err := spider.GetHackernews()

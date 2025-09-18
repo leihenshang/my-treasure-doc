@@ -1010,12 +1010,46 @@ func parseChineseNumber(str string) int {
 
 // ============== 36氪 ==============
 func (s *Spider) Get36Kr() (*HotData, error) {
+	//todo: 支持多个分类
+	// typeMap := map[string]string{
+	// 	"hot":     "人气榜",
+	// 	"video":   "视频榜",
+	// 	"comment": "热议榜",
+	// 	"collect": "收藏榜",
+	// }
+
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[Source36Kr].Url, Body)
+
+	type RequestBody struct {
+		PartnerID string `json:"partner_id"`
+		Param     struct {
+			SiteID     int `json:"siteId"`
+			PlatformID int `json:"platformId"`
+		} `json:"param"`
+		Timestamp int64 `json:"timestamp"`
+	}
+
+	reqBody, err := json.Marshal(RequestBody{
+		PartnerID: "wap",
+		Param: struct {
+			SiteID     int `json:"siteId"`
+			PlatformID int `json:"platformId"`
+		}{
+			SiteID:     1,
+			PlatformID: 2,
+		},
+		Timestamp: time.Now().Unix(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	Body = strings.NewReader(string(reqBody))
+	request, err := http.NewRequest("POST", s.UrlMap[Source36Kr].Url, Body)
 	if err != nil {
 		return nil, err
 	}
 	request.Header.Add("User-Agent", s.UrlMap[Source36Kr].Agent)
+	request.Header.Set("Content-Type", "application/json; charset=utf-8")
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1023,52 +1057,43 @@ func (s *Spider) Get36Kr() (*HotData, error) {
 	}
 	defer res.Body.Close()
 
-	var result map[string]interface{}
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp struct {
+		Data struct {
+			HotRankList []struct {
+				TemplateMaterial struct {
+					ItemId      int64  `json:"itemId"`
+					WidgetTitle string `json:"widgetTitle"`
+					WidgetImage string `json:"widgetImage"`
+					AuthorName  string `json:"authorName"`
+					StatRead    int    `json:"statRead"`
+					PublishTime int64  `json:"publishTime"`
+				} `json:"templateMaterial"`
+				Route string `json:"route"`
+			} `json:"hotRankList"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, err
 	}
 
 	var listData []*HotItem
-	if data, ok := result["data"].([]interface{}); ok {
-		for i, item := range data {
-			if v, ok := item.(map[string]interface{}); ok {
-				title := ""
-				if t, ok := v["title"].(string); ok {
-					title = t
-				}
-
-				cover := ""
-				if c, ok := v["cover"].(string); ok {
-					cover = c
-				}
-
-				author := ""
-				if a, ok := v["author"].(string); ok {
-					author = a
-				}
-
-				hot := 0
-				if h, ok := v["hot"].(float64); ok {
-					hot = int(h)
-				}
-
-				timestamp := time.Now().Unix()
-				if ts, ok := v["publishTime"].(float64); ok {
-					timestamp = int64(ts)
-				}
-
-				listData = append(listData, &HotItem{
-					ID:        strconv.Itoa(i + 1),
-					Title:     title,
-					Cover:     cover,
-					Author:    author,
-					Timestamp: timestamp,
-					Hot:       hot,
-					URL:       fmt.Sprintf("https://36kr.com/p/%v", v["id"]),
-					MobileURL: fmt.Sprintf("https://m.36kr.com/p/%v", v["id"]),
-				})
-			}
-		}
+	for _, item := range resp.Data.HotRankList {
+		listData = append(listData, &HotItem{
+			ID:        strconv.Itoa(int(item.TemplateMaterial.ItemId)),
+			Title:     item.TemplateMaterial.WidgetTitle,
+			Cover:     item.TemplateMaterial.WidgetImage,
+			Author:    item.TemplateMaterial.AuthorName,
+			Timestamp: item.TemplateMaterial.PublishTime,
+			Hot:       item.TemplateMaterial.StatRead,
+			URL:       fmt.Sprintf("https://36kr.com/p/%d", item.TemplateMaterial.ItemId),
+			MobileURL: fmt.Sprintf("https://m.36kr.com/p/%d", item.TemplateMaterial.ItemId),
+		})
 	}
 
 	return &HotData{
