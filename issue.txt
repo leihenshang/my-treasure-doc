@@ -1,0 +1,31 @@
+TickerGet v2ex failed, err: Get "https://www.v2ex.com/api/topics/hot.json": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+TickerGet nytimes failed, err: Get "https://rsshub.app/nytimes": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+TickerGet ifanr success, dataLen: 0
+TickerGet kuaishou success, dataLen: 0
+TickerGet csdn failed, err: Get "https://blog.csdn.net/phoenix/web/blog/hot-rank": remote error: tls: internal error
+TickerGet jianshu success, dataLen: 4
+TickerGet hostloc failed, err: Get "https://hostloc.com/forum.php?mod=guide&view=hot&rss=1": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+TickerGet bilibili success, dataLen: 0
+TickerGet hupu success, dataLen: 0
+TickerGet miyoushe success, dataLen: 0
+TickerGet starrail success, dataLen: 0
+TickerGet weread success, dataLen: 0
+TickerGet dgtle success, dataLen: 0
+TickerGet nodeseek failed, err: Get "https://www.nodeseek.com/rss": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+TickerGet sina success, dataLen: 0
+TickerGet ngabbs failed, err: 解析JSON失败: invalid character '\x1f' looking for beginning of value
+TickerGet genshin success, dataLen: 0
+TickerGet coolapk success, dataLen: 0
+TickerGet smzdm success, dataLen: 0
+TickerGet geekpark success, dataLen: 0
+TickerGet sspai success, dataLen: 0
+TickerGet hackernews failed, err: Get "https://news.ycombinator.com/": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+TickerGet sina-news success, dataLen: 0
+TickerGet qq success, dataLen: 0
+TickerGet acfun success, dataLen: 0
+TickerGet 52pojie success, dataLen: 0
+TickerGet producthunt success, dataLen: 0
+TickerGet gameres success, dataLen: 0
+TickerGet honkai success, dataLen: 0
+TickerGet thepaper success, dataLen: 1
+TickerGet huxiu success, dataLen: 0
