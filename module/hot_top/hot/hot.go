@@ -2052,8 +2052,56 @@ func (s *Spider) GetDoubanGroup() (*HotData, error) {
 	}
 	defer res.Body.Close()
 
-	// 需要HTML解析，这里简化实现
-	// 实际实现需要使用goquery解析HTML
+	// 使用goquery解析HTML
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var listData []*HotItem
+	doc.Find(".article .channel-item").Each(func(i int, s *goquery.Selection) {
+		url := s.Find("h3 a").AttrOr("href", "")
+		title := s.Find("h3 a").Text()
+		cover := s.Find(".pic-wrap img").AttrOr("src", "")
+		desc := s.Find(".block p").Text()
+		timeStr := s.Find("span.pubtime").Text()
+
+		// 提取ID
+		id := 0
+		if url != "" {
+			// 使用正则表达式提取topic后面的数字ID
+			re := regexp.MustCompile(`/topic/(\d+)`)
+			matches := re.FindStringSubmatch(url)
+			if len(matches) > 1 {
+				id, _ = strconv.Atoi(matches[1])
+			}
+		}
+
+		// 解析时间
+		timestamp := parseTime(timeStr)
+
+		// 构建URL
+		finalURL := url
+		if finalURL == "" && id > 0 {
+			finalURL = fmt.Sprintf("https://www.douban.com/group/topic/%d", id)
+		}
+
+		mobileURL := ""
+		if id > 0 {
+			mobileURL = fmt.Sprintf("https://m.douban.com/group/topic/%d/", id)
+		}
+
+		listData = append(listData, &HotItem{
+			ID:        strconv.Itoa(id),
+			Title:     strings.TrimSpace(title),
+			Desc:      strings.TrimSpace(desc),
+			Cover:     cover,
+			Timestamp: timestamp,
+			Hot:       0,
+			URL:       finalURL,
+			MobileURL: mobileURL,
+		})
+	})
 
 	return &HotData{
 		Code:  http.StatusOK,
@@ -2061,8 +2109,8 @@ func (s *Spider) GetDoubanGroup() (*HotData, error) {
 		Title: "豆瓣讨论",
 		Type:  "讨论精选",
 		Link:  "https://www.douban.com/group/explore",
-		Total: 0,
-		Data:  []*HotItem{},
+		Total: len(listData),
+		Data:  listData,
 	}, nil
 }
 
