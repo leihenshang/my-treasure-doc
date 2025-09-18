@@ -2588,36 +2588,38 @@ func (s *Spider) GetGuokr() (*HotData, error) {
 		return nil, err
 	}
 
-	var result struct {
-		Data []struct {
-			ID         string `json:"id"`
-			Title      string `json:"title"`
-			Summary    string `json:"summary"`
-			SmallImage string `json:"small_image"`
-			Author     struct {
-				Nickname string `json:"nickname"`
-			} `json:"author"`
-			DateModified string `json:"date_modified"`
-		} `json:"data"`
+	var result []struct {
+		ID         int    `json:"id"`
+		Title      string `json:"title"`
+		Summary    string `json:"summary"`
+		SmallImage string `json:"small_image"`
+		Authors    []struct {
+			Nickname string `json:"nickname"`
+		} `json:"authors"`
+		DateCreated string `json:"date_created"`
 	}
-
+	fmt.Println(string(body))
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, err
 	}
 
 	var listData []*HotItem
-	for _, item := range result.Data {
-		timestamp, _ := time.Parse(time.RFC3339, item.DateModified)
-		idInt, _ := strconv.Atoi(item.ID)
+	for _, item := range result {
+		timestamp, _ := time.Parse(time.RFC3339, item.DateCreated)
 		listData = append(listData, &HotItem{
-			ID:        strconv.Itoa(idInt),
-			Title:     item.Title,
-			Desc:      item.Summary,
-			Cover:     item.SmallImage,
-			Author:    item.Author.Nickname,
+			ID:    strconv.Itoa(item.ID),
+			Title: item.Title,
+			Desc:  item.Summary,
+			Cover: item.SmallImage,
+			Author: func() string {
+				if len(item.Authors) > 0 {
+					return item.Authors[0].Nickname
+				}
+				return ""
+			}(),
 			Timestamp: timestamp.Unix(),
-			URL:       fmt.Sprintf("https://www.guokr.com/article/%s", item.ID),
-			MobileURL: fmt.Sprintf("https://m.guokr.com/article/%s", item.ID),
+			URL:       fmt.Sprintf("https://www.guokr.com/article/%d", item.ID),
+			MobileURL: fmt.Sprintf("https://m.guokr.com/article/%d", item.ID),
 		})
 	}
 
