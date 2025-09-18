@@ -2717,15 +2717,13 @@ func (s *Spider) GetHelloGitHub() (*HotData, error) {
 	}
 
 	var result struct {
-		Data struct {
-			Data []struct {
-				ItemID      string `json:"item_id"`
-				Title       string `json:"title"`
-				Summary     string `json:"summary"`
-				Author      string `json:"author"`
-				UpdatedAt   string `json:"updated_at"`
-				ClicksTotal int    `json:"clicks_total"`
-			} `json:"data"`
+		Data []struct {
+			ItemID      string `json:"item_id"`
+			Title       string `json:"title"`
+			Summary     string `json:"summary"`
+			Author      string `json:"author"`
+			UpdatedAt   string `json:"updated_at"`
+			ClicksTotal int    `json:"clicks_total"`
 		} `json:"data"`
 	}
 
@@ -2734,17 +2732,15 @@ func (s *Spider) GetHelloGitHub() (*HotData, error) {
 	}
 
 	var listData []*HotItem
-	for _, item := range result.Data.Data {
-		timestamp, _ := time.Parse(time.RFC3339, item.UpdatedAt)
-		hot := item.ClicksTotal
-		idInt, _ := strconv.Atoi(item.ItemID)
+	for _, item := range result.Data {
+		timestamp, _ := time.Parse("2006-01-02T15:04:05", item.UpdatedAt)
 		listData = append(listData, &HotItem{
-			ID:        strconv.Itoa(idInt),
+			ID:        item.ItemID,
 			Title:     item.Title,
 			Desc:      item.Summary,
 			Author:    item.Author,
 			Timestamp: timestamp.Unix(),
-			Hot:       hot,
+			Hot:       item.ClicksTotal,
 			URL:       fmt.Sprintf("https://hellogithub.com/repository/%s", item.ItemID),
 			MobileURL: fmt.Sprintf("https://hellogithub.com/repository/%s", item.ItemID),
 		})
@@ -3191,14 +3187,14 @@ func (s *Spider) GetNewsmth() (*HotData, error) {
 // ============== NGA ==============
 func (s *Spider) GetNgabbs() (*HotData, error) {
 	url := s.UrlMap[SourceNgabbs].Url
-	agent := s.UrlMap[SourceNgabbs].Agent
+	// agent := s.UrlMap[SourceNgabbs].Agent
 
-	body := strings.NewReader("__output=14")
-	req, err := http.NewRequest("POST", url, body)
+	reqBody := strings.NewReader(`{  "__output": "14"}`)
+	req, err := http.NewRequest("POST", url, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求失败: %v", err)
 	}
-	req.Header.Set("User-Agent", agent)
+	// req.Header.Set("User-Agent", agent)
 	req.Header.Set("Accept", "*/*")
 	req.Header.Set("Host", "ngabbs.com")
 	req.Header.Set("Referer", "https://ngabbs.com/")
@@ -3208,6 +3204,8 @@ func (s *Spider) GetNgabbs() (*HotData, error) {
 	req.Header.Set("Accept-Language", "zh-Hans-CN;q=1")
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("X-User-Agent", "NGA_skull/7.3.1(iPhone13,2;iOS 17.2.1)")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "Apifox/1.0.0 (https://apifox.com)")
 
 	resp, err := s.HttpClient.Do(req)
 	if err != nil {
