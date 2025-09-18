@@ -1,5 +1,6 @@
-package service 
+package service
 
-func ThinkWithDeepSeek()  {
+func ThinkWithDeepSeek(question string) (answer string) {
 
+	return "think with deep seek"
 }

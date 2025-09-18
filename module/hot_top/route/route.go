@@ -2,12 +2,13 @@ package route
 
 import (
 	"fastduck/treasure-doc/module/hot_top/hot"
+	"fastduck/treasure-doc/module/hot_top/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter(r *gin.Engine) *gin.Engine {
+func InitRoute(r *gin.Engine) *gin.Engine {
 	route := r.Group("/").Use(MiddleWareCors())
 	for k := range hot.UrlConfMap {
 		route.GET(string(k), func(c *gin.Context) {
@@ -20,6 +21,11 @@ func InitRouter(r *gin.Engine) *gin.Engine {
 		c.JSON(http.StatusOK, hot.GetHotCache().GetAllMap())
 	})
 
-	
+	route.GET("analysis-ds", func(c *gin.Context) {
+		question := c.Query("question")
+		answer := service.ThinkWithDeepSeek(question)
+		c.JSON(http.StatusOK, answer)
+	})
+
 	return r
 }

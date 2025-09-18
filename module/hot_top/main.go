@@ -14,7 +14,7 @@ import (
 func main() {
 	hot.NewHot(time.Hour).Start()
 	r := gin.New()
-	route.InitRouter(r).Use(route.MiddleWareCors())
+	route.InitRoute(r).Use(route.MiddleWareCors())
 
 	s := &http.Server{
 		Addr:           fmt.Sprintf(":%d", 2025),
