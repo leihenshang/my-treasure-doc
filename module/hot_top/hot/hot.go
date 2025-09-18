@@ -2,6 +2,7 @@ package hot
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -3189,7 +3190,8 @@ func (s *Spider) GetNgabbs() (*HotData, error) {
 	url := s.UrlMap[SourceNgabbs].Url
 	// agent := s.UrlMap[SourceNgabbs].Agent
 
-	reqBody := strings.NewReader(`{  "__output": "14"}`)
+	reqBody := strings.NewReader(`{ __output: "14"}`)
+	// reqBody := strings.NewReader(`__output=14`)
 	req, err := http.NewRequest("POST", url, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求失败: %v", err)
@@ -3217,6 +3219,17 @@ func (s *Spider) GetNgabbs() (*HotData, error) {
 		return nil, fmt.Errorf("HTTP错误: %s", resp.Status)
 	}
 
+	// 处理gzip压缩的响应体
+	var reader io.Reader = resp.Body
+	if resp.Header.Get("Content-Encoding") == "gzip" {
+		gzipReader, err := gzip.NewReader(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("创建gzip读取器失败: %v", err)
+		}
+		defer gzipReader.Close()
+		reader = gzipReader
+	}
+
 	var result struct {
 		Result [][]struct {
 			Tid      string `json:"tid"`
@@ -3227,8 +3240,11 @@ func (s *Spider) GetNgabbs() (*HotData, error) {
 			Tpcurl   string `json:"tpcurl"`
 		} `json:"result"`
 	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	body, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, fmt.Errorf("解析JSON失败: %v", err)
 	}
 
@@ -3628,11 +3644,15 @@ func (s *Spider) GetWeatheralarm() (*HotData, error) {
 	}
 
 	var jsonData struct {
-		Data []struct {
-			Alertid   string `json:"alertid"`
-			Title     string `json:"title"`
-			Issuetime string `json:"issuetime"`
-			Pic       string `json:"pic"`
+		Data struct {
+			Page struct {
+				List []struct {
+					Alertid   string `json:"alertid"`
+					Title     string `json:"title"`
+					Issuetime string `json:"issuetime"`
+					Pic       string `json:"pic"`
+				} `json:"list"`
+			} `json:"page"`
 		} `json:"data"`
 	}
 
@@ -3642,7 +3662,7 @@ func (s *Spider) GetWeatheralarm() (*HotData, error) {
 	}
 
 	var listData []*HotItem
-	for _, item := range jsonData.Data {
+	for _, item := range jsonData.Data.Page.List {
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.Issuetime)
 		url := fmt.Sprintf("http://www.nmc.cn/publish/alarm.html?alertid=%s", item.Alertid)
 
