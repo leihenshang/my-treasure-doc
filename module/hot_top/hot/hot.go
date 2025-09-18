@@ -29,8 +29,6 @@ type Spider struct {
 var spider *Spider
 var spiderOnce *sync.Once = &sync.Once{}
 
-
-
 func NewSpider() *Spider {
 	spiderOnce.Do(func() {
 		spider = &Spider{

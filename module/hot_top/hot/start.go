@@ -2,44 +2,62 @@ package hot
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
-func Start() {
+type Hot struct {
+	HotExpiredTime time.Duration
+}
+
+var onceHot = &sync.Once{}
+var hot *Hot
+
+func NewHot(hotExpiredTime time.Duration) *Hot {
+	onceHot.Do(func() {
+		hot = &Hot{
+			HotExpiredTime: hotExpiredTime,
+		}
+	})
+	return hot
+}
+
+func (h *Hot) Start() {
 	NewSpider()
-	hotCache := NewHotCache(len(UrlConfMap))
-	for k, v := range UrlConfMap {
-		resp, err := Get1(k)
+	NewHotCache(len(UrlConfMap))
+	go TickerGetHot(time.Hour)
+}
+
+func TickerGetHot(expireTime time.Duration) {
+	fmt.Println("TickerGetHot start!")
+	var sources []Source
+	for k := range UrlConfMap {
+		sources = append(sources, k)
+	}
+	setHotCacheBySource(sources)
+
+	tk := time.NewTicker(time.Second * 10)
+	defer tk.Stop()
+	for t := range tk.C {
+		current := t.Format(time.DateTime)
+		fmt.Printf("check TickerGetHot expire time: %s\n", current)
+		setHotCacheBySource(GetHotCache().GetExpired(expireTime))
+	}
+}
+
+func setHotCacheBySource(sources []Source) {
+	for _, k := range sources {
+		resp, err := GetHotBySource(k)
 		if err != nil {
-			fmt.Printf("Get1 %s failed,url: [%s], err: %v", k, v, err)
+			fmt.Printf("TickerGet [%s] failed, err: %v\n", k, err)
 			continue
 		}
-		fmt.Printf("Get1 %s success,url: [%s], data: %s", k, v, resp.Data.ToJsonWithErr())
-		hotCache.Set(k, resp)
+		fmt.Printf("TickerGet [%s] success, dataLen: %d\n", k, len(resp.Data))
+		GetHotCache().Set(k, resp)
 	}
-	go TickerGet()
 }
 
-func TickerGet() {
-	fmt.Println("TickerGet start!")
-	tk := time.NewTicker(time.Second * 5)
-	defer tk.Stop()
-
-	for range tk.C {
-		for _, k := range GetHotCache().GetExpired(time.Hour) {
-			resp, err := Get1(k)
-			if err != nil {
-				fmt.Printf("Get1 %s failed, err: %v", k, err)
-				continue
-			}
-			fmt.Printf("Get1 %s success,data: %s", k, resp.Data.ToJsonWithErr())
-			hotCache.Set(k, resp)
-		}
-	}
-
-}
-
-func Get1(k Source) (*HotData, error) {
+func GetHotBySource(k Source) (*HotData, error) {
 	switch k {
 	case SourceITHome:
 		return GetSpider().GetItHome()

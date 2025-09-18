@@ -1,6 +1,7 @@
 package hot
 
 import (
+	"maps"
 	"sync"
 	"time"
 )
@@ -14,8 +15,8 @@ var hotCache *HotCache
 var hotCacheOnce *sync.Once = &sync.Once{}
 
 type HotCacheItem struct {
-	LastUpdateTime time.Time
-	HotData        *HotData
+	LastUpdateTime time.Time `json:"lastUpdateTime"`
+	HotData        *HotData  `json:"hotData"`
 }
 
 func NewHotCache(len int) *HotCache {
@@ -41,6 +42,14 @@ func (c *HotCache) Get(source Source) (*HotCacheItem, bool) {
 
 	}
 	return item, true
+}
+
+func (c *HotCache) GetAllMap() map[Source]*HotCacheItem {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	resp := make(map[Source]*HotCacheItem, len(c.cache))
+	maps.Copy(resp, c.cache)
+	return resp
 }
 
 func (c *HotCache) GetExpired(t time.Duration) []Source {
