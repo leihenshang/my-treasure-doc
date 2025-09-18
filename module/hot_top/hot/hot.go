@@ -2598,7 +2598,7 @@ func (s *Spider) GetGuokr() (*HotData, error) {
 		} `json:"authors"`
 		DateCreated string `json:"date_created"`
 	}
-	fmt.Println(string(body))
+
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, err
 	}
