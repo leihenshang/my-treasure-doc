@@ -1,6 +1,9 @@
 package model
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 type Source string
 
@@ -62,14 +65,16 @@ const (
 )
 
 type HotData struct {
-	Code        int      `json:"code"`
-	Name        string   `json:"name"`
-	Title       string   `json:"title"`
-	Type        string   `json:"type"`
-	Description string   `json:"description"`
-	Link        string   `json:"link"`
-	Total       int      `json:"total"`
-	Data        HotItems `json:"data"`
+	Code        int       `json:"code"`
+	Name        string    `json:"name"`
+	Title       string    `json:"title"`
+	Type        string    `json:"type"`
+	Description string    `json:"description"`
+	Link        string    `json:"link"`
+	Total       int       `json:"total"`
+	Data        HotItems  `json:"data"`
+	params      any       `json:"params,omitempty"`
+	UpdateTime  time.Time `json:"updateTime,omitempty"`
 }
 
 type HotItem struct {
