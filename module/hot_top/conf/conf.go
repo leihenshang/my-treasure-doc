@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const DefaultConfig = "conf.toml"
+const DefaultConfig = "config.toml"
 
 type Conf struct {
 	DeepSeekToken string

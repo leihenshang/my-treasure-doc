@@ -6,7 +6,7 @@ import (
 )
 
 func Test_DeepSeek_Call(t *testing.T) {
-	if err := conf.InitConf("conf.toml"); err != nil {
+	if err := conf.InitConf(conf.DefaultConfig); err != nil {
 		t.Fatal(err)
 	}
 	ds, err := NewAiDeepSeek(conf.GetConf().DeepSeekToken)
