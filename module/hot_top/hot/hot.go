@@ -3752,13 +3752,15 @@ func (s *Spider) GetWeread() (*model.HotData, error) {
 
 	var jsonData struct {
 		Books []struct {
-			BookId       string `json:"bookId"`
-			Title        string `json:"title"`
-			Author       string `json:"author"`
-			Intro        string `json:"intro"`
-			Cover        string `json:"cover"`
-			PublishTime  int64  `json:"publishTime"`
-			ReadingCount int    `json:"readingCount"`
+			ReadingCount int `json:"readingCount"`
+			BookInfo     struct {
+				BookId      string `json:"bookId"`
+				Title       string `json:"title"`
+				Author      string `json:"author"`
+				Intro       string `json:"intro"`
+				Cover       string `json:"cover"`
+				PublishTime string `json:"publishTime"`
+			} `json:"bookInfo"`
 		} `json:"books"`
 	}
 
@@ -3769,16 +3771,16 @@ func (s *Spider) GetWeread() (*model.HotData, error) {
 
 	var listData []*model.HotItem
 	for _, book := range jsonData.Books {
-		cover := strings.Replace(book.Cover, "_s.jpg", "_l.jpg", 1)
-		url := fmt.Sprintf("https://weread.qq.com/web/bookDetail/%s", book.BookId)
+		cover := strings.Replace(book.BookInfo.Cover, "_s.jpg", "_l.jpg", 1)
+		url := fmt.Sprintf("https://weread.qq.com/web/bookDetail/%s", book.BookInfo.BookId)
 
 		listData = append(listData, &model.HotItem{
-			ID:        book.BookId,
-			Title:     book.Title,
-			Author:    book.Author,
-			Desc:      book.Intro,
+			ID:        book.BookInfo.BookId,
+			Title:     book.BookInfo.Title,
+			Author:    book.BookInfo.Author,
+			Desc:      book.BookInfo.Intro,
 			Cover:     cover,
-			Timestamp: book.PublishTime,
+			Timestamp: parseTime(book.BookInfo.PublishTime),
 			Hot:       book.ReadingCount,
 			URL:       url,
 			MobileURL: url,
