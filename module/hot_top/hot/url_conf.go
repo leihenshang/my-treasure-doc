@@ -36,8 +36,9 @@ var UrlConfMap map[model.Source]*UrlConf = map[model.Source]*UrlConf{
 		Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
 	},
 	model.SourceKuaishou: {
-		Url:   "https://www.kuaishou.com/?isHome=1",
-		Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
+		Disabled: true,
+		Url:      "https://www.kuaishou.com/?isHome=1",
+		Agent:    `desktop`,
 	},
 	model.SourceToutiao: {
 		Url:   "https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc",
@@ -176,7 +177,7 @@ var UrlConfMap map[model.Source]*UrlConf = map[model.Source]*UrlConf{
 		Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67`,
 	},
 	model.SourceNodeseek: {
-		Url:   "https://www.nodeseek.com/rss",
+		Url:   "https://www.nodeseek.com",
 		Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67`,
 	},
 	model.SourceNytimes: {

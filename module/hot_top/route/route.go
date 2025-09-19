@@ -4,12 +4,15 @@ import (
 	"fastduck/treasure-doc/module/hot_top/hot"
 	"fastduck/treasure-doc/module/hot_top/service"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 )
 
 func InitRoute(r *gin.Engine) *gin.Engine {
 	route := r.Group("/").Use(MiddleWareCors())
+
 	for k := range hot.UrlConfMap {
 		route.GET(string(k), func(c *gin.Context) {
 			resp, _ := hot.GetHotCache().Get(k)
@@ -29,6 +32,20 @@ func InitRoute(r *gin.Engine) *gin.Engine {
 			return
 		}
 		c.JSON(http.StatusOK, answer)
+	})
+
+	distDir := "./dist"
+	if _, err := os.Stat(distDir); !os.IsNotExist(err) {
+		r.StaticFS("/dist", gin.Dir(distDir, false))
+		// 处理前端路由的SPA回退
+		r.NoRoute(func(c *gin.Context) {
+			c.File(filepath.Join(distDir, "index.html"))
+		})
+	}
+
+	// 移除原来的重定向逻辑
+	r.Any("/", func(ctx *gin.Context) {
+		ctx.Redirect(http.StatusMovedPermanently, "/dist")
 	})
 
 	return r
