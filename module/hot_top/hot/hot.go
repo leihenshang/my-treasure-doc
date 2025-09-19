@@ -239,60 +239,36 @@ func (s *Spider) GetWeibo() (*model.HotData, error) {
 	}
 	defer res.Body.Close()
 
-	var result map[string]interface{}
+	var result struct {
+		Data struct {
+			Cards []struct {
+				CardGroup []struct {
+					Desc   string  `json:"desc"`
+					Num    float64 `json:"num"`
+					ItemID string  `json:"itemid"`
+					Scheme string  `json:"scheme"`
+					Pic    string  `json:"pic"`
+				} `json:"card_group"`
+			} `json:"cards"`
+		} `json:"data"`
+	}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
 	var listData []*model.HotItem
-	if data, ok := result["data"].(map[string]interface{}); ok {
-		if cards, ok := data["cards"].([]interface{}); ok && len(cards) > 0 {
-			if cardGroup, ok := cards[0].(map[string]interface{})["card_group"].([]interface{}); ok {
-				for _, item := range cardGroup {
-					if v, ok := item.(map[string]interface{}); ok {
-						title := ""
-						if desc, ok := v["desc"].(string); ok {
-							title = desc
-						}
-
-						wordScheme := ""
-						if ws, ok := v["word_scheme"].(string); ok {
-							wordScheme = ws
-						} else {
-							wordScheme = fmt.Sprintf("#%s#", title)
-						}
-
-						hot := 0
-						if num, ok := v["num"].(float64); ok {
-							hot = int(num)
-						}
-
-						timestamp := time.Now().Unix()
-						if onboardTime, ok := v["onboard_time"].(float64); ok {
-							timestamp = int64(onboardTime)
-						}
-
-						itemID := 0
-						if id, ok := v["itemid"].(float64); ok {
-							itemID = int(id)
-						} else if idStr, ok := v["itemid"].(string); ok {
-							if id, err := strconv.Atoi(idStr); err == nil {
-								itemID = id
-							}
-						}
-
-						listData = append(listData, &model.HotItem{
-							ID:        strconv.Itoa(itemID),
-							Title:     title,
-							Desc:      wordScheme,
-							Timestamp: timestamp,
-							Hot:       hot,
-							URL:       fmt.Sprintf("https://s.weibo.com/weibo?q=%s&t=31&band_rank=1&Refer=top", strings.ReplaceAll(wordScheme, "#", "")),
-							MobileURL: v["scheme"].(string),
-						})
-					}
-				}
-			}
+	for _, v := range result.Data.Cards {
+		for _, vv := range v.CardGroup {
+			listData = append(listData, &model.HotItem{
+				ID:        vv.ItemID,
+				Title:     vv.Desc,
+				Desc:      vv.Desc,
+				Timestamp: time.Now().Unix(),
+				Hot:       int(vv.Num),
+				Cover:     vv.Pic,
+				URL:       fmt.Sprintf("https://s.weibo.com/weibo?q=%s&t=31&band_rank=1&Refer=top", strings.ReplaceAll(vv.Desc, "#", "")),
+				MobileURL: vv.Scheme,
+			})
 		}
 	}
 

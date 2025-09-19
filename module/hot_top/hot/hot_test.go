@@ -469,6 +469,6 @@ func printData(result *model.HotData) {
 	}
 
 	for _, v := range result.Data {
-		fmt.Printf("id:%s,title:%s,hot:%d,url: %s\n", v.ID, v.Title, v.Hot, v.URL)
+		fmt.Printf("id:%s,title:%s,hot:%d,url: %s, mobileUrl: %s\n", v.ID, v.Title, v.Hot, v.URL, v.MobileURL)
 	}
 }
