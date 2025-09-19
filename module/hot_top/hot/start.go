@@ -136,6 +136,13 @@ func GetHotFromFileCache(path string, source model.Source, expireTime time.Durat
 }
 
 func GetHotBySource(k model.Source) (*model.HotData, error) {
+	UrlConf, ok := UrlConfMap[k]
+	if !ok {
+		return nil, fmt.Errorf("source: [%s], url conf not found", k)
+	} else if UrlConf.Disabled {
+		return nil, fmt.Errorf("source: [%s], url conf disabled, skip!", k)
+	}
+
 	switch k {
 	case model.SourceITHome:
 		return GetSpider().GetItHome()

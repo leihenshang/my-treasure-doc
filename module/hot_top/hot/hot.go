@@ -20,8 +20,9 @@ import (
 )
 
 type UrlConf struct {
-	Url   string
-	Agent string
+	Url      string
+	Agent    string
+	Disabled bool
 }
 
 type Spider struct {
