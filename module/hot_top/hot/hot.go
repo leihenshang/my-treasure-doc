@@ -1698,56 +1698,75 @@ func (s *Spider) GetSspai() (*model.HotData, error) {
 	}
 	defer res.Body.Close()
 
-	var result map[string]interface{}
+	var result struct {
+		Error int    `json:"error"`
+		Msg   string `json:"msg"`
+		Data  []struct {
+			ID                int    `json:"id"`
+			Title             string `json:"title"`
+			Banner            string `json:"banner"`
+			Summary           string `json:"summary"`
+			CommentCount      int    `json:"comment_count"`
+			LikeCount         int    `json:"like_count"`
+			ViewCount         int    `json:"view_count"`
+			Free              bool   `json:"free"`
+			PostType          int    `json:"post_type"`
+			Important         int    `json:"important"`
+			ReleasedTime      int64  `json:"released_time"`
+			MorningPaperTitle []any  `json:"morning_paper_title"`
+			AdvertisementURL  string `json:"advertisement_url"`
+			Series            []any  `json:"series"`
+			Author            struct {
+				ID       int    `json:"id"`
+				Slug     string `json:"slug"`
+				Avatar   string `json:"avatar"`
+				Nickname string `json:"nickname"`
+			} `json:"author"`
+			Corner struct {
+				ID    int    `json:"id"`
+				Name  string `json:"name"`
+				URL   string `json:"url"`
+				Icon  string `json:"icon"`
+				Memo  string `json:"memo"`
+				Color string `json:"color"`
+			} `json:"corner"`
+			SpecialColumns        []any  `json:"special_columns"`
+			Status                int    `json:"status"`
+			CreatedTime           int64  `json:"created_time"`
+			ModifyTime            int64  `json:"modify_time"`
+			IsMatrix              bool   `json:"is_matrix"`
+			IsRecommendToHome     bool   `json:"is_recommend_to_home"`
+			Slug                  string `json:"slug"`
+			BelongToMember        bool   `json:"belong_to_member"`
+			Issue                 string `json:"issue"`
+			Tags                  []any  `json:"tags"`
+			PodcastDuration       int    `json:"podcast_duration"`
+			ArticleLimitFree      bool   `json:"article_limit_free"`
+			ArticleLimitFreeStime int64  `json:"article_limit_free_stime"`
+			ArticleLimitFreeEtime int64  `json:"article_limit_free_etime"`
+			UserMemberCardShowOn  bool   `json:"user_member_card_show_on"`
+			ObjectType            int    `json:"object_type"`
+			IDHash                string `json:"id_hash"`
+			RecommendToHomeAt     int64  `json:"recommend_to_home_at"`
+			IsPreRecommendToHome  bool   `json:"is_pre_recommend_to_home"`
+		} `json:"data"`
+	}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
 	var listData []*model.HotItem
-	var dataList []interface{}
-	if data, ok := result["data"].([]interface{}); ok {
-		dataList = data
-	}
-
-	for i, item := range dataList {
-		if itemMap, ok := item.(map[string]interface{}); ok {
-			title := ""
-			if t, ok := itemMap["title"].(string); ok {
-				title = t
-			}
-
-			summary := ""
-			if s, ok := itemMap["summary"].(string); ok {
-				summary = s
-			}
-
-			id := 0
-			if idFloat, ok := itemMap["id"].(float64); ok {
-				id = int(idFloat)
-			}
-
-			author := ""
-			if authorMap, ok := itemMap["author"].(map[string]interface{}); ok {
-				if nickname, ok := authorMap["nickname"].(string); ok {
-					author = nickname
-				}
-			}
-
-			listData = append(listData, &model.HotItem{
-				ID:        strconv.Itoa(id),
-				Title:     title,
-				Desc:      summary,
-				Author:    author,
-				Timestamp: time.Now().Unix(),
-				Hot:       0,
-				URL:       fmt.Sprintf("https://sspai.com/post/%d", id),
-				MobileURL: fmt.Sprintf("https://sspai.com/post/%d", id),
-			})
-		}
-
-		if i >= 19 { // 限制为20条
-			break
-		}
+	for _, item := range result.Data {
+		listData = append(listData, &model.HotItem{
+			ID:        strconv.Itoa(item.ID),
+			Title:     item.Title,
+			Desc:      item.Summary,
+			Author:    item.Author.Nickname,
+			Timestamp: time.Unix(item.ReleasedTime, 0).Unix(),
+			Hot:       0,
+			URL:       fmt.Sprintf("https://sspai.com/post/%d", item.ID),
+			MobileURL: fmt.Sprintf("https://m.sspai.com/post/%d", item.ID),
+		})
 	}
 
 	return &model.HotData{
