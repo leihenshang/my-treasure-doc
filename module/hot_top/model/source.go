@@ -29,7 +29,7 @@ const (
 	SourceJianshu       Source = "jianshu"
 	SourceSmzdm         Source = "smzdm"
 	SourceSspai         Source = "sspai"
-	SourceNeteaseNews   Source = "netease"
+	SourceNeteaseNews   Source = "netease-news"
 	SourceQQNews        Source = "qq-news"
 	SourceAcfun         Source = "acfun"
 	Source51CTO         Source = "51cto"
@@ -97,4 +97,8 @@ func (h HotItems) ToJsonWithErr() string {
 		return err.Error()
 	}
 	return string(jsonBytes)
+}
+
+func (s Source) String() string {
+	return string(s)
 }

@@ -14,7 +14,10 @@ import (
 	"sync"
 	"time"
 
+	"fastduck/treasure-doc/module/hot_top/hot/token"
 	"fastduck/treasure-doc/module/hot_top/model"
+
+	"log"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -287,80 +290,148 @@ func (s *Spider) GetWeibo() (*model.HotData, error) {
 
 // ============== 哔哩哔哩 ==============
 func (s *Spider) GetBilibili() (*model.HotData, error) {
-	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceBilibili].Url, Body)
+	wbi, err := token.GetBilibiliWbi()
+	if err != nil {
+		return nil, err
+	}
+
+	url := s.UrlMap[model.SourceBilibili].Url + "&" + wbi
+	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 	request.Header.Add("User-Agent", s.UrlMap[model.SourceBilibili].Agent)
 	request.Header.Add("Referer", "https://www.bilibili.com/ranking/all")
+	request.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+	request.Header.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+	request.Header.Add("Accept-Encoding", "gzip, deflate, br")
+	request.Header.Add("Sec-Ch-Ua", `"Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"`)
+	request.Header.Add("Sec-Ch-Ua-Mobile", "?0")
+	request.Header.Add("Sec-Ch-Ua-Platform", `"Windows"`)
+	request.Header.Add("Sec-Fetch-Dest", "document")
+	request.Header.Add("Sec-Fetch-Mode", "navigate")
+	request.Header.Add("Sec-Fetch-Site", "same-origin")
+	request.Header.Add("Sec-Fetch-User", "?1")
+	request.Header.Add("Upgrade-Insecure-Requests", "1")
 
-	res, err := s.HttpClient.Do(request)
+	resp, err := s.HttpClient.Do(request)
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
-	var result map[string]interface{}
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
 		return nil, err
 	}
 
 	var listData []*model.HotItem
-	if data, ok := result["data"].(map[string]interface{}); ok {
-		if list, ok := data["list"].([]interface{}); ok {
-			for _, item := range list {
-				if v, ok := item.(map[string]interface{}); ok {
-					title := ""
-					if t, ok := v["title"].(string); ok {
-						title = t
-					}
+	var result map[string]interface{}
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		log.Printf("GetBilibili failed, err: %v \n", err)
+		bakRequest, err := http.NewRequest("GET", `https://api.bilibili.com/x/web-interface/ranking?jsonp=jsonp?rid=${type}&type=all&callback=__jp0`, nil)
+		if err != nil {
+			return nil, err
+		}
+		bakRequest.Header.Set("User-Agent", s.UrlMap[model.SourceBilibili].Agent)
+		bakRequest.Header.Set("Referer", "https://www.bilibili.com/ranking/all")
+		bakResp, err := s.HttpClient.Do(bakRequest)
+		if err != nil {
+			return nil, err
+		}
+		defer bakResp.Body.Close()
+		bakRespBody, err := io.ReadAll(bakResp.Body)
+		if err != nil {
+			return nil, err
+		}
 
-					desc := "该视频暂无简介"
-					if d, ok := v["desc"].(string); ok && d != "" {
-						desc = d
-					}
+		var bakResult struct {
+			Data struct {
+				List []struct {
+					Bvid      string `json:"bvid"`
+					Title     string `json:"title"`
+					Desc      string `json:"desc"`
+					Pic       string `json:"pic"`
+					Author    string `json:"author"`
+					VideoView int64  `json:"video_view"`
+				} `json:"list"`
+			} `json:"data"`
+		}
 
-					cover := ""
-					if pic, ok := v["pic"].(string); ok {
-						cover = strings.ReplaceAll(pic, "http:", "https:")
-					}
+		if err := json.Unmarshal(bakRespBody, &bakResult); err != nil {
+			log.Printf("GetBilibili failed, err: %v", err)
+			return nil, err
+		}
+		for _, v := range bakResult.Data.List {
+			listData = append(listData, &model.HotItem{
+				ID:        v.Bvid,
+				Title:     v.Title,
+				Desc:      v.Desc,
+				Cover:     v.Pic,
+				Author:    v.Author,
+				Timestamp: time.Now().Unix(),
+				Hot:       int(v.VideoView),
+				URL:       fmt.Sprintf("https://www.bilibili.com/video/%s", v.Bvid),
+				MobileURL: fmt.Sprintf("https://m.bilibili.com/video/%s", v.Bvid),
+			})
+		}
 
-					author := ""
-					if owner, ok := v["owner"].(map[string]interface{}); ok {
-						if name, ok := owner["name"].(string); ok {
-							author = name
+	} else {
+		if data, ok := result["data"].(map[string]interface{}); ok {
+			if list, ok := data["list"].([]interface{}); ok {
+				for _, item := range list {
+					if v, ok := item.(map[string]interface{}); ok {
+						title := ""
+						if t, ok := v["title"].(string); ok {
+							title = t
 						}
-					}
 
-					timestamp := int64(0)
-					if pubdate, ok := v["pubdate"].(float64); ok {
-						timestamp = int64(pubdate)
-					}
-
-					hot := 0
-					if stat, ok := v["stat"].(map[string]interface{}); ok {
-						if view, ok := stat["view"].(float64); ok {
-							hot = int(view)
+						desc := "该视频暂无简介"
+						if d, ok := v["desc"].(string); ok && d != "" {
+							desc = d
 						}
-					}
 
-					bvid := ""
-					if b, ok := v["bvid"].(string); ok {
-						bvid = b
-					}
+						cover := ""
+						if pic, ok := v["pic"].(string); ok {
+							cover = strings.ReplaceAll(pic, "http:", "https:")
+						}
 
-					listData = append(listData, &model.HotItem{
-						ID:        "0",
-						Title:     title,
-						Desc:      desc,
-						Cover:     cover,
-						Author:    author,
-						Timestamp: timestamp,
-						Hot:       hot,
-						URL:       fmt.Sprintf("https://www.bilibili.com/video/%s", bvid),
-						MobileURL: fmt.Sprintf("https://m.bilibili.com/video/%s", bvid),
-					})
+						author := ""
+						if owner, ok := v["owner"].(map[string]interface{}); ok {
+							if name, ok := owner["name"].(string); ok {
+								author = name
+							}
+						}
+
+						timestamp := int64(0)
+						if pubdate, ok := v["pubdate"].(float64); ok {
+							timestamp = int64(pubdate)
+						}
+
+						hot := 0
+						if stat, ok := v["stat"].(map[string]interface{}); ok {
+							if view, ok := stat["view"].(float64); ok {
+								hot = int(view)
+							}
+						}
+
+						bvid := ""
+						if b, ok := v["bvid"].(string); ok {
+							bvid = b
+						}
+
+						listData = append(listData, &model.HotItem{
+							ID:        "0",
+							Title:     title,
+							Desc:      desc,
+							Cover:     cover,
+							Author:    author,
+							Timestamp: timestamp,
+							Hot:       hot,
+							URL:       fmt.Sprintf("https://www.bilibili.com/video/%s", bvid),
+							MobileURL: fmt.Sprintf("https://m.bilibili.com/video/%s", bvid),
+						})
+					}
 				}
 			}
 		}
@@ -3773,7 +3844,11 @@ func (s *Spider) GetWeread() (*model.HotData, error) {
 	var listData []*model.HotItem
 	for _, book := range jsonData.Books {
 		cover := strings.Replace(book.BookInfo.Cover, "_s.jpg", "_l.jpg", 1)
-		url := fmt.Sprintf("https://weread.qq.com/web/bookDetail/%s", book.BookInfo.BookId)
+		realBookId, err := token.GetWereadID(book.BookInfo.BookId)
+		if err != nil {
+			log.Printf("GetWereadID failed, err: %v", err)
+			continue
+		}
 
 		listData = append(listData, &model.HotItem{
 			ID:        book.BookInfo.BookId,
@@ -3783,8 +3858,8 @@ func (s *Spider) GetWeread() (*model.HotData, error) {
 			Cover:     cover,
 			Timestamp: parseTime(book.BookInfo.PublishTime),
 			Hot:       book.ReadingCount,
-			URL:       url,
-			MobileURL: url,
+			URL:       fmt.Sprintf("https://weread.qq.com/web/bookDetail/%s", realBookId),
+			MobileURL: fmt.Sprintf("https://m.weread.qq.com/web/bookDetail/%s", realBookId),
 		})
 	}
 
