@@ -1836,13 +1836,13 @@ func (s *Spider) GetNetease() (*model.HotData, error) {
 }
 
 // ============== 腾讯新闻 ==============
-func (s *Spider) GetQQ() (*model.HotData, error) {
+func (s *Spider) GetQQNews() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceQQ].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceQQNews].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceQQ].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceQQNews].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1850,70 +1850,45 @@ func (s *Spider) GetQQ() (*model.HotData, error) {
 	}
 	defer res.Body.Close()
 
-	var result map[string]interface{}
+	var result struct {
+		Idlist []struct {
+			Newslist []struct {
+				Title             string  `json:"title"`
+				Abstract          string  `json:"abstract"`
+				MiniProShareImage string  `json:"miniProShareImage"`
+				Source            string  `json:"source"`
+				Timestamp         float64 `json:"timestamp"`
+				ID                string  `json:"id"`
+				HotEvent          struct {
+					HotScore int64 `json:"hotScore"`
+				} `json:"hotEvent"`
+			} `json:"newslist"`
+		} `json:"idlist"`
+	}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
 	var listData []*model.HotItem
-	if data, ok := result["data"].(map[string]interface{}); ok {
-		if idlist, ok := data["idlist"].([]interface{}); ok && len(idlist) > 0 {
-			if newslist, ok := idlist[0].(map[string]interface{})["newslist"].([]interface{}); ok {
-				// Skip the first item as it seems to be a header
-				for i := 1; i < len(newslist); i++ {
-					if v, ok := newslist[i].(map[string]interface{}); ok {
-						title := ""
-						if t, ok := v["title"].(string); ok {
-							title = t
-						}
 
-						desc := ""
-						if abstract, ok := v["abstract"].(string); ok {
-							desc = abstract
-						}
-
-						cover := ""
-						if img, ok := v["miniProShareImage"].(string); ok {
-							cover = img
-						}
-
-						author := ""
-						if source, ok := v["source"].(string); ok {
-							author = source
-						}
-
-						timestamp := int64(0)
-						if ts, ok := v["timestamp"].(float64); ok {
-							timestamp = int64(ts)
-						}
-
-						id := ""
-						if itemID, ok := v["id"].(string); ok {
-							id = itemID
-						}
-
-						hotScore := 0
-						if hotEvent, ok := v["hotEvent"].(map[string]interface{}); ok {
-							if score, ok := hotEvent["hotScore"].(float64); ok {
-								hotScore = int(score)
-							}
-						}
-
-						listData = append(listData, &model.HotItem{
-							ID:        "0",
-							Title:     title,
-							Desc:      desc,
-							Cover:     cover,
-							Author:    author,
-							Timestamp: timestamp,
-							Hot:       hotScore,
-							URL:       fmt.Sprintf("https://new.qq.com/rain/a/%s", id),
-							MobileURL: fmt.Sprintf("https://view.inews.qq.com/k/%s", id),
-						})
-					}
-				}
+	for _, v := range result.Idlist {
+		for _, vv := range v.Newslist {
+			if strings.Contains(vv.Title, "腾讯新闻用户最关注的热点") {
+				continue
 			}
+			listData = append(listData, &model.HotItem{
+				ID:        vv.ID,
+				Title:     vv.Title,
+				Desc:      vv.Abstract,
+				Cover:     vv.MiniProShareImage,
+				Author:    vv.Source,
+				Timestamp: int64(vv.Timestamp),
+				Hot:       int(vv.HotEvent.HotScore),
+				URL:       fmt.Sprintf("https://new.qq.com/rain/a/%s", vv.ID),
+				MobileURL: fmt.Sprintf("https://view.inews.qq.com/k/%s", vv.ID),
+			})
 		}
+
 	}
 
 	return &model.HotData{

@@ -30,7 +30,7 @@ const (
 	SourceSmzdm         Source = "smzdm"
 	SourceSspai         Source = "sspai"
 	SourceNetease       Source = "netease"
-	SourceQQ            Source = "qq"
+	SourceQQNews        Source = "qq-news"
 	SourceAcfun         Source = "acfun"
 	Source51CTO         Source = "51cto"
 	Source52Pojie       Source = "52pojie"

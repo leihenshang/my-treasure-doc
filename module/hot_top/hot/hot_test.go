@@ -183,11 +183,11 @@ func Test_GetNetease(t *testing.T) {
 	printData(result)
 }
 
-func Test_GetQQ(t *testing.T) {
+func Test_GetQQNews(t *testing.T) {
 	spider := NewSpider()
-	result, err := spider.GetQQ()
+	result, err := spider.GetQQNews()
 	if err != nil {
-		t.Errorf("GetQQ failed, err: %v", err)
+		t.Errorf("GetQQNews failed, err: %v", err)
 	}
 	printData(result)
 }

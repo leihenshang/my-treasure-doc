@@ -91,7 +91,7 @@ var UrlConfMap map[model.Source]*UrlConf = map[model.Source]*UrlConf{
 		Url:   "https://m.163.com/fe/api/hot/news/flow",
 		Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
 	},
-	model.SourceQQ: {
+	model.SourceQQNews: {
 		Url:   "https://r.inews.qq.com/gw/event/hot_ranking_list?page_size=50",
 		Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
 	},

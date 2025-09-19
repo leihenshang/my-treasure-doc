@@ -181,8 +181,8 @@ func GetHotBySource(k model.Source) (*model.HotData, error) {
 		return GetSpider().GetSspai()
 	case model.SourceNetease:
 		return GetSpider().GetNetease()
-	case model.SourceQQ:
-		return GetSpider().GetQQ()
+	case model.SourceQQNews:
+		return GetSpider().GetQQNews()
 	case model.SourceAcfun:
 		return GetSpider().GetAcfun()
 	case model.Source51CTO:
