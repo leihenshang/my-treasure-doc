@@ -31,11 +31,11 @@ func main() {
 	route.InitRoute(r).Use(route.MiddleWareCors())
 
 	s := &http.Server{
-		Addr:           fmt.Sprintf(":%d", 2025),
-		Handler:        r,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
+		Addr:         fmt.Sprintf(":%d", 2025),
+		Handler:      r,
+		ReadTimeout:  360 * time.Second,
+		WriteTimeout: 360 * time.Second,
+		// MaxHeaderBytes: 1 << 20,
 	}
 	log.Fatal(s.ListenAndServe().Error())
 }

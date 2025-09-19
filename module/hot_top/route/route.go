@@ -23,7 +23,11 @@ func InitRoute(r *gin.Engine) *gin.Engine {
 
 	route.GET("analysis-ds", func(c *gin.Context) {
 		question := c.Query("question")
-		answer := service.ThinkWithDeepSeek(question)
+		answer, err := service.ThinkWithDeepSeek(question)
+		if err != nil {
+			c.JSON(http.StatusOK, err.Error())
+			return
+		}
 		c.JSON(http.StatusOK, answer)
 	})
 

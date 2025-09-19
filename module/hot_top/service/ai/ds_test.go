@@ -13,7 +13,7 @@ func Test_DeepSeek_Call(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	answer, err := ds.Call("你好")
+	answer, err := ds.Ask("你好")
 	if err != nil {
 		t.Fatal(err)
 	}

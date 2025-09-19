@@ -23,7 +23,7 @@ func NewAiDeepSeek(token string) (*DeepSeek, error) {
 	}, nil
 }
 
-func (a *DeepSeek) Call(question string) (answer string, err error) {
+func (a *DeepSeek) Ask(question string) (answer string, err error) {
 	if question == "" {
 		return "", errors.New("question is empty")
 	}
