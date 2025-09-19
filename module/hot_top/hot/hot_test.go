@@ -174,11 +174,11 @@ func Test_GetSspai(t *testing.T) {
 	printData(result)
 }
 
-func Test_GetNetease(t *testing.T) {
+func Test_GetNeteaseNews(t *testing.T) {
 	spider := NewSpider()
-	result, err := spider.GetNetease()
+	result, err := spider.GetNeteaseNews()
 	if err != nil {
-		t.Errorf("GetNetease failed, err: %v", err)
+		t.Errorf("GetNeteaseNews failed, err: %v", err)
 	}
 	printData(result)
 }

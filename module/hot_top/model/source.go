@@ -29,7 +29,7 @@ const (
 	SourceJianshu       Source = "jianshu"
 	SourceSmzdm         Source = "smzdm"
 	SourceSspai         Source = "sspai"
-	SourceNetease       Source = "netease"
+	SourceNeteaseNews   Source = "netease"
 	SourceQQNews        Source = "qq-news"
 	SourceAcfun         Source = "acfun"
 	Source51CTO         Source = "51cto"

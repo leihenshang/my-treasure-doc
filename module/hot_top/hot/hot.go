@@ -1758,13 +1758,13 @@ func (s *Spider) GetSspai() (*model.HotData, error) {
 }
 
 // ============== 网易新闻 ==============
-func (s *Spider) GetNetease() (*model.HotData, error) {
+func (s *Spider) GetNeteaseNews() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceNetease].Url, Body)
+	request, err := http.NewRequest("GET", s.UrlMap[model.SourceNeteaseNews].Url, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceNetease].Agent)
+	request.Header.Add("User-Agent", s.UrlMap[model.SourceNeteaseNews].Agent)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1772,58 +1772,35 @@ func (s *Spider) GetNetease() (*model.HotData, error) {
 	}
 	defer res.Body.Close()
 
-	var result map[string]interface{}
+	var result struct {
+		Data struct {
+			List []struct {
+				Title  string `json:"title"`
+				Imgsrc string `json:"imgsrc"`
+				Source string `json:"source"`
+				Ptime  string `json:"ptime"`
+				Docid  string `json:"docid"`
+			} `json:"list"`
+		} `json:"data"`
+	}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
 	var listData []*model.HotItem
-	if data, ok := result["data"].(map[string]interface{}); ok {
-		if list, ok := data["list"].([]interface{}); ok {
-			for _, item := range list {
-				if v, ok := item.(map[string]interface{}); ok {
-					title := ""
-					if t, ok := v["title"].(string); ok {
-						title = t
-					}
+	for _, item := range result.Data.List {
+		listData = append(listData, &model.HotItem{
+			ID:        item.Docid,
+			Title:     item.Title,
+			Cover:     item.Imgsrc,
+			Author:    item.Source,
+			Timestamp: parseTime(item.Ptime),
+			Hot:       0,
+			URL:       fmt.Sprintf("https://www.163.com/dy/article/%s.html", item.Docid),
+			MobileURL: fmt.Sprintf("https://m.163.com/dy/article/%s.html", item.Docid),
+		})
 
-					cover := ""
-					if img, ok := v["imgsrc"].(string); ok {
-						cover = img
-					}
-
-					author := ""
-					if source, ok := v["source"].(string); ok {
-						author = source
-					}
-
-					timestamp := int64(0)
-					if ptime, ok := v["ptime"].(string); ok {
-						if t, err := time.Parse("2006-01-02 15:04:05", ptime); err == nil {
-							timestamp = t.Unix()
-						}
-					}
-
-					docid := ""
-					if id, ok := v["docid"].(string); ok {
-						docid = id
-					}
-
-					listData = append(listData, &model.HotItem{
-						ID:        "0",
-						Title:     title,
-						Cover:     cover,
-						Author:    author,
-						Timestamp: timestamp,
-						Hot:       0,
-						URL:       fmt.Sprintf("https://www.163.com/dy/article/%s.html", docid),
-						MobileURL: fmt.Sprintf("https://m.163.com/dy/article/%s.html", docid),
-					})
-				}
-			}
-		}
 	}
-
 	return &model.HotData{
 		Code:  http.StatusOK,
 		Name:  "netease",

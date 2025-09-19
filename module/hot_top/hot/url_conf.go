@@ -87,7 +87,7 @@ var UrlConfMap map[model.Source]*UrlConf = map[model.Source]*UrlConf{
 		Url:   "https://sspai.com/api/v1/article/tag/page/get?limit=40&tag=热门文章",
 		Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
 	},
-	model.SourceNetease: {
+	model.SourceNeteaseNews: {
 		Url:   "https://m.163.com/fe/api/hot/news/flow",
 		Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`,
 	},
