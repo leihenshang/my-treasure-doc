@@ -10,7 +10,7 @@ import (
 )
 
 func ThinkWithDeepSeek(question string) (answer string, err error) {
-	ds, err := ai.NewAiDeepSeek(conf.GetConf().DeepSeekToken)
+	ds, err := ai.NewAiDeepSeek(conf.GetConf().Ai.DeepSeekToken)
 	if err != nil {
 		return "", err
 	}

@@ -9,7 +9,7 @@ func Test_DeepSeek_Call(t *testing.T) {
 	if err := conf.InitConf(conf.DefaultConfig); err != nil {
 		t.Fatal(err)
 	}
-	ds, err := NewAiDeepSeek(conf.GetConf().DeepSeekToken)
+	ds, err := NewAiDeepSeek(conf.GetConf().Ai.DeepSeekToken)
 	if err != nil {
 		t.Fatal(err)
 	}

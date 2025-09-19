@@ -5,7 +5,6 @@ import (
 	"fastduck/treasure-doc/module/hot_top/hot"
 	"fastduck/treasure-doc/module/hot_top/route"
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -27,15 +26,19 @@ func main() {
 	}
 
 	hot.NewHot(time.Hour).Start()
-	r := gin.New()
-	route.InitRoute(r).Use(route.MiddleWareCors())
+	genEngine := gin.New()
+	genEngine.Use(gin.Logger())
+	route.InitRoute(genEngine).Use(route.MiddleWareCors())
+
+	addr := conf.GetConf().App.GetAddr()
 
 	s := &http.Server{
-		Addr:         fmt.Sprintf(":%d", 2025),
-		Handler:      r,
+		Addr:         addr,
+		Handler:      genEngine,
 		ReadTimeout:  360 * time.Second,
 		WriteTimeout: 360 * time.Second,
 		// MaxHeaderBytes: 1 << 20,
 	}
+	log.Printf("service is started! address: [http://%s]\n", addr)
 	log.Fatal(s.ListenAndServe().Error())
 }
