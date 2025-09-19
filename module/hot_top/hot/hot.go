@@ -3703,26 +3703,39 @@ func (s *Spider) GetThepaper() (*model.HotData, error) {
 		return nil, err
 	}
 
-	// 使用正则表达式提取新闻信息
-	re := regexp.MustCompile(`<a[^>]*href="([^"]*thepaper.cn[^"]*)"[^>]*>([^<]*)</a>`)
-	matches := re.FindAllStringSubmatch(string(body), -1)
+	var result struct {
+		Data struct {
+			HotNews []struct {
+				Name        string `json:"name"`
+				Pic         string `json:"pic"`
+				ContId      string `json:"contId"`
+				PariseTimes string `json:"praiseTimes"`
+				PubTimeLong int64  `json:"pubTimeLong"`
+				NodeInfo    struct {
+					Desc string `json:"desc"`
+				} `json:"nodeInfo"`
+			} `json:"hotNews"`
+		} `json:"data"`
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, err
+	}
 
 	var listData []*model.HotItem
-	for i, match := range matches {
-		if len(match) >= 3 {
-			url := match[1]
-			if !strings.HasPrefix(url, "http") {
-				url = "https:" + url
-			}
-
-			listData = append(listData, &model.HotItem{
-				ID:        strconv.Itoa(i + 1),
-				Title:     strings.TrimSpace(match[2]),
-				Timestamp: time.Now().Unix(),
-				URL:       url,
-				MobileURL: url,
-			})
-		}
+	for _, item := range result.Data.HotNews {
+		hot, _ := strconv.Atoi(item.PariseTimes)
+		listData = append(listData, &model.HotItem{
+			ID:        item.ContId,
+			Title:     item.Name,
+			Hot:       hot,
+			Cover:     item.Pic,
+			Desc:      item.NodeInfo.Desc,
+			Timestamp: time.Unix(item.PubTimeLong, 0).Unix(),
+			URL:       fmt.Sprintf("https://www.thepaper.cn/newsDetail_forward_%s", item.ContId),
+			MobileURL: fmt.Sprintf("https://m.thepaper.cn/newsDetail_forward_%s", item.ContId),
+		})
 	}
 
 	return &model.HotData{

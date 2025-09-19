@@ -200,7 +200,7 @@ var UrlConfMap map[model.Source]*UrlConf = map[model.Source]*UrlConf{
 		Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
 	},
 	model.SourceThepaper: {
-		Url:   "https://www.thepaper.cn/",
+		Url:   "https://cache.thepaper.cn/contentapi/wwwIndex/rightSidebar",
 		Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`,
 	},
 	model.SourceWeatheralarm: {
