@@ -1,0 +1,1 @@
+docker build -f module/hot_top/Dockerfile  -t hot-top-go . 

@@ -9,7 +9,7 @@ import (
 
 const DefaultConfig = "config.toml"
 const DefaultPort = 2025
-const DefaultHost = "localhost"
+const DefaultHost = ""
 
 type Conf struct {
 	App App

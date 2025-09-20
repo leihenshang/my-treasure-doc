@@ -2,4 +2,5 @@ file_cache
 
 config.toml
 
-dist
+dist/*
+!dist/.gitkeep
