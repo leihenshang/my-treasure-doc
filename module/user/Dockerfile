@@ -5,7 +5,7 @@ ARG BUILD_DIR=module/user
 
 # if docker image cannot pull, refers https://cloud.tencent.com/developer/article/2454486
 #backup image address: docker.linkedbus.com/
-FROM golang:1.22.9-alpine3.20 AS builder
+FROM golang:1.23.4-alpine3.21 AS builder
 ARG WORK_DIR
 ARG BINARY_NAME
 ARG BUILD_DIR
