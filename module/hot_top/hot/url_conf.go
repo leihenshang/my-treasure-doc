@@ -121,8 +121,9 @@ var UrlConfMap map[model.Source]*UrlConf = map[model.Source]*UrlConf{
 		Agent: `Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15`,
 	},
 	model.SourceEarthquake: {
-		Url:   "https://news.ceic.ac.cn/speedsearch.html",
-		Agent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67`,
+		Disabled: true,
+		Url:      "https://news.ceic.ac.cn/speedsearch.html",
+		Agent:    `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67`,
 	},
 	model.SourceGameres: {
 		Url:   "https://www.gameres.com",

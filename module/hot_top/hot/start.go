@@ -57,7 +57,7 @@ func TickerGetHot(expireTime time.Duration) {
 	}
 
 	setHotCacheBySource(sources)
-	tk := time.NewTicker(time.Second * 10)
+	tk := time.NewTicker(time.Minute * 10)
 	defer tk.Stop()
 	for t := range tk.C {
 		current := t.Format(time.DateTime)
@@ -76,13 +76,13 @@ func setHotCacheBySource(sources []model.Source) {
 		resp.UpdateTime = time.Now()
 		log.Printf("TickerGet [%s] success, dataLen: %d\n", string(k), len(resp.Data))
 		GetHotCache().Set(k, resp)
-		if err := SaveHotFromFileCache(SaveFilePath, k, resp); err != nil {
+		if err := SaveHotToFileCache(SaveFilePath, k, resp); err != nil {
 			log.Printf("TickerGet [%s] save file failed, err: %v\n", k, err)
 		}
 	}
 }
 
-func SaveHotFromFileCache(path string, source model.Source, resp *model.HotData) error {
+func SaveHotToFileCache(path string, source model.Source, resp *model.HotData) error {
 	if resp == nil {
 		return fmt.Errorf("source: [%s], resp is nil", source)
 	}
