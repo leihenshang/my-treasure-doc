@@ -2667,7 +2667,7 @@ func (s *Spider) GetGenshin() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := make([]*model.HotItem, 0, len(result.Data.List))
 	for _, item := range result.Data.List {
 		post := item.Post
 
@@ -3709,7 +3709,7 @@ func (s *Spider) GetStarrail() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := make([]*model.HotItem, 0, len(jsonData.Data.List))
 	for _, item := range jsonData.Data.List {
 		post := item.Post
 		url := fmt.Sprintf("https://bbs.miyoushe.com/detail/%d", post.PostId)
