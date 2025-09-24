@@ -33,30 +33,29 @@ func NewHot(hotConf *conf.Hot) *Hot {
 }
 
 func (h *Hot) Start() error {
-	if _, err := NewSpider(UrlConfMap); err != nil {
+	if _, err := NewSpider(conf.UrlList); err != nil {
 		return fmt.Errorf("NewSpider failed, err: %v", err)
 	}
 
-	NewHotCache(len(UrlConfMap))
+	NewHotCache(len(conf.UrlList))
 	go h.TickerGetHot()
 	return nil
 }
 
 func (h *Hot) TickerGetHot() {
 	var collectSources []model.Source
-	for k := range UrlConfMap {
-		if resp, err := h.GetHotFromFileCache(k); err != nil {
-			log.Printf("get [%s] from file cache failed, err: %v\n", string(k), err)
+	for _, v := range conf.UrlList {
+		if resp, err := h.GetHotFromFileCache(v.Source); err != nil {
+			log.Printf("get [%s] from file cache failed, err: %v\n", string(v.Source), err)
 		} else if resp != nil {
-			log.Printf("get [%s] from file cache success, dataLen: %d\n", string(k), len(resp.Data))
-			GetHotCache().Set(k, resp)
+			log.Printf("get [%s] from file cache success, dataLen: %d\n", string(v.Source), len(resp.Data))
+			GetHotCache().Set(v.Source, resp)
 		} else {
-			collectSources = append(collectSources, k)
+			collectSources = append(collectSources, v.Source)
 		}
 	}
 
 	h.setHotCache(h.getHotMap(collectSources))
-
 	tk := time.NewTicker(h.HotConf.ExpiredCheckIntervalParsed)
 	defer tk.Stop()
 	for range tk.C {
@@ -74,11 +73,11 @@ func (h *Hot) TickerGetHot() {
 
 func (h *Hot) GetExpiredHotSources() (res []model.Source) {
 	cacheMap := GetHotCache().GetAllMap()
-	for k := range UrlConfMap {
-		if hotCache, ok := cacheMap[k]; !ok {
-			res = append(res, k)
+	for _, v := range conf.UrlList {
+		if hotCache, ok := cacheMap[v.Source]; !ok {
+			res = append(res, v.Source)
 		} else if hotCache != nil && hotCache.IsUpdateTimeExpired(h.HotConf.HotPullIntervalParsed) {
-			res = append(res, k)
+			res = append(res, v.Source)
 		}
 	}
 	return res

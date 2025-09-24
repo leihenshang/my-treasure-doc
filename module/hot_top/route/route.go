@@ -1,6 +1,7 @@
 package route
 
 import (
+	"fastduck/treasure-doc/module/hot_top/conf"
 	"fastduck/treasure-doc/module/hot_top/hot"
 	"fastduck/treasure-doc/module/hot_top/service"
 	"net/http"
@@ -13,9 +14,9 @@ import (
 func InitRoute(r *gin.Engine) *gin.Engine {
 	route := r.Group("/").Use(MiddleWareCors())
 
-	for k := range hot.UrlConfMap {
-		route.GET(string(k), func(c *gin.Context) {
-			resp, _ := hot.GetHotCache().Get(k)
+	for _, v := range conf.UrlList {
+		route.GET(string(v.Source), func(c *gin.Context) {
+			resp, _ := hot.GetHotCache().Get(v.Source)
 			c.JSON(http.StatusOK, resp)
 		})
 	}

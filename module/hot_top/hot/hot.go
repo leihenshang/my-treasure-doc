@@ -24,14 +24,14 @@ import (
 )
 
 type Spider struct {
-	UrlMap     map[model.Source]*conf.UrlConf
+	UrlMap     conf.UrlConfs
 	HttpClient *http.Client
 }
 
 var spider *Spider
 var spiderOnce *sync.Once = &sync.Once{}
 
-func NewSpider(urlMap map[model.Source]*conf.UrlConf) (*Spider, error) {
+func NewSpider(urlMap conf.UrlConfs) (*Spider, error) {
 	if len(urlMap) == 0 {
 		return nil, fmt.Errorf("urlMap is empty")
 	}
@@ -334,7 +334,7 @@ func (s *Spider) GetBilibili() (*model.HotData, error) {
 		if err != nil {
 			return nil, err
 		}
-		bakRequest.Header.Set("User-Agent", s.UrlMap[model.SourceBilibili].Agent)
+		bakRequest.Header.Set("User-Agent", `Mozilla/5.0 (iPhone; CPU iPhone OS 14_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/1.0 Mobile/12F69 Safari/605.1.15`)
 		bakRequest.Header.Set("Referer", "https://www.bilibili.com/ranking/all")
 		bakResp, err := s.HttpClient.Do(bakRequest)
 		if err != nil {
@@ -2250,11 +2250,6 @@ func (s *Spider) GetAcfun() (*model.HotData, error) {
 
 // ============== 数字尾巴 ==============
 func (s *Spider) GetDgtle() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceDgtle]
-	if urlConf == nil {
-		return nil, fmt.Errorf("url config not found for dgtle")
-	}
-
 	resp, err := s.HttpClient.Get("https://opser.api.dgtle.com/v2/news/index")
 	if err != nil {
 		return nil, err
@@ -3975,13 +3970,6 @@ func (s *Spider) GetLol() (*model.HotData, error) {
 }
 
 func (s *Spider) GetHotBySource(k model.Source) (*model.HotData, error) {
-	UrlConf, ok := UrlConfMap[k]
-	if !ok {
-		return nil, fmt.Errorf("source: [%s], url conf not found", k)
-	} else if UrlConf.Disabled {
-		return nil, fmt.Errorf("source: [%s], url conf disabled, skip", k)
-	}
-
 	switch k {
 	case model.SourceITHome:
 		return s.GetItHome()
@@ -4094,6 +4082,6 @@ func (s *Spider) GetHotBySource(k model.Source) (*model.HotData, error) {
 	case model.SourceLol:
 		return s.GetLol()
 	default:
-		return nil, nil
+		return nil, fmt.Errorf("resource [%s] not found", string(k))
 	}
 }
