@@ -4029,3 +4029,16 @@ func parseTime(timeStr string) int64 {
 	// 如果所有格式都失败，返回当前时间
 	return time.Now().Unix()
 }
+
+func (s *Spider) GetLol() (*model.HotData, error) {
+	return &model.HotData{
+		Code:       http.StatusOK,
+		Name:       "lol",
+		Title:      "lol",
+		Type:       "lol",
+		Link:       "https://lol.qq.com/",
+		Total:      0,
+		Data:       model.HotItems{},
+		UpdateTime: time.Now(),
+	}, nil
+}

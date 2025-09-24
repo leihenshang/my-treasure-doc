@@ -270,6 +270,8 @@ func (h *Hot) GetHotBySource(k model.Source) (*model.HotData, error) {
 		return GetSpider().GetWeread()
 	case model.SourceYystv:
 		return GetSpider().GetYystv()
+	case model.SourceLol:
+		return GetSpider().GetLol()
 	default:
 		return nil, nil
 	}

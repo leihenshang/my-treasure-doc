@@ -62,6 +62,7 @@ const (
 	SourceWeatheralarm  Source = "weatheralarm"
 	SourceWeread        Source = "weread"
 	SourceYystv         Source = "yystv"
+	SourceLol           Source = "lol"
 )
 
 type HotData struct {
