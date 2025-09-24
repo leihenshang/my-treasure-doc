@@ -296,12 +296,12 @@ func (s *Spider) GetBilibili() (*model.HotData, error) {
 		return nil, err
 	}
 
-	url := s.UrlMap[model.SourceBilibili].Url + "&" + wbi
+	url := "https://api.bilibili.com/x/web-interface/ranking/v2?rid=0&type=all" + "&" + wbi
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceBilibili].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 	request.Header.Add("Referer", "https://www.bilibili.com/ranking/all")
 	request.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
 	request.Header.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
@@ -454,11 +454,11 @@ func (s *Spider) GetBilibili() (*model.HotData, error) {
 // ============== 百度 ==============
 func (s *Spider) GetBaidu() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceBaidu].Url, Body)
+	request, err := http.NewRequest("GET", "https://top.baidu.com/board?tab=realtime", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceBaidu].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (iPhone; CPU iPhone OS 14_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/1.0 Mobile/12F69 Safari/605.1.15`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -558,11 +558,11 @@ func (s *Spider) GetBaidu() (*model.HotData, error) {
 // ============== V2EX ==============
 func (s *Spider) GetV2EX() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceV2EX].Url, Body)
+	request, err := http.NewRequest("GET", "https://www.v2ex.com/api/topics/hot.json", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceV2EX].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -631,11 +631,11 @@ func (s *Spider) GetV2EX() (*model.HotData, error) {
 // ============== GitHub ==============
 func (s *Spider) GetGitHub() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceGitHub].Url, Body)
+	request, err := http.NewRequest("GET", "https://github.com/trending", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceGitHub].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 	request.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 
 	res, err := s.HttpClient.Do(request)
@@ -718,7 +718,7 @@ func (s *Spider) GetDouyin() (*model.HotData, error) {
 	if err != nil {
 		return nil, err
 	}
-	cookieReq.Header.Add("User-Agent", s.UrlMap[model.SourceDouyin].Agent)
+	cookieReq.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	cookieRes, err := s.HttpClient.Do(cookieReq)
 	if err != nil {
@@ -736,11 +736,11 @@ func (s *Spider) GetDouyin() (*model.HotData, error) {
 	}
 
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceDouyin].Url, Body)
+	request, err := http.NewRequest("GET", "https://www.douyin.com/aweme/v1/web/hot/search/list/?device_platform=webapp&aid=6383&channel=channel_pc_web&detail_list=1", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceDouyin].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 	if cookie != "" {
 		request.Header.Add("Cookie", fmt.Sprintf("passport_csrf_token=%s", cookie))
 	}
@@ -810,11 +810,11 @@ func (s *Spider) GetDouyin() (*model.HotData, error) {
 // ============== 快手 ==============
 func (s *Spider) GetKuaishou() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceKuaishou].Url, Body)
+	request, err := http.NewRequest("GET", "https://www.kuaishou.com/?isHome=1", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceKuaishou].Agent)
+	request.Header.Add("User-Agent", `desktop`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -904,11 +904,11 @@ func (s *Spider) GetKuaishou() (*model.HotData, error) {
 // ============== 今日头条 ==============
 func (s *Spider) GetToutiao() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceToutiao].Url, Body)
+	request, err := http.NewRequest("GET", "https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceToutiao].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -975,11 +975,11 @@ func (s *Spider) GetToutiao() (*model.HotData, error) {
 // ============== 掘金 ==============
 func (s *Spider) GetJuejin() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceJuejin].Url, Body)
+	request, err := http.NewRequest("GET", "https://api.juejin.cn/content_api/v1/content/article_rank?category_id=1&type=hot", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceJuejin].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.37 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 	request.Header.Add("Accept", "application/json, text/plain, */*")
 
 	res, err := s.HttpClient.Do(request)
@@ -1103,11 +1103,11 @@ func (s *Spider) Get36Kr() (*model.HotData, error) {
 		return nil, err
 	}
 	Body = strings.NewReader(string(reqBody))
-	request, err := http.NewRequest("POST", s.UrlMap[model.Source36Kr].Url, Body)
+	request, err := http.NewRequest("POST", "https://gateway.36kr.com/api/mis/nav/home/nav/rank/hot", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.Source36Kr].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 	request.Header.Set("Content-Type", "application/json; charset=utf-8")
 
 	res, err := s.HttpClient.Do(request)
@@ -1171,11 +1171,11 @@ func (s *Spider) Get36Kr() (*model.HotData, error) {
 // ============== CSDN ==============
 func (s *Spider) GetCSDN() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceCSDN].Url, Body)
+	request, err := http.NewRequest("GET", "https://blog.csdn.net/phoenix/web/blog/hot-rank", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceCSDN].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1247,11 +1247,11 @@ func (s *Spider) GetCSDN() (*model.HotData, error) {
 // ============== 百度贴吧 ==============
 func (s *Spider) GetTieba() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceTieba].Url, Body)
+	request, err := http.NewRequest("GET", "https://tieba.baidu.com/hottopic/browse/topicList", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceTieba].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1327,11 +1327,11 @@ func (s *Spider) GetTieba() (*model.HotData, error) {
 // ============== 知乎日报 ==============
 func (s *Spider) GetZhihuDaily() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceZhihuDaily].Url, Body)
+	request, err := http.NewRequest("GET", "https://api.zhihu.com/topstory/hot-lists/total?limit=50", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceZhihuDaily].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1399,11 +1399,11 @@ func (s *Spider) GetZhihuDaily() (*model.HotData, error) {
 // ============== 酷安 ==============
 func (s *Spider) GetCoolapk() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceCoolapk].Url, Body)
+	request, err := http.NewRequest("GET", "https://api.coolapk.com/v6/page/dataList?url=%2Ffeed%2Fdigest%3Ftype%3D12%26isIncludeTop%3D1&title=%E4%BB%8A%E6%97%A5%E7%83%AD%E9%97%A8&subTitle=&page=1", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceCoolapk].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36`)
 	request.Header.Add("X-Requested-With", "XMLHttpRequest")
 
 	res, err := s.HttpClient.Do(request)
@@ -1476,11 +1476,11 @@ func (s *Spider) GetCoolapk() (*model.HotData, error) {
 // ============== 虎扑 ==============
 func (s *Spider) GetHupu() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceHupu].Url, Body)
+	request, err := http.NewRequest("GET", "https://bbs.hupu.com/all-gambia", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceHupu].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1535,11 +1535,11 @@ func (s *Spider) GetHupu() (*model.HotData, error) {
 // ============== 虎嗅 ==============
 func (s *Spider) GetHuxiu() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceHuxiu].Url, Body)
+	request, err := http.NewRequest("GET", "https://www.huxiu.com/", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceHuxiu].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1615,11 +1615,11 @@ func (s *Spider) GetHuxiu() (*model.HotData, error) {
 // ============== 简书 ==============
 func (s *Spider) GetJianshu() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceJianshu].Url, Body)
+	request, err := http.NewRequest("GET", "https://www.jianshu.com/", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceJianshu].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1682,11 +1682,11 @@ func (s *Spider) GetJianshu() (*model.HotData, error) {
 // ============== 什么值得买 ==============
 func (s *Spider) GetSmzdm() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceSmzdm].Url, Body)
+	request, err := http.NewRequest("GET", "https://www.smzdm.com/top/", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceSmzdm].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1752,11 +1752,11 @@ func (s *Spider) GetSmzdm() (*model.HotData, error) {
 // ============== 少数派 ==============
 func (s *Spider) GetSspai() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceSspai].Url, Body)
+	request, err := http.NewRequest("GET", "https://sspai.com/api/v1/article/tag/page/get?limit=40&tag=热门文章", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceSspai].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1851,11 +1851,11 @@ func (s *Spider) GetSspai() (*model.HotData, error) {
 // ============== 网易新闻 ==============
 func (s *Spider) GetNeteaseNews() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceNeteaseNews].Url, Body)
+	request, err := http.NewRequest("GET", "https://m.163.com/fe/api/hot/news/flow", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceNeteaseNews].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1907,11 +1907,11 @@ func (s *Spider) GetNeteaseNews() (*model.HotData, error) {
 // ============== 腾讯新闻 ==============
 func (s *Spider) GetQQNews() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceQQNews].Url, Body)
+	request, err := http.NewRequest("GET", "https://r.inews.qq.com/gw/event/hot_ranking_list?page_size=50", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceQQNews].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -1975,11 +1975,11 @@ func (s *Spider) GetQQNews() (*model.HotData, error) {
 // ============== 51CTO ==============
 func (s *Spider) Get51CTO() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.Source51CTO].Url, Body)
+	request, err := http.NewRequest("GET", "https://api-media.51cto.com/index/index/recommend", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.Source51CTO].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -2162,11 +2162,11 @@ func (s *Spider) GetDoubanGroup() (*model.HotData, error) {
 // ============== AcFun ==============
 func (s *Spider) GetAcfun() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceAcfun].Url, Body)
+	request, err := http.NewRequest("GET", "https://www.acfun.cn/rest/pc-direct/rank/channel?channelId=&rankLimit=30&rankPeriod=DAY", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceAcfun].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 	request.Header.Add("Referer", "https://www.acfun.cn/rank/list/?cid=-1&pcid=-1&range=DAY")
 
 	res, err := s.HttpClient.Do(request)
@@ -3125,8 +3125,7 @@ func (s *Spider) GetIfanr() (*model.HotData, error) {
 
 // GetIthomeXijiayi 获取IT之家喜加一游戏动态
 func (s *Spider) GetIthomeXijiayi() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceIthomeXijiayi]
-	resp, err := s.HttpClient.Get(urlConf.Url)
+	resp, err := s.HttpClient.Get("https://m.ithome.com/rankm/")
 	if err != nil {
 		return nil, err
 	}
