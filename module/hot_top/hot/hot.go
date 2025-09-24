@@ -329,7 +329,7 @@ func (s *Spider) GetBilibili() (*model.HotData, error) {
 	var listData []*model.HotItem
 	var result map[string]interface{}
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		log.Printf("GetBilibili failed, err: %v \n", err)
+		log.Printf("unmarshal Bilibili data failed, err: %v \n", err)
 		bakRequest, err := http.NewRequest("GET", `https://api.bilibili.com/x/web-interface/ranking?jsonp=jsonp?rid=${type}&type=all&callback=__jp0`, nil)
 		if err != nil {
 			return nil, err
