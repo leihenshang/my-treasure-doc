@@ -2054,11 +2054,11 @@ func (s *Spider) Get51CTO() (*model.HotData, error) {
 // ============== 吾爱破解 ==============
 func (s *Spider) Get52Pojie() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.Source52Pojie].Url, Body)
+	request, err := http.NewRequest("GET", "https://www.52pojie.cn/forum.php?mod=guide&view=digest&rss=1", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.Source52Pojie].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -2084,11 +2084,11 @@ func (s *Spider) Get52Pojie() (*model.HotData, error) {
 // ============== 豆瓣讨论 ==============
 func (s *Spider) GetDoubanGroup() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceDoubanGroup].Url, Body)
+	request, err := http.NewRequest("GET", "https://www.douban.com/group/explore", Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceDoubanGroup].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -2255,7 +2255,7 @@ func (s *Spider) GetDgtle() (*model.HotData, error) {
 		return nil, fmt.Errorf("url config not found for dgtle")
 	}
 
-	resp, err := s.HttpClient.Get(urlConf.Url)
+	resp, err := s.HttpClient.Get("https://opser.api.dgtle.com/v2/news/index")
 	if err != nil {
 		return nil, err
 	}
@@ -2316,16 +2316,12 @@ func (s *Spider) GetDgtle() (*model.HotData, error) {
 
 // ============== 豆瓣电影 ==============
 func (s *Spider) GetDoubanMovie() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceDoubanMovie]
-	if urlConf == nil {
-		return nil, fmt.Errorf("url config not found for douban-movie")
-	}
 
-	req, err := http.NewRequest("GET", urlConf.Url, nil)
+	req, err := http.NewRequest("GET", "https://movie.douban.com/chart/", nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", urlConf.Agent)
+	req.Header.Set("User-Agent", `Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15`)
 
 	resp, err := s.HttpClient.Do(req)
 	if err != nil {
@@ -2382,12 +2378,7 @@ func (s *Spider) GetDoubanMovie() (*model.HotData, error) {
 
 // ============== 中国地震台 ==============
 func (s *Spider) GetEarthquake() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceEarthquake]
-	if urlConf == nil {
-		return nil, fmt.Errorf("url config not found for earthquake")
-	}
-
-	resp, err := s.HttpClient.Get(urlConf.Url)
+	resp, err := s.HttpClient.Get("https://news.ceic.ac.cn/speedsearch.html")
 	if err != nil {
 		return nil, err
 	}
@@ -2482,16 +2473,11 @@ func (s *Spider) GetEarthquake() (*model.HotData, error) {
 
 // ============== GameRes游资网 ==============
 func (s *Spider) GetGameres() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceGameres]
-	if urlConf == nil {
-		return nil, fmt.Errorf("url config not found for gameres")
-	}
-
-	req, err := http.NewRequest("GET", urlConf.Url, nil)
+	req, err := http.NewRequest("GET", "https://www.gameres.com", nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", urlConf.Agent)
+	req.Header.Set("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67`)
 
 	resp, err := s.HttpClient.Do(req)
 	if err != nil {
@@ -2567,12 +2553,8 @@ func (s *Spider) GetGameres() (*model.HotData, error) {
 
 // ============== 极客公园 ==============
 func (s *Spider) GetGeekpark() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceGeekpark]
-	if urlConf == nil {
-		return nil, fmt.Errorf("url config not found for geekpark")
-	}
 
-	resp, err := s.HttpClient.Get(urlConf.Url)
+	resp, err := s.HttpClient.Get("https://mainssl.geekpark.net/api/v2")
 	if err != nil {
 		return nil, err
 	}
@@ -2630,12 +2612,7 @@ func (s *Spider) GetGeekpark() (*model.HotData, error) {
 
 // ============== 原神 ==============
 func (s *Spider) GetGenshin() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceGenshin]
-	if urlConf == nil {
-		return nil, fmt.Errorf("url config not found for genshin")
-	}
-
-	resp, err := s.HttpClient.Get(urlConf.Url)
+	resp, err := s.HttpClient.Get("https://bbs-api-static.miyoushe.com/painter/wapi/getNewsList?client_type=4&gids=2&page_size=20")
 	if err != nil {
 		return nil, err
 	}
@@ -2697,12 +2674,7 @@ func (s *Spider) GetGenshin() (*model.HotData, error) {
 
 // GetGuokr 获取果壳热门文章
 func (s *Spider) GetGuokr() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceGuokr]
-	if urlConf == nil {
-		return nil, fmt.Errorf("url config not found for guokr")
-	}
-
-	resp, err := s.HttpClient.Get(urlConf.Url)
+	resp, err := s.HttpClient.Get("https://www.guokr.com/beta/proxy/science_api/articles?limit=30")
 	if err != nil {
 		return nil, err
 	}
@@ -2762,12 +2734,7 @@ func (s *Spider) GetGuokr() (*model.HotData, error) {
 
 // GetHackernews 获取Hacker News热门文章
 func (s *Spider) GetHackernews() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceHackernews]
-	if urlConf == nil {
-		return nil, fmt.Errorf("url config not found for hackernews")
-	}
-
-	resp, err := s.HttpClient.Get(urlConf.Url)
+	resp, err := s.HttpClient.Get("https://news.ycombinator.com/")
 	if err != nil {
 		return nil, err
 	}
@@ -2830,12 +2797,7 @@ func (s *Spider) GetHackernews() (*model.HotData, error) {
 
 // GetHelloGitHub 获取HelloGitHub热门仓库
 func (s *Spider) GetHelloGitHub() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceHelloGitHub]
-	if urlConf == nil {
-		return nil, fmt.Errorf("url config not found for hellogithub")
-	}
-
-	resp, err := s.HttpClient.Get(urlConf.Url)
+	resp, err := s.HttpClient.Get("https://abroad.hellogithub.com/v1/?sort_by=featured&tid=&page=1")
 	if err != nil {
 		return nil, err
 	}
@@ -2890,11 +2852,6 @@ func (s *Spider) GetHelloGitHub() (*model.HotData, error) {
 
 // GetHistory 获取历史上的今天
 func (s *Spider) GetHistory() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceHistory]
-	if urlConf == nil {
-		return nil, fmt.Errorf("url config not found for history")
-	}
-
 	// 获取当前日期
 	now := time.Now()
 	month := now.Month()
@@ -2960,12 +2917,7 @@ func (s *Spider) GetHistory() (*model.HotData, error) {
 
 // GetHonkai 获取崩坏3最新动态
 func (s *Spider) GetHonkai() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceHonkai]
-	if urlConf == nil {
-		return nil, fmt.Errorf("url config not found for honkai")
-	}
-
-	resp, err := s.HttpClient.Get(urlConf.Url)
+	resp, err := s.HttpClient.Get("https://bbs-api-static.miyoushe.com/painter/wapi/getNewsList?client_type=4&gids=1&page_size=20")
 	if err != nil {
 		return nil, err
 	}
@@ -3036,8 +2988,7 @@ func (s *Spider) GetHonkai() (*model.HotData, error) {
 
 // GetHostloc 获取hostloc论坛热门帖子
 func (s *Spider) GetHostloc() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceHostloc]
-	resp, err := s.HttpClient.Get(urlConf.Url)
+	resp, err := s.HttpClient.Get("https://hostloc.com/forum.php?mod=guide&view=hot&rss=1")
 	if err != nil {
 		return nil, err
 	}
@@ -3078,8 +3029,7 @@ func (s *Spider) GetHostloc() (*model.HotData, error) {
 
 // GetIfanr 获取爱范儿快讯数据
 func (s *Spider) GetIfanr() (*model.HotData, error) {
-	urlConf := s.UrlMap[model.SourceIfanr]
-	resp, err := s.HttpClient.Get(urlConf.Url)
+	resp, err := s.HttpClient.Get("https://sso.ifanr.com/api/v5/wp/buzz/?limit=20&offset=0")
 	if err != nil {
 		return nil, err
 	}
@@ -3182,14 +3132,11 @@ func (s *Spider) GetIthomeXijiayi() (*model.HotData, error) {
 
 // ============== 米游社 ==============
 func (s *Spider) GetMiyoushe() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceMiyoushe].Url
-	agent := s.UrlMap[model.SourceMiyoushe].Agent
-
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", "https://bbs-api-static.miyoushe.com/painter/wapi/getNewsList?client_type=4&gids=1&page_size=30", nil)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求失败: %v", err)
 	}
-	req.Header.Set("User-Agent", agent)
+	req.Header.Set("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67`)
 
 	resp, err := s.HttpClient.Do(req)
 	if err != nil {
@@ -3260,14 +3207,11 @@ func (s *Spider) GetMiyoushe() (*model.HotData, error) {
 
 // ============== 水木社区 ==============
 func (s *Spider) GetNewsmth() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceNewsmth].Url
-	agent := s.UrlMap[model.SourceNewsmth].Agent
-
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", "https://wap.newsmth.net/wap/api/hot/global", nil)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求失败: %v", err)
 	}
-	req.Header.Set("User-Agent", agent)
+	req.Header.Set("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67`)
 
 	resp, err := s.HttpClient.Do(req)
 	if err != nil {
@@ -3334,12 +3278,10 @@ func (s *Spider) GetNewsmth() (*model.HotData, error) {
 
 // ============== NGA ==============
 func (s *Spider) GetNgabbs() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceNgabbs].Url
-	// agent := s.UrlMap[model.SourceNgabbs].Agent
 
 	reqBody := strings.NewReader(`{ __output: "14"}`)
 	// reqBody := strings.NewReader(`__output=14`)
-	req, err := http.NewRequest("POST", url, reqBody)
+	req, err := http.NewRequest("POST", "https://ngabbs.com/nuke.php?__lib=load_topic&__act=load_topic_reply_ladder2&opt=1&all=1", reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求失败: %v", err)
 	}
@@ -3423,8 +3365,7 @@ func (s *Spider) GetNgabbs() (*model.HotData, error) {
 
 // ============== NodeSeek ==============
 func (s *Spider) GetNodeseek() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceNodeseek].Url
-	resp, err := s.HttpClient.Get(url)
+	resp, err := s.HttpClient.Get("https://www.nodeseek.com")
 	if err != nil {
 		return nil, err
 	}
@@ -3479,8 +3420,7 @@ func (s *Spider) GetNodeseek() (*model.HotData, error) {
 
 // ============== 纽约时报 ==============
 func (s *Spider) GetNytimes() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceNytimes].Url
-	resp, err := s.HttpClient.Get(url)
+	resp, err := s.HttpClient.Get("https://rsshub.app/nytimes")
 	if err != nil {
 		return nil, err
 	}
@@ -3535,8 +3475,7 @@ func (s *Spider) GetNytimes() (*model.HotData, error) {
 
 // ============== Product Hunt ==============
 func (s *Spider) GetProducthunt() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceProducthunt].Url
-	resp, err := s.HttpClient.Get(url)
+	resp, err := s.HttpClient.Get("https://www.producthunt.com/")
 	if err != nil {
 		return nil, err
 	}
@@ -3581,8 +3520,7 @@ func (s *Spider) GetProducthunt() (*model.HotData, error) {
 
 // ============== 新浪新闻 ==============
 func (s *Spider) GetSinaNews() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceSinaNews].Url
-	resp, err := s.HttpClient.Get(url)
+	resp, err := s.HttpClient.Get("https://news.sina.com.cn/zt_d/top_news/")
 	if err != nil {
 		return nil, err
 	}
@@ -3629,8 +3567,7 @@ func (s *Spider) GetSinaNews() (*model.HotData, error) {
 
 // ============== 新浪微博 ==============
 func (s *Spider) GetSina() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceSina].Url
-	resp, err := s.HttpClient.Get(url)
+	resp, err := s.HttpClient.Get("https://s.weibo.com/top/summary")
 	if err != nil {
 		return nil, err
 	}
@@ -3677,8 +3614,7 @@ func (s *Spider) GetSina() (*model.HotData, error) {
 
 // ============== 星穹铁道 ==============
 func (s *Spider) GetStarrail() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceStarrail].Url
-	resp, err := s.HttpClient.Get(url)
+	resp, err := s.HttpClient.Get("https://bbs-api-static.miyoushe.com/painter/wapi/getNewsList?client_type=4&gids=6&page_size=20")
 	if err != nil {
 		return nil, err
 	}
@@ -3738,8 +3674,7 @@ func (s *Spider) GetStarrail() (*model.HotData, error) {
 
 // ============== 澎湃新闻 ==============
 func (s *Spider) GetThepaper() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceThepaper].Url
-	resp, err := s.HttpClient.Get(url)
+	resp, err := s.HttpClient.Get("https://cache.thepaper.cn/contentapi/wwwIndex/rightSidebar")
 	if err != nil {
 		return nil, err
 	}
@@ -3799,8 +3734,7 @@ func (s *Spider) GetThepaper() (*model.HotData, error) {
 
 // ============== 气象预警 ==============
 func (s *Spider) GetWeatheralarm() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceWeatheralarm].Url
-	resp, err := s.HttpClient.Get(url)
+	resp, err := s.HttpClient.Get("http://www.nmc.cn/rest/findAlarm")
 	if err != nil {
 		return nil, err
 	}
@@ -3859,8 +3793,7 @@ func (s *Spider) GetWeatheralarm() (*model.HotData, error) {
 
 // ============== 微信读书 ==============
 func (s *Spider) GetWeread() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceWeread].Url
-	resp, err := s.HttpClient.Get(url)
+	resp, err := s.HttpClient.Get("https://weread.qq.com/web/bookListInCategory/rising?rank=1")
 	if err != nil {
 		return nil, err
 	}
@@ -3926,8 +3859,7 @@ func (s *Spider) GetWeread() (*model.HotData, error) {
 
 // ============== 游研社 ==============
 func (s *Spider) GetYystv() (*model.HotData, error) {
-	url := s.UrlMap[model.SourceYystv].Url
-	resp, err := s.HttpClient.Get(url)
+	resp, err := s.HttpClient.Get("https://www.yystv.cn/")
 	if err != nil {
 		return nil, err
 	}
