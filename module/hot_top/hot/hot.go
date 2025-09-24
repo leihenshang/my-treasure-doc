@@ -3973,3 +3973,127 @@ func (s *Spider) GetLol() (*model.HotData, error) {
 		UpdateTime: time.Now(),
 	}, nil
 }
+
+func (s *Spider) GetHotBySource(k model.Source) (*model.HotData, error) {
+	UrlConf, ok := UrlConfMap[k]
+	if !ok {
+		return nil, fmt.Errorf("source: [%s], url conf not found", k)
+	} else if UrlConf.Disabled {
+		return nil, fmt.Errorf("source: [%s], url conf disabled, skip", k)
+	}
+
+	switch k {
+	case model.SourceITHome:
+		return s.GetItHome()
+	case model.SourceZhihu:
+		return s.GetZhihu()
+	case model.SourceWeibo:
+		return s.GetWeibo()
+	case model.SourceBilibili:
+		return s.GetBilibili()
+	case model.SourceBaidu:
+		return s.GetBaidu()
+	case model.SourceV2EX:
+		return s.GetV2EX()
+	case model.SourceGitHub:
+		return s.GetGitHub()
+	case model.SourceDouyin:
+		return s.GetDouyin()
+	case model.SourceKuaishou:
+		return s.GetKuaishou()
+	case model.SourceToutiao:
+		return s.GetToutiao()
+	case model.SourceJuejin:
+		return s.GetJuejin()
+	case model.Source36Kr:
+		return s.Get36Kr()
+	case model.SourceCSDN:
+		return s.GetCSDN()
+	case model.SourceTieba:
+		return s.GetTieba()
+	case model.SourceZhihuDaily:
+		return s.GetZhihuDaily()
+	case model.SourceCoolapk:
+		return s.GetCoolapk()
+	case model.SourceHupu:
+		return s.GetHupu()
+	case model.SourceHuxiu:
+		return s.GetHuxiu()
+	case model.SourceJianshu:
+		return s.GetJianshu()
+	case model.SourceSmzdm:
+		return s.GetSmzdm()
+	case model.SourceSspai:
+		return s.GetSspai()
+	case model.SourceNeteaseNews:
+		return s.GetNeteaseNews()
+	case model.SourceQQNews:
+		return s.GetQQNews()
+	case model.SourceAcfun:
+		return s.GetAcfun()
+	case model.Source51CTO:
+		return s.Get51CTO()
+	case model.Source52Pojie:
+		return s.Get52Pojie()
+	case model.SourceDoubanGroup:
+		return s.GetDoubanGroup()
+	case model.SourceDgtle:
+		return s.GetDgtle()
+	case model.SourceDoubanMovie:
+		return s.GetDoubanMovie()
+	case model.SourceEarthquake:
+		return s.GetEarthquake()
+	case model.SourceGameres:
+		return s.GetGameres()
+	case model.SourceGeekpark:
+		return s.GetGeekpark()
+	case model.SourceGenshin:
+		return s.GetGenshin()
+	case model.SourceGuokr:
+		return s.GetGuokr()
+	case model.SourceHackernews:
+		return s.GetHackernews()
+	case model.SourceHelloGitHub:
+		return s.GetHelloGitHub()
+	case model.SourceHistory:
+		return s.GetHistory()
+	case model.SourceHonkai:
+		return s.GetHonkai()
+	case model.SourceHostloc:
+		return s.GetHostloc()
+	case model.SourceIfanr:
+		return s.GetIfanr()
+	case model.SourceIthomeXijiayi:
+		return s.GetIthomeXijiayi()
+	case model.SourceMiyoushe:
+		return s.GetMiyoushe()
+	case model.SourceNewsmth:
+		return s.GetNewsmth()
+	case model.SourceNgabbs:
+		return s.GetNgabbs()
+	case model.SourceNodeseek:
+		return s.GetNodeseek()
+	case model.SourceNytimes:
+		return s.GetNytimes()
+	case model.SourceProducthunt:
+		return s.GetProducthunt()
+	case model.SourceSinaNews:
+		return s.GetSinaNews()
+	case model.SourceSina:
+		return s.GetSina()
+	case model.SourceStarrail:
+		return s.GetStarrail()
+	case model.SourceThepaper:
+		return s.GetThepaper()
+	case model.SourceWeatheralarm:
+		return s.GetWeatheralarm()
+	case model.SourceWeread:
+		return s.GetWeread()
+	case model.SourceYystv:
+		return s.GetYystv()
+	case model.SourceLol:
+		return s.GetLol()
+	default:
+		return nil, nil
+	}
+}
