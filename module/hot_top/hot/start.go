@@ -13,8 +13,6 @@ import (
 	"log"
 )
 
-var SaveFilePath = "file_cache"
-
 type Hot struct {
 	HotExpiredTime time.Duration
 }
@@ -35,14 +33,14 @@ func (h *Hot) Start() {
 	NewSpider()
 	NewHotCache(len(UrlConfMap))
 
-	go TickerGetHot(time.Hour)
+	// go TickerGetHot(&conf.GetConf().Hot)
 }
 
-func TickerGetHot(expireTime time.Duration) {
+func TickerGetHot(hotConf *conf.Hot) {
 	log.Println("TickerGetHot start!")
 	var sources []model.Source
 	for k := range UrlConfMap {
-		resp, err := GetHotFromFileCache(SaveFilePath, k, expireTime)
+		resp, err := GetHotFromFileCache(hotConf.HotFileCachePath, k, hotConf.HotPullIntervalParsed)
 		if err != nil {
 			log.Printf("TickerGet [%s] from file cache failed, err: %v\n", string(k), err)
 		} else if resp != nil {
@@ -57,17 +55,17 @@ func TickerGetHot(expireTime time.Duration) {
 		sources = append(sources, k)
 	}
 
-	setHotCacheBySource(sources)
-	tk := time.NewTicker(conf.GetConf().Hot.ExpiredCheckIntervalParsed)
+	setHotCacheBySource(hotConf.HotFileCachePath, sources)
+	tk := time.NewTicker(hotConf.ExpiredCheckIntervalParsed)
 	defer tk.Stop()
 	for t := range tk.C {
 		current := t.Format(time.DateTime)
 		log.Printf("check TickerGetHot expire time: %s\n", current)
-		setHotCacheBySource(GetHotCache().GetExpired(expireTime))
+		setHotCacheBySource(hotConf.HotFileCachePath, GetHotCache().GetExpired(hotConf.HotPullIntervalParsed))
 	}
 }
 
-func setHotCacheBySource(sources []model.Source) {
+func setHotCacheBySource(saveFileCachePath string, sources []model.Source) {
 	for _, k := range sources {
 		resp, err := GetHotBySource(k)
 		if err != nil {
@@ -77,7 +75,7 @@ func setHotCacheBySource(sources []model.Source) {
 		resp.UpdateTime = time.Now()
 		log.Printf("TickerGet [%s] success, dataLen: %d\n", string(k), len(resp.Data))
 		GetHotCache().Set(k, resp)
-		if err := SaveHotToFileCache(SaveFilePath, k, resp); err != nil {
+		if err := SaveHotToFileCache(saveFileCachePath, k, resp); err != nil {
 			log.Printf("TickerGet [%s] save file failed, err: %v\n", k, err)
 		}
 	}

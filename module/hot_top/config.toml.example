@@ -1,1 +1,10 @@
-DeepSeekToken = "sk-xxxx"
+[app]
+RunMode = "debug"
+Host = ""
+Port = 2025
+Name = "hot-top"
+[ai]
+DeepSeekToken = "xxxxx"
+[hot]
+ExpiredCheckInterval = "10s"
+HotPullInterval = "1h"
