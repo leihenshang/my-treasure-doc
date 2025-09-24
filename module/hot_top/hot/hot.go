@@ -31,16 +31,19 @@ type Spider struct {
 var spider *Spider
 var spiderOnce *sync.Once = &sync.Once{}
 
-func NewSpider() *Spider {
+func NewSpider(urlMap map[model.Source]*conf.UrlConf) (*Spider, error) {
+	if len(urlMap) == 0 {
+		return nil, fmt.Errorf("urlMap is empty")
+	}
 	spiderOnce.Do(func() {
 		spider = &Spider{
-			UrlMap: UrlConfMap,
+			UrlMap: urlMap,
 			HttpClient: &http.Client{
 				Timeout: time.Duration(5 * time.Second),
 			},
 		}
 	})
-	return spider
+	return spider, nil
 }
 
 func GetSpider() *Spider {
@@ -211,13 +214,14 @@ func (s *Spider) GetZhihu() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "zhihu",
-		Title: "知乎",
-		Type:  "热榜",
-		Link:  "https://www.zhihu.com/hot",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "zhihu",
+		Title:      "知乎",
+		Type:       "热榜",
+		Link:       "https://www.zhihu.com/hot",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -540,13 +544,14 @@ func (s *Spider) GetBaidu() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "baidu",
-		Title: "百度",
-		Type:  "热搜",
-		Link:  "https://top.baidu.com/board",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "baidu",
+		Title:      "百度",
+		Type:       "热搜",
+		Link:       "https://top.baidu.com/board",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -612,13 +617,14 @@ func (s *Spider) GetV2EX() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "v2ex",
-		Title: "V2EX",
-		Type:  "主题榜",
-		Link:  "https://www.v2ex.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "v2ex",
+		Title:      "V2EX",
+		Type:       "主题榜",
+		Link:       "https://www.v2ex.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -955,13 +961,14 @@ func (s *Spider) GetToutiao() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "toutiao",
-		Title: "今日头条",
-		Type:  "热榜",
-		Link:  "https://www.toutiao.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "toutiao",
+		Title:      "今日头条",
+		Type:       "热榜",
+		Link:       "https://www.toutiao.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -1028,13 +1035,14 @@ func (s *Spider) GetJuejin() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "juejin",
-		Title: "稀土掘金",
-		Type:  "文章榜",
-		Link:  "https://juejin.cn/hot/articles",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "juejin",
+		Title:      "稀土掘金",
+		Type:       "文章榜",
+		Link:       "https://juejin.cn/hot/articles",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -1885,13 +1893,14 @@ func (s *Spider) GetNeteaseNews() (*model.HotData, error) {
 
 	}
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "netease",
-		Title: "网易新闻",
-		Type:  "热点榜",
-		Link:  "https://m.163.com/hot",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "netease",
+		Title:      "网易新闻",
+		Type:       "热点榜",
+		Link:       "https://m.163.com/hot",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -1952,13 +1961,14 @@ func (s *Spider) GetQQNews() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "qq",
-		Title: "腾讯新闻",
-		Type:  "热点榜",
-		Link:  "https://news.qq.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "qq",
+		Title:      "腾讯新闻",
+		Type:       "热点榜",
+		Link:       "https://news.qq.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2030,13 +2040,14 @@ func (s *Spider) Get51CTO() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "51cto",
-		Title: "51CTO",
-		Type:  "推荐榜",
-		Link:  "https://www.51cto.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "51cto",
+		Title:      "51CTO",
+		Type:       "推荐榜",
+		Link:       "https://www.51cto.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2059,13 +2070,14 @@ func (s *Spider) Get52Pojie() (*model.HotData, error) {
 	// 实际实现需要解析RSS XML内容
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "52pojie",
-		Title: "吾爱破解",
-		Type:  "最新精华",
-		Link:  "https://www.52pojie.cn/",
-		Total: 0,
-		Data:  []*model.HotItem{},
+		Code:       http.StatusOK,
+		Name:       "52pojie",
+		Title:      "吾爱破解",
+		Type:       "最新精华",
+		Link:       "https://www.52pojie.cn/",
+		Total:      0,
+		Data:       []*model.HotItem{},
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2136,13 +2148,14 @@ func (s *Spider) GetDoubanGroup() (*model.HotData, error) {
 	})
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "douban-group",
-		Title: "豆瓣讨论",
-		Type:  "讨论精选",
-		Link:  "https://www.douban.com/group/explore",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "douban-group",
+		Title:      "豆瓣讨论",
+		Type:       "讨论精选",
+		Link:       "https://www.douban.com/group/explore",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2224,13 +2237,14 @@ func (s *Spider) GetAcfun() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "acfun",
-		Title: "AcFun",
-		Type:  "排行榜",
-		Link:  "https://www.acfun.cn/rank/list/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "acfun",
+		Title:      "AcFun",
+		Type:       "排行榜",
+		Link:       "https://www.acfun.cn/rank/list/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2289,13 +2303,14 @@ func (s *Spider) GetDgtle() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "dgtle",
-		Title: "数字尾巴",
-		Type:  "热门文章",
-		Link:  "https://www.dgtle.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "dgtle",
+		Title:      "数字尾巴",
+		Type:       "热门文章",
+		Link:       "https://www.dgtle.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2354,13 +2369,14 @@ func (s *Spider) GetDoubanMovie() (*model.HotData, error) {
 	})
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "douban-movie",
-		Title: "豆瓣电影",
-		Type:  "新片榜",
-		Link:  "https://movie.douban.com/chart",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "douban-movie",
+		Title:      "豆瓣电影",
+		Type:       "新片榜",
+		Link:       "https://movie.douban.com/chart",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2453,13 +2469,14 @@ func (s *Spider) GetEarthquake() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "earthquake",
-		Title: "中国地震台",
-		Type:  "地震速报",
-		Link:  "https://news.ceic.ac.cn/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "earthquake",
+		Title:      "中国地震台",
+		Type:       "地震速报",
+		Link:       "https://news.ceic.ac.cn/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2537,13 +2554,14 @@ func (s *Spider) GetGameres() (*model.HotData, error) {
 	})
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "gameres",
-		Title: "GameRes游资网",
-		Type:  "资讯",
-		Link:  "https://www.gameres.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "gameres",
+		Title:      "GameRes游资网",
+		Type:       "资讯",
+		Link:       "https://www.gameres.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2599,13 +2617,14 @@ func (s *Spider) GetGeekpark() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "geekpark",
-		Title: "极客公园",
-		Type:  "热门文章",
-		Link:  "https://www.geekpark.net/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "geekpark",
+		Title:      "极客公园",
+		Type:       "热门文章",
+		Link:       "https://www.geekpark.net/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2665,13 +2684,14 @@ func (s *Spider) GetGenshin() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "genshin",
-		Title: "原神",
-		Type:  "动态",
-		Link:  "https://bbs.mihoyo.com/ys/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "genshin",
+		Title:      "原神",
+		Type:       "动态",
+		Link:       "https://bbs.mihoyo.com/ys/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2729,13 +2749,14 @@ func (s *Spider) GetGuokr() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "guokr",
-		Title: "果壳",
-		Type:  "热门文章",
-		Link:  "https://www.guokr.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "guokr",
+		Title:      "果壳",
+		Type:       "热门文章",
+		Link:       "https://www.guokr.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2796,13 +2817,14 @@ func (s *Spider) GetHackernews() (*model.HotData, error) {
 	})
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "hackernews",
-		Title: "Hacker News",
-		Type:  "Popular",
-		Link:  "https://news.ycombinator.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "hackernews",
+		Title:      "Hacker News",
+		Type:       "Popular",
+		Link:       "https://news.ycombinator.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2855,13 +2877,14 @@ func (s *Spider) GetHelloGitHub() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "hellogithub",
-		Title: "HelloGitHub",
-		Type:  "热门仓库",
-		Link:  "https://hellogithub.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "hellogithub",
+		Title:      "HelloGitHub",
+		Type:       "热门仓库",
+		Link:       "https://hellogithub.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2924,13 +2947,14 @@ func (s *Spider) GetHistory() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "history",
-		Title: "历史上的今天",
-		Type:  fmt.Sprintf("%02d-%02d", month, day),
-		Link:  "https://baike.baidu.com/calendar",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "history",
+		Title:      "历史上的今天",
+		Type:       fmt.Sprintf("%02d-%02d", month, day),
+		Link:       "https://baike.baidu.com/calendar",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -2999,13 +3023,14 @@ func (s *Spider) GetHonkai() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "honkai",
-		Title: "崩坏3",
-		Type:  "最新动态",
-		Link:  "https://www.miyoushe.com/bh3/home/6",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "honkai",
+		Title:      "崩坏3",
+		Type:       "最新动态",
+		Link:       "https://www.miyoushe.com/bh3/home/6",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3040,13 +3065,14 @@ func (s *Spider) GetHostloc() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "hostloc",
-		Title: "全球主机交流论坛",
-		Type:  "热门帖子",
-		Link:  "https://hostloc.com/forum.php?mod=guide&view=hot",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "hostloc",
+		Title:      "全球主机交流论坛",
+		Type:       "热门帖子",
+		Link:       "https://hostloc.com/forum.php?mod=guide&view=hot",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3086,13 +3112,14 @@ func (s *Spider) GetIfanr() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "ifanr",
-		Title: "爱范儿",
-		Type:  "快讯",
-		Link:  "https://www.ifanr.com/buzz",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "ifanr",
+		Title:      "爱范儿",
+		Type:       "快讯",
+		Link:       "https://www.ifanr.com/buzz",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3143,13 +3170,14 @@ func (s *Spider) GetIthomeXijiayi() (*model.HotData, error) {
 	})
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "ithome-xijiayi",
-		Title: "IT之家喜加一",
-		Type:  "游戏动态",
-		Link:  "https://www.ithome.com/zt/xijiayi",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "ithome-xijiayi",
+		Title:      "IT之家喜加一",
+		Type:       "游戏动态",
+		Link:       "https://www.ithome.com/zt/xijiayi",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3220,13 +3248,14 @@ func (s *Spider) GetMiyoushe() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "miyoushe",
-		Title: "米游社",
-		Type:  "最新公告",
-		Link:  "https://www.miyoushe.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "miyoushe",
+		Title:      "米游社",
+		Type:       "最新公告",
+		Link:       "https://www.miyoushe.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3293,13 +3322,14 @@ func (s *Spider) GetNewsmth() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "newsmth",
-		Title: "水木社区",
-		Type:  "热门话题",
-		Link:  "https://www.newsmth.net/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "newsmth",
+		Title:      "水木社区",
+		Type:       "热门话题",
+		Link:       "https://www.newsmth.net/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3381,13 +3411,14 @@ func (s *Spider) GetNgabbs() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "ngabbs",
-		Title: "NGA",
-		Type:  "论坛热帖",
-		Link:  "https://ngabbs.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "ngabbs",
+		Title:      "NGA",
+		Type:       "论坛热帖",
+		Link:       "https://ngabbs.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3436,13 +3467,14 @@ func (s *Spider) GetNodeseek() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "nodeseek",
-		Title: "NodeSeek",
-		Type:  "技术社区",
-		Link:  "https://www.nodeseek.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "nodeseek",
+		Title:      "NodeSeek",
+		Type:       "技术社区",
+		Link:       "https://www.nodeseek.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3491,13 +3523,14 @@ func (s *Spider) GetNytimes() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "nytimes",
-		Title: "纽约时报",
-		Type:  "国际新闻",
-		Link:  "https://www.nytimes.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "nytimes",
+		Title:      "纽约时报",
+		Type:       "国际新闻",
+		Link:       "https://www.nytimes.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3536,13 +3569,14 @@ func (s *Spider) GetProducthunt() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "producthunt",
-		Title: "Product Hunt",
-		Type:  "产品发现",
-		Link:  "https://www.producthunt.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "producthunt",
+		Title:      "Product Hunt",
+		Type:       "产品发现",
+		Link:       "https://www.producthunt.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3583,13 +3617,14 @@ func (s *Spider) GetSinaNews() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "sina-news",
-		Title: "新浪新闻",
-		Type:  "新闻资讯",
-		Link:  "https://news.sina.com.cn/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "sina-news",
+		Title:      "新浪新闻",
+		Type:       "新闻资讯",
+		Link:       "https://news.sina.com.cn/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3630,13 +3665,14 @@ func (s *Spider) GetSina() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "sina",
-		Title: "微博热搜",
-		Type:  "社交媒体",
-		Link:  "https://s.weibo.com/top/summary",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "sina",
+		Title:      "微博热搜",
+		Type:       "社交媒体",
+		Link:       "https://s.weibo.com/top/summary",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3690,13 +3726,14 @@ func (s *Spider) GetStarrail() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "starrail",
-		Title: "星穹铁道",
-		Type:  "游戏资讯",
-		Link:  "https://bbs.miyoushe.com/ys/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "starrail",
+		Title:      "星穹铁道",
+		Type:       "游戏资讯",
+		Link:       "https://bbs.miyoushe.com/ys/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3750,13 +3787,14 @@ func (s *Spider) GetThepaper() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "thepaper",
-		Title: "澎湃新闻",
-		Type:  "新闻资讯",
-		Link:  "https://www.thepaper.cn/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "thepaper",
+		Title:      "澎湃新闻",
+		Type:       "新闻资讯",
+		Link:       "https://www.thepaper.cn/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3809,13 +3847,14 @@ func (s *Spider) GetWeatheralarm() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "weatheralarm",
-		Title: "气象预警",
-		Type:  "气象信息",
-		Link:  "http://www.nmc.cn/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "weatheralarm",
+		Title:      "气象预警",
+		Type:       "气象信息",
+		Link:       "http://www.nmc.cn/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3875,13 +3914,14 @@ func (s *Spider) GetWeread() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "weread",
-		Title: "微信读书",
-		Type:  "图书排行",
-		Link:  "https://weread.qq.com/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "weread",
+		Title:      "微信读书",
+		Type:       "图书排行",
+		Link:       "https://weread.qq.com/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 
@@ -3922,13 +3962,14 @@ func (s *Spider) GetYystv() (*model.HotData, error) {
 	}
 
 	return &model.HotData{
-		Code:  http.StatusOK,
-		Name:  "yystv",
-		Title: "游研社",
-		Type:  "游戏资讯",
-		Link:  "https://www.yystv.cn/",
-		Total: len(listData),
-		Data:  listData,
+		Code:       http.StatusOK,
+		Name:       "yystv",
+		Title:      "游研社",
+		Type:       "游戏资讯",
+		Link:       "https://www.yystv.cn/",
+		Total:      len(listData),
+		Data:       listData,
+		UpdateTime: time.Now(),
 	}, nil
 }
 

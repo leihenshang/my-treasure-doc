@@ -40,8 +40,7 @@ type Conf struct {
 func GetConf() *Conf {
 	lock.RLock()
 	defer lock.RUnlock()
-	copy := *globalConfig
-	return &copy
+	return globalConfig
 }
 
 func (c *Conf) Validate(vip *viper.Viper) (err error) {
@@ -162,7 +161,7 @@ func (h *Hot) Validate() error {
 		h.HotPullIntervalParsed = DefaultHotPullInterval
 	} else if duration, err := time.ParseDuration(h.HotPullInterval); err != nil || duration <= 0 {
 		log.Printf("parse hot expired check time failed,err: [%v], use default value: %v \n", err, DefaultHotPullInterval)
-		h.ExpiredCheckIntervalParsed = DefaultHotPullInterval
+		h.HotPullIntervalParsed = DefaultHotPullInterval
 	} else {
 		h.HotPullIntervalParsed = duration
 	}

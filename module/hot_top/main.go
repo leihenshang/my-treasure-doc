@@ -34,7 +34,11 @@ func main() {
 		return
 	}
 
-	hot.NewHot(&conf.GetConf().Hot).Start()
+	if err := hot.NewHot(&conf.GetConf().Hot).Start(); err != nil {
+		log.Fatalf("start hot failed, err:%v\n", err)
+		return
+	}
+
 	genEngine := gin.New()
 	genEngine.Use(gin.Logger())
 	route.InitRoute(genEngine).Use(route.MiddleWareCors())

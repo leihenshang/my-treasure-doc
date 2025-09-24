@@ -4,7 +4,6 @@ import (
 	"fastduck/treasure-doc/module/hot_top/model"
 	"maps"
 	"sync"
-	"time"
 )
 
 type HotCache struct {
@@ -46,18 +45,6 @@ func (c *HotCache) GetAllMap() map[model.Source]*model.HotData {
 	resp := make(map[model.Source]*model.HotData, len(c.cache))
 	maps.Copy(resp, c.cache)
 	return resp
-}
-
-func (c *HotCache) GetWithExpired(t time.Duration) []model.Source {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-	var res []model.Source
-	for k, v := range c.cache {
-		if time.Since(v.UpdateTime) > t {
-			res = append(res, k)
-		}
-	}
-	return res
 }
 
 func (c *HotCache) Set(source model.Source, data *model.HotData) {
