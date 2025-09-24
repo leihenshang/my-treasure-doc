@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"fastduck/treasure-doc/module/hot_top/conf"
 	"fastduck/treasure-doc/module/hot_top/hot/token"
 	"fastduck/treasure-doc/module/hot_top/model"
 
@@ -22,14 +23,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type UrlConf struct {
-	Url      string
-	Agent    string
-	Disabled bool
-}
-
 type Spider struct {
-	UrlMap     map[model.Source]*UrlConf
+	UrlMap     map[model.Source]*conf.UrlConf
 	HttpClient *http.Client
 }
 

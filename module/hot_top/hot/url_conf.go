@@ -1,8 +1,11 @@
 package hot
 
-import "fastduck/treasure-doc/module/hot_top/model"
+import (
+	"fastduck/treasure-doc/module/hot_top/conf"
+	"fastduck/treasure-doc/module/hot_top/model"
+)
 
-var UrlConfMap map[model.Source]*UrlConf = map[model.Source]*UrlConf{
+var UrlConfMap map[model.Source]*conf.UrlConf = map[model.Source]*conf.UrlConf{
 	model.SourceITHome: {
 		Url:   "https://m.ithome.com/rankm/",
 		Agent: `Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36`,
