@@ -4,8 +4,6 @@ import "fastduck/treasure-doc/module/hot_top/model"
 
 type UrlConf struct {
 	Source   model.Source
-	Url      string
-	Agent    string
 	Disabled bool
 }
 
