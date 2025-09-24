@@ -85,7 +85,7 @@ func (s *Spider) GetItHome() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	document.Find(".rank-box .placeholder").Each(func(i int, selection *goquery.Selection) {
 		href, exists := selection.Find("a").Attr("href")
 		if !exists {
@@ -153,7 +153,7 @@ func (s *Spider) GetZhihu() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if data, ok := result["data"].([]interface{}); ok {
 		for _, item := range data {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -260,7 +260,7 @@ func (s *Spider) GetWeibo() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, v := range result.Data.Cards {
 		for _, vv := range v.CardGroup {
 			listData = append(listData, &model.HotItem{
@@ -326,7 +326,7 @@ func (s *Spider) GetBilibili() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	var result map[string]interface{}
 	if err := json.Unmarshal(respBody, &result); err != nil {
 		log.Printf("unmarshal Bilibili data failed, err: %v \n", err)
@@ -483,7 +483,7 @@ func (s *Spider) GetBaidu() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if cards, ok := data["cards"].([]interface{}); ok && len(cards) > 0 {
 		if card, ok := cards[0].(map[string]interface{}); ok {
 			if content, ok := card["content"].([]interface{}); ok {
@@ -575,7 +575,7 @@ func (s *Spider) GetV2EX() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, v := range list {
 		title := ""
 		if t, ok := v["title"].(string); ok {
@@ -649,7 +649,7 @@ func (s *Spider) GetGitHub() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	document.Find("article.Box-row").Each(func(i int, selection *goquery.Selection) {
 		// 仓库名称
 		repoText := strings.TrimSpace(selection.Find("h2 a").Text())
@@ -756,7 +756,7 @@ func (s *Spider) GetDouyin() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if wordList, ok := data["word_list"].([]interface{}); ok {
 			for i, item := range wordList {
@@ -840,7 +840,7 @@ func (s *Spider) GetKuaishou() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if defaultClient, ok := apolloData["defaultClient"].(map[string]interface{}); ok {
 		if items, ok := defaultClient["$ROOT_QUERY.visionHotRank({\"page\":\"home\"})"].([]interface{}); ok {
 			for i, item := range items {
@@ -921,7 +921,7 @@ func (s *Spider) GetToutiao() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if data, ok := result["data"].([]interface{}); ok {
 		for i, item := range data {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -993,7 +993,7 @@ func (s *Spider) GetJuejin() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if data, ok := result["data"].([]interface{}); ok {
 		for i, item := range data {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -1141,7 +1141,7 @@ func (s *Spider) Get36Kr() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range resp.Data.HotRankList {
 		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(int(item.TemplateMaterial.ItemId)),
@@ -1188,7 +1188,7 @@ func (s *Spider) GetCSDN() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if data, ok := result["data"].([]interface{}); ok {
 		for i, item := range data {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -1264,7 +1264,7 @@ func (s *Spider) GetTieba() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if bangTopic, ok := data["bang_topic"].(map[string]interface{}); ok {
 			if topicList, ok := bangTopic["topic_list"].([]interface{}); ok {
@@ -1344,7 +1344,7 @@ func (s *Spider) GetZhihuDaily() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if stories, ok := result["stories"].([]interface{}); ok {
 		for i, item := range stories {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -1417,7 +1417,7 @@ func (s *Spider) GetCoolapk() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if data, ok := result["data"].([]interface{}); ok {
 		for _, item := range data {
 			if v, ok := item.(map[string]interface{}); ok {
@@ -1493,7 +1493,7 @@ func (s *Spider) GetHupu() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	document.Find(".bbsHotPit .list-item").Each(func(i int, selection *goquery.Selection) {
 		title := strings.TrimSpace(selection.Find(".textSpan").Text())
 		href, exists := selection.Find("a").Attr("href")
@@ -1565,7 +1565,7 @@ func (s *Spider) GetHuxiu() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if homeData, ok := initialState["home"].(map[string]interface{}); ok {
 		if hotNewsList, ok := homeData["hotNewsList"].([]interface{}); ok {
 			for _, item := range hotNewsList {
@@ -1632,7 +1632,7 @@ func (s *Spider) GetJianshu() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	document.Find(".note-list li").Each(func(i int, selection *goquery.Selection) {
 		title := strings.TrimSpace(selection.Find(".title").Text())
 		if title == "" {
@@ -1699,7 +1699,7 @@ func (s *Spider) GetSmzdm() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	document.Find(".z-feed-content").Each(func(i int, selection *goquery.Selection) {
 		title := strings.TrimSpace(selection.Find(".z-feed-title").Text())
 		if title == "" {
@@ -1821,7 +1821,7 @@ func (s *Spider) GetSspai() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range result.Data {
 		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(item.ID),
@@ -1878,7 +1878,7 @@ func (s *Spider) GetNeteaseNews() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range result.Data.List {
 		listData = append(listData, &model.HotItem{
 			ID:        item.Docid,
@@ -1938,7 +1938,7 @@ func (s *Spider) GetQQNews() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 
 	for _, v := range result.Idlist {
 		for _, vv := range v.Newslist {
@@ -1992,7 +1992,7 @@ func (s *Spider) Get51CTO() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if innerData, ok := data["data"].(map[string]interface{}); ok {
 			if list, ok := innerData["list"].([]interface{}); ok {
@@ -2102,7 +2102,7 @@ func (s *Spider) GetDoubanGroup() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	doc.Find(".article .channel-item").Each(func(i int, s *goquery.Selection) {
 		url := s.Find("h3 a").AttrOr("href", "")
 		title := s.Find("h3 a").Text()
@@ -2180,7 +2180,7 @@ func (s *Spider) GetAcfun() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	if data, ok := result["data"].(map[string]interface{}); ok {
 		if rankList, ok := data["rankList"].([]interface{}); ok {
 			for _, item := range rankList {
@@ -2285,7 +2285,7 @@ func (s *Spider) GetDgtle() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range result.Data.Items {
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.CreatedAt)
 
@@ -2338,7 +2338,7 @@ func (s *Spider) GetDoubanMovie() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	doc.Find(".article tr.item").Each(func(i int, s *goquery.Selection) {
 		url, _ := s.Find("a").Attr("href")
 		score := s.Find(".rating_nums").Text()
@@ -2420,7 +2420,7 @@ func (s *Spider) GetEarthquake() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	mappings := map[string]string{
 		"O_TIME":     "发震时刻(UTC+8)",
 		"LOCATION_C": "参考位置",
@@ -2504,7 +2504,7 @@ func (s *Spider) GetGameres() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	doc.Find(".article-list .article-item").Each(func(i int, s *goquery.Selection) {
 		title := s.Find(".article-title a").Text()
 		url, _ := s.Find(".article-title a").Attr("href")
@@ -2599,7 +2599,7 @@ func (s *Spider) GetGeekpark() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range result.Data {
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.CreatedAt)
 
@@ -2728,7 +2728,7 @@ func (s *Spider) GetGuokr() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range result {
 		timestamp, _ := time.Parse(time.RFC3339, item.DateCreated)
 		listData = append(listData, &model.HotItem{
@@ -2783,7 +2783,7 @@ func (s *Spider) GetHackernews() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	doc.Find(".athing").Each(func(i int, s *goquery.Selection) {
 		id := s.AttrOr("id", "")
 		title := s.Find(".titleline a").First().Text()
@@ -2861,7 +2861,7 @@ func (s *Spider) GetHelloGitHub() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range result.Data {
 		timestamp, _ := time.Parse("2006-01-02T15:04:05", item.UpdatedAt)
 		listData = append(listData, &model.HotItem{
@@ -2931,7 +2931,7 @@ func (s *Spider) GetHistory() (*model.HotData, error) {
 	dayKey := fmt.Sprintf("%02d%02d", month, day)
 	dayData := result[monthKey][dayKey]
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for i, item := range dayData {
 		listData = append(listData, &model.HotItem{
 			ID:        strconv.Itoa(i),
@@ -2999,7 +2999,7 @@ func (s *Spider) GetHonkai() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range result.Data.List {
 		post := item.Post
 
@@ -3049,7 +3049,7 @@ func (s *Spider) GetHostloc() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range feed.Channel.Items {
 		// 将字符串Guid转换为int
 		idInt, _ := strconv.Atoi(item.Guid)
@@ -3098,7 +3098,7 @@ func (s *Spider) GetIfanr() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range result.Data {
 		idInt, _ := strconv.Atoi(item.ID)
 		listData = append(listData, &model.HotItem{
@@ -3137,7 +3137,7 @@ func (s *Spider) GetIthomeXijiayi() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	counter := 1
 	doc.Find(".newslist li").Each(func(i int, s *goquery.Selection) {
 		href := s.Find("a").AttrOr("href", "")
@@ -3225,7 +3225,7 @@ func (s *Spider) GetMiyoushe() (*model.HotData, error) {
 		return nil, fmt.Errorf("解析JSON失败: %v", err)
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range result.Data.List {
 		post := item.Post
 		cover := post.Cover
@@ -3304,7 +3304,7 @@ func (s *Spider) GetNewsmth() (*model.HotData, error) {
 		return nil, fmt.Errorf("解析JSON失败: %v", err)
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, topic := range result.Data.Topics {
 		post := topic.Article
 		url := fmt.Sprintf("https://wap.newsmth.net/article/%s?title=%s&from=home", post.TopicID, topic.Board.Title)
@@ -3396,7 +3396,7 @@ func (s *Spider) GetNgabbs() (*model.HotData, error) {
 		return nil, fmt.Errorf("解析JSON失败: %v", err)
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range result.Result[0] {
 		tidInt, _ := strconv.Atoi(item.Tid)
 		listData = append(listData, &model.HotItem{
@@ -3452,7 +3452,7 @@ func (s *Spider) GetNodeseek() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range rssData.Channel.Item {
 		timestamp, _ := time.Parse(time.RFC1123, item.PubDate)
 
@@ -3508,7 +3508,7 @@ func (s *Spider) GetNytimes() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range rssData.Channel.Item {
 		timestamp, _ := time.Parse(time.RFC1123, item.PubDate)
 
@@ -3552,7 +3552,7 @@ func (s *Spider) GetProducthunt() (*model.HotData, error) {
 	re := regexp.MustCompile(`<div data-test="post-item"[^>]*>.*?<a[^>]*href="([^"]*)"[^>]*>.*?<h3[^>]*>([^<]*)</h3>.*?<div[^>]*>([^<]*)</div>`)
 	matches := re.FindAllStringSubmatch(string(body), -1)
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for i, match := range matches {
 		if len(match) >= 4 {
 			url := "https://www.producthunt.com" + match[1]
@@ -3598,7 +3598,7 @@ func (s *Spider) GetSinaNews() (*model.HotData, error) {
 	re := regexp.MustCompile(`<a[^>]*href="([^"]*)"[^>]*>([^<]*)</a>`)
 	matches := re.FindAllStringSubmatch(string(body), -1)
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for i, match := range matches {
 		if len(match) >= 3 && strings.Contains(match[1], "news.sina.com.cn") {
 			url := match[1]
@@ -3646,7 +3646,7 @@ func (s *Spider) GetSina() (*model.HotData, error) {
 	re := regexp.MustCompile(`<a[^>]*href="([^"]*weibo.com[^"]*)"[^>]*>([^<]*)</a>`)
 	matches := re.FindAllStringSubmatch(string(body), -1)
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for i, match := range matches {
 		if len(match) >= 3 {
 			url := match[1]
@@ -3771,7 +3771,7 @@ func (s *Spider) GetThepaper() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range result.Data.HotNews {
 		hot, _ := strconv.Atoi(item.PariseTimes)
 		listData = append(listData, &model.HotItem{
@@ -3830,7 +3830,7 @@ func (s *Spider) GetWeatheralarm() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, item := range jsonData.Data.Page.List {
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", item.Issuetime)
 		url := fmt.Sprintf("http://www.nmc.cn/publish/alarm.html?alertid=%s", item.Alertid)
@@ -3891,7 +3891,7 @@ func (s *Spider) GetWeread() (*model.HotData, error) {
 		return nil, err
 	}
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for _, book := range jsonData.Books {
 		cover := strings.Replace(book.BookInfo.Cover, "_s.jpg", "_l.jpg", 1)
 		realBookId, err := token.GetWereadID(book.BookInfo.BookId)
@@ -3943,7 +3943,7 @@ func (s *Spider) GetYystv() (*model.HotData, error) {
 	re := regexp.MustCompile(`<a[^>]*href="([^"]*yystv.cn[^"]*)"[^>]*>([^<]*)</a>`)
 	matches := re.FindAllStringSubmatch(string(body), -1)
 
-	var listData []*model.HotItem
+	listData := []*model.HotItem{}
 	for i, match := range matches {
 		if len(match) >= 3 {
 			url := match[1]
