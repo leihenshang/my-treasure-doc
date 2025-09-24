@@ -14,14 +14,23 @@ import (
 
 var configFile string
 
+var genConf string
+
 func init() {
 	flag.StringVar(&configFile, "c", conf.DefaultConfig, "config file path")
+	flag.StringVar(&genConf, "genConf", "", "generate config file, eg: [xxxx.toml]")
 	flag.Parse()
 }
 
 func main() {
 	if err := conf.InitConf(configFile); err != nil {
 		log.Fatalf("init config failed, err:%v\n", err)
+	}
+
+	if genConf != "" {
+		if err := conf.GenConf(genConf); err != nil {
+			log.Fatalf("gen config failed, err:%v\n", err)
+		}
 		return
 	}
 
