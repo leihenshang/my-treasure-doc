@@ -14,16 +14,16 @@ import (
 )
 
 type Hot struct {
-	HotExpiredTime time.Duration
+	HotConf *conf.Hot
 }
 
 var onceHot = &sync.Once{}
 var hot *Hot
 
-func NewHot(hotExpiredTime time.Duration) *Hot {
+func NewHot(hotConf *conf.Hot) *Hot {
 	onceHot.Do(func() {
 		hot = &Hot{
-			HotExpiredTime: hotExpiredTime,
+			HotConf: hotConf,
 		}
 	})
 	return hot
@@ -32,74 +32,70 @@ func NewHot(hotExpiredTime time.Duration) *Hot {
 func (h *Hot) Start() {
 	NewSpider()
 	NewHotCache(len(UrlConfMap))
-
-	// go TickerGetHot(&conf.GetConf().Hot)
+	go h.TickerGetHot()
 }
 
-func TickerGetHot(hotConf *conf.Hot) {
-	log.Println("TickerGetHot start!")
-	var sources []model.Source
+func (h *Hot) TickerGetHot() {
+	var collectSources []model.Source
 	for k := range UrlConfMap {
-		resp, err := GetHotFromFileCache(hotConf.HotFileCachePath, k, hotConf.HotPullIntervalParsed)
-		if err != nil {
-			log.Printf("TickerGet [%s] from file cache failed, err: %v\n", string(k), err)
+		if resp, err := h.GetHotFromFileCache(k); err != nil {
+			log.Printf("get [%s] from file cache failed, err: %v\n", string(k), err)
 		} else if resp != nil {
-			log.Printf("TickerGet [%s] from file cache success, dataLen: %d\n", string(k), len(resp.HotData.Data))
-			if resp.HotData.UpdateTime.IsZero() {
-				resp.HotData.UpdateTime = time.Now()
-			}
-			GetHotCache().SetWithLastUpdateTime(k, resp)
-			continue
+			log.Printf("get [%s] from file cache success, dataLen: %d\n", string(k), len(resp.Data))
+			GetHotCache().Set(k, resp)
+		} else {
+			collectSources = append(collectSources, k)
 		}
-
-		sources = append(sources, k)
 	}
 
-	setHotCacheBySource(hotConf.HotFileCachePath, sources)
-	tk := time.NewTicker(hotConf.ExpiredCheckIntervalParsed)
+	h.setHotCache(h.setHotCacheBySource(collectSources))
+
+	tk := time.NewTicker(h.HotConf.ExpiredCheckIntervalParsed)
 	defer tk.Stop()
 	for t := range tk.C {
 		current := t.Format(time.DateTime)
 		log.Printf("check TickerGetHot expire time: %s\n", current)
-		setHotCacheBySource(hotConf.HotFileCachePath, GetHotCache().GetExpired(hotConf.HotPullIntervalParsed))
+		h.setHotCacheBySource(GetHotCache().GetWithExpired(h.HotConf.HotPullIntervalParsed))
 	}
 }
 
-func setHotCacheBySource(saveFileCachePath string, sources []model.Source) {
+func (h *Hot) setHotCacheBySource(sources []model.Source) map[model.Source]*model.HotData {
+	res := make(map[model.Source]*model.HotData, len(sources))
 	for _, k := range sources {
-		resp, err := GetHotBySource(k)
+		hotData, err := h.GetHotBySource(k)
 		if err != nil {
-			log.Printf("TickerGet [%s] failed, err: %v\n", string(k), err)
+			log.Printf("get [%s] failed, err: %v\n", string(k), err)
 			continue
 		}
-		resp.UpdateTime = time.Now()
-		log.Printf("TickerGet [%s] success, dataLen: %d\n", string(k), len(resp.Data))
-		GetHotCache().Set(k, resp)
-		if err := SaveHotToFileCache(saveFileCachePath, k, resp); err != nil {
-			log.Printf("TickerGet [%s] save file failed, err: %v\n", k, err)
+		res[k] = hotData
+	}
+	return res
+}
+
+func (h *Hot) setHotCache(hotMap map[model.Source]*model.HotData) {
+	for k, hotData := range hotMap {
+		GetHotCache().Set(k, hotData)
+		if err := h.SaveHotToFileCache(k, hotData); err != nil {
+			log.Printf("get [%s] save file failed, err: %v\n", k, err)
 		}
 	}
 }
 
-func SaveHotToFileCache(path string, source model.Source, resp *model.HotData) error {
+func (h *Hot) SaveHotToFileCache(source model.Source, resp *model.HotData) error {
 	if resp == nil {
 		return fmt.Errorf("source: [%s], resp is nil", source)
 	}
-	savePath := filepath.Join(path, fmt.Sprintf("%s.json", source))
+	savePath := filepath.Join(h.HotConf.HotFileCachePath, fmt.Sprintf("%s.json", source))
 	if _, err := os.Stat(filepath.Dir(savePath)); os.IsNotExist(err) {
 		if err := os.MkdirAll(filepath.Dir(savePath), os.ModePerm); err != nil {
 			return fmt.Errorf("source: [%s], mkdir failed, err: %v", source, err)
 		}
 	}
 
-	cacheItem := &HotCacheItem{
-		LastUpdateTime: time.Now(),
-		HotData:        resp,
-	}
 	if f, err := os.Create(savePath); err != nil {
 		return fmt.Errorf("source: [%s], create file failed, err: %v", source, err)
 	} else {
-		if err := json.NewEncoder(f).Encode(cacheItem); err != nil {
+		if err := json.NewEncoder(f).Encode(resp); err != nil {
 			return fmt.Errorf("source: [%s], save file failed, err: %v", source, err)
 		}
 		if err := f.Close(); err != nil {
@@ -110,9 +106,9 @@ func SaveHotToFileCache(path string, source model.Source, resp *model.HotData) e
 	return nil
 }
 
-func GetHotFromFileCache(path string, source model.Source, expireTime time.Duration) (*HotCacheItem, error) {
-	var resp *HotCacheItem = &HotCacheItem{}
-	savePath := filepath.Join(path, fmt.Sprintf("%s.json", source))
+func (h *Hot) GetHotFromFileCache(source model.Source) (resp *model.HotData, err error) {
+	resp = &model.HotData{}
+	savePath := filepath.Join(h.HotConf.HotFileCachePath, fmt.Sprintf("%s.json", source))
 	if _, err := os.Stat(savePath); os.IsNotExist(err) {
 		return nil, nil
 	}
@@ -124,17 +120,15 @@ func GetHotFromFileCache(path string, source model.Source, expireTime time.Durat
 			return nil, fmt.Errorf("source: [%s], decode file failed, err: %v", source, err)
 		}
 	}
-	if resp.HotData == nil {
-		return nil, fmt.Errorf("source: [%s], resp is nil", source)
-	}
-	if time.Since(resp.LastUpdateTime) > expireTime {
-		return nil, fmt.Errorf("source: [%s], cache expired, lastUpdateTime: %s", source, resp.LastUpdateTime.Format(time.DateTime))
+
+	if resp.IsUpdateTimeExpired(h.HotConf.HotPullIntervalParsed) {
+		return nil, fmt.Errorf("source: [%s], cache expired, lastUpdateTime: %s", source, resp.UpdateTime.Format(time.DateTime))
 	}
 
 	return resp, nil
 }
 
-func GetHotBySource(k model.Source) (*model.HotData, error) {
+func (h *Hot) GetHotBySource(k model.Source) (*model.HotData, error) {
 	UrlConf, ok := UrlConfMap[k]
 	if !ok {
 		return nil, fmt.Errorf("source: [%s], url conf not found", k)

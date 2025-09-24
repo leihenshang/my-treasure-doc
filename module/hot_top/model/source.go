@@ -73,7 +73,7 @@ type HotData struct {
 	Link        string    `json:"link"`
 	Total       int       `json:"total"`
 	Data        HotItems  `json:"data"`
-	params      any       `json:"params,omitempty"`
+	Params      any       `json:"params,omitempty"`
 	UpdateTime  time.Time `json:"updateTime,omitempty"`
 }
 
@@ -101,4 +101,8 @@ func (h HotItems) ToJsonWithErr() string {
 
 func (s Source) String() string {
 	return string(s)
+}
+
+func (h *HotData) IsUpdateTimeExpired(t time.Duration) bool {
+	return time.Since(h.UpdateTime) > t
 }

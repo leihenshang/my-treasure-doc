@@ -34,7 +34,7 @@ func main() {
 		return
 	}
 
-	hot.NewHot(time.Hour).Start()
+	hot.NewHot(&conf.GetConf().Hot).Start()
 	genEngine := gin.New()
 	genEngine.Use(gin.Logger())
 	route.InitRoute(genEngine).Use(route.MiddleWareCors())

@@ -126,6 +126,7 @@ func (s *Spider) GetItHome() (*model.HotData, error) {
 		Link:        "https://m.ithome.com/rankm/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -280,6 +281,7 @@ func (s *Spider) GetWeibo() (*model.HotData, error) {
 		Link:        "https://s.weibo.com/top/summary/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -441,6 +443,7 @@ func (s *Spider) GetBilibili() (*model.HotData, error) {
 		Link:        "https://www.bilibili.com/v/popular/rank/all",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -697,6 +700,7 @@ func (s *Spider) GetGitHub() (*model.HotData, error) {
 		Link:        "https://github.com/trending",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -793,6 +797,7 @@ func (s *Spider) GetDouyin() (*model.HotData, error) {
 		Link:        "https://www.douyin.com",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -886,6 +891,7 @@ func (s *Spider) GetKuaishou() (*model.HotData, error) {
 		Link:        "https://www.kuaishou.com/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -1150,6 +1156,7 @@ func (s *Spider) Get36Kr() (*model.HotData, error) {
 		Link:        "https://36kr.com/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -1225,6 +1232,7 @@ func (s *Spider) GetCSDN() (*model.HotData, error) {
 		Link:        "https://blog.csdn.net/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -1304,6 +1312,7 @@ func (s *Spider) GetTieba() (*model.HotData, error) {
 		Link:        "https://tieba.baidu.com/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -1375,6 +1384,7 @@ func (s *Spider) GetZhihuDaily() (*model.HotData, error) {
 		Link:        "https://daily.zhihu.com/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -1451,6 +1461,7 @@ func (s *Spider) GetCoolapk() (*model.HotData, error) {
 		Link:        "https://www.coolapk.com/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -1509,6 +1520,7 @@ func (s *Spider) GetHupu() (*model.HotData, error) {
 		Link:        "https://bbs.hupu.com/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -1588,6 +1600,7 @@ func (s *Spider) GetHuxiu() (*model.HotData, error) {
 		Link:        "https://www.huxiu.com/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -1654,6 +1667,7 @@ func (s *Spider) GetJianshu() (*model.HotData, error) {
 		Link:        "https://www.jianshu.com/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -1723,6 +1737,7 @@ func (s *Spider) GetSmzdm() (*model.HotData, error) {
 		Link:        "https://www.smzdm.com/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 
@@ -1821,6 +1836,7 @@ func (s *Spider) GetSspai() (*model.HotData, error) {
 		Link:        "https://sspai.com/",
 		Total:       len(listData),
 		Data:        listData,
+		UpdateTime:  time.Now(),
 	}, nil
 }
 

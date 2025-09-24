@@ -16,7 +16,7 @@ func InitRoute(r *gin.Engine) *gin.Engine {
 	for k := range hot.UrlConfMap {
 		route.GET(string(k), func(c *gin.Context) {
 			resp, _ := hot.GetHotCache().Get(k)
-			c.JSON(http.StatusOK, resp.HotData)
+			c.JSON(http.StatusOK, resp)
 		})
 	}
 

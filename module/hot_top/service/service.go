@@ -16,7 +16,7 @@ func ThinkWithDeepSeek(question string) (answer string, err error) {
 	}
 	resMap := hot.GetHotCache().GetAllMap()
 	totalLen := len(resMap) / 2
-	filterMap := make(map[model.Source]*hot.HotCacheItem, totalLen)
+	filterMap := make(map[model.Source]*model.HotData, totalLen)
 	var counter = 0
 	for k, v := range resMap {
 		if counter < totalLen {
