@@ -68,11 +68,11 @@ func (s *Spider) GetItHome() (*model.HotData, error) {
 	}
 
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceITHome].Url, Body)
+	request, err := http.NewRequest("GET", `https://www.ithome.com/zt/xijiayi`, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceITHome].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -136,11 +136,11 @@ func (s *Spider) GetItHome() (*model.HotData, error) {
 // ============== 知乎 ==============
 func (s *Spider) GetZhihu() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceZhihu].Url, Body)
+	request, err := http.NewRequest("GET", `https://www.zhihu.com/api/v4/ranking/general?period=day&offset=0`, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceZhihu].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67`)
 
 	res, err := s.HttpClient.Do(request)
 	if err != nil {
@@ -228,11 +228,11 @@ func (s *Spider) GetZhihu() (*model.HotData, error) {
 // ============== 微博 ==============
 func (s *Spider) GetWeibo() (*model.HotData, error) {
 	var Body io.Reader
-	request, err := http.NewRequest("GET", s.UrlMap[model.SourceWeibo].Url, Body)
+	request, err := http.NewRequest("GET", `https://m.weibo.cn/api/container/getIndex?containerid=106003type%3D25%26t%3D3%26disable_hot%3D1%26filter_type%3Drealtimehot&title=%E5%BE%AE%E5%8D%9A%E7%83%AD%E6%90%9C&extparam=filter_type%3Drealtimehot%26mi_cid%3D100103%26pos%3D0_0%26c_type%3D30%26display_time%3D1540538388&luicode=10000011&lfid=231583`, Body)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("User-Agent", s.UrlMap[model.SourceWeibo].Agent)
+	request.Header.Add("User-Agent", `Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1`)
 	request.Header.Add("Referer", "https://s.weibo.com/top/summary?cate=realtimehot")
 	request.Header.Add("MWeibo-Pwa", "1")
 	request.Header.Add("X-Requested-With", "XMLHttpRequest")
