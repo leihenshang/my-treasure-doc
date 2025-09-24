@@ -7,7 +7,7 @@ import (
 )
 
 func Test_GetItHome(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -25,7 +25,7 @@ func Test_GetItHome(t *testing.T) {
 }
 
 func Test_GetZhihu(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -37,7 +37,7 @@ func Test_GetZhihu(t *testing.T) {
 }
 
 func Test_GetWeibo(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -49,7 +49,7 @@ func Test_GetWeibo(t *testing.T) {
 }
 
 func Test_GetBilibili(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -61,7 +61,7 @@ func Test_GetBilibili(t *testing.T) {
 }
 
 func Test_GetBaidu(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -73,7 +73,7 @@ func Test_GetBaidu(t *testing.T) {
 }
 
 func Test_GetGitHub(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -85,7 +85,7 @@ func Test_GetGitHub(t *testing.T) {
 }
 
 func Test_GetDouyin(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -97,7 +97,7 @@ func Test_GetDouyin(t *testing.T) {
 }
 
 func Test_GetKuaishou(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -109,7 +109,7 @@ func Test_GetKuaishou(t *testing.T) {
 }
 
 func Test_GetToutiao(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -121,7 +121,7 @@ func Test_GetToutiao(t *testing.T) {
 }
 
 func Test_GetCSDN(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -133,7 +133,7 @@ func Test_GetCSDN(t *testing.T) {
 }
 
 func Test_GetTieba(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -145,7 +145,7 @@ func Test_GetTieba(t *testing.T) {
 }
 
 func Test_GetZhihuDaily(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -157,7 +157,7 @@ func Test_GetZhihuDaily(t *testing.T) {
 }
 
 func Test_GetCoolapk(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -169,7 +169,7 @@ func Test_GetCoolapk(t *testing.T) {
 }
 
 func Test_GetHupu(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -181,7 +181,7 @@ func Test_GetHupu(t *testing.T) {
 }
 
 func Test_GetHuxiu(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -193,7 +193,7 @@ func Test_GetHuxiu(t *testing.T) {
 }
 
 func Test_GetJianshu(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -205,7 +205,7 @@ func Test_GetJianshu(t *testing.T) {
 }
 
 func Test_GetSmzdm(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -217,7 +217,7 @@ func Test_GetSmzdm(t *testing.T) {
 }
 
 func Test_GetSspai(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -229,7 +229,7 @@ func Test_GetSspai(t *testing.T) {
 }
 
 func Test_GetNeteaseNews(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -241,7 +241,7 @@ func Test_GetNeteaseNews(t *testing.T) {
 }
 
 func Test_GetQQNews(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -253,7 +253,7 @@ func Test_GetQQNews(t *testing.T) {
 }
 
 func Test_GetDoubanGroup(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -265,7 +265,7 @@ func Test_GetDoubanGroup(t *testing.T) {
 }
 
 func Test_GetAcfun(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -277,7 +277,7 @@ func Test_GetAcfun(t *testing.T) {
 }
 
 func Test_GetDgtle(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -289,7 +289,7 @@ func Test_GetDgtle(t *testing.T) {
 }
 
 func Test_GetDoubanMovie(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -301,7 +301,7 @@ func Test_GetDoubanMovie(t *testing.T) {
 }
 
 func Test_GetEarthquake(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -313,7 +313,7 @@ func Test_GetEarthquake(t *testing.T) {
 }
 
 func Test_GetGameres(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -325,7 +325,7 @@ func Test_GetGameres(t *testing.T) {
 }
 
 func Test_GetGeekpark(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -337,7 +337,7 @@ func Test_GetGeekpark(t *testing.T) {
 }
 
 func Test_GetGenshin(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -349,7 +349,7 @@ func Test_GetGenshin(t *testing.T) {
 }
 
 func Test_GetGuokr(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -361,7 +361,7 @@ func Test_GetGuokr(t *testing.T) {
 }
 
 func Test_Get36Kr(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -373,7 +373,7 @@ func Test_Get36Kr(t *testing.T) {
 }
 
 func Test_GetHackernews(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -385,7 +385,7 @@ func Test_GetHackernews(t *testing.T) {
 }
 
 func Test_GetHelloGitHub(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -397,7 +397,7 @@ func Test_GetHelloGitHub(t *testing.T) {
 }
 
 func Test_GetHistory(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -409,7 +409,7 @@ func Test_GetHistory(t *testing.T) {
 }
 
 func Test_GetHonkai(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -421,7 +421,7 @@ func Test_GetHonkai(t *testing.T) {
 }
 
 func Test_GetHostloc(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -433,7 +433,7 @@ func Test_GetHostloc(t *testing.T) {
 }
 
 func Test_GetIfanr(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -445,7 +445,7 @@ func Test_GetIfanr(t *testing.T) {
 }
 
 func Test_GetIthomeXijiayi(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -457,7 +457,7 @@ func Test_GetIthomeXijiayi(t *testing.T) {
 }
 
 func Test_GetMiyoushe(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -469,7 +469,7 @@ func Test_GetMiyoushe(t *testing.T) {
 }
 
 func Test_GetNewsmth(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -481,7 +481,7 @@ func Test_GetNewsmth(t *testing.T) {
 }
 
 func Test_GetNgabbs(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -493,7 +493,7 @@ func Test_GetNgabbs(t *testing.T) {
 }
 
 func Test_GetNodeseek(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -505,7 +505,7 @@ func Test_GetNodeseek(t *testing.T) {
 }
 
 func Test_GetNytimes(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -517,7 +517,7 @@ func Test_GetNytimes(t *testing.T) {
 }
 
 func Test_GetProducthunt(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -529,7 +529,7 @@ func Test_GetProducthunt(t *testing.T) {
 }
 
 func Test_GetSinaNews(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -541,7 +541,7 @@ func Test_GetSinaNews(t *testing.T) {
 }
 
 func Test_GetSina(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -553,7 +553,7 @@ func Test_GetSina(t *testing.T) {
 }
 
 func Test_GetStarrail(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -565,7 +565,7 @@ func Test_GetStarrail(t *testing.T) {
 }
 
 func Test_GetThepaper(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -577,7 +577,7 @@ func Test_GetThepaper(t *testing.T) {
 }
 
 func Test_GetWeatheralarm(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -589,7 +589,7 @@ func Test_GetWeatheralarm(t *testing.T) {
 }
 
 func Test_GetWeread(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}
@@ -601,7 +601,7 @@ func Test_GetWeread(t *testing.T) {
 }
 
 func Test_GetYystv(t *testing.T) {
-	spider, err := NewSpider(UrlConfMap)
+	spider, err := NewSpider()
 	if err != nil {
 		t.Errorf("NewSpider failed, err: %v", err)
 	}

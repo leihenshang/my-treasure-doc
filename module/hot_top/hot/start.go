@@ -33,7 +33,7 @@ func NewHot(hotConf *conf.Hot) *Hot {
 }
 
 func (h *Hot) Start() error {
-	if _, err := NewSpider(conf.UrlList); err != nil {
+	if _, err := NewSpider(); err != nil {
 		return fmt.Errorf("NewSpider failed, err: %v", err)
 	}
 

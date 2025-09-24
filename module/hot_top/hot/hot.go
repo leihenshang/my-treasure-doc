@@ -14,7 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"fastduck/treasure-doc/module/hot_top/conf"
 	"fastduck/treasure-doc/module/hot_top/hot/token"
 	"fastduck/treasure-doc/module/hot_top/model"
 
@@ -24,20 +23,15 @@ import (
 )
 
 type Spider struct {
-	UrlMap     conf.UrlConfs
 	HttpClient *http.Client
 }
 
 var spider *Spider
 var spiderOnce *sync.Once = &sync.Once{}
 
-func NewSpider(urlMap conf.UrlConfs) (*Spider, error) {
-	if len(urlMap) == 0 {
-		return nil, fmt.Errorf("urlMap is empty")
-	}
+func NewSpider() (*Spider, error) {
 	spiderOnce.Do(func() {
 		spider = &Spider{
-			UrlMap: urlMap,
 			HttpClient: &http.Client{
 				Timeout: time.Duration(5 * time.Second),
 			},
