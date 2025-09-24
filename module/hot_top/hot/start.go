@@ -2,6 +2,7 @@ package hot
 
 import (
 	"encoding/json"
+	"fastduck/treasure-doc/module/hot_top/conf"
 	"fastduck/treasure-doc/module/hot_top/model"
 	"fmt"
 	"os"
@@ -57,7 +58,7 @@ func TickerGetHot(expireTime time.Duration) {
 	}
 
 	setHotCacheBySource(sources)
-	tk := time.NewTicker(time.Minute * 10)
+	tk := time.NewTicker(conf.GetConf().Hot.ExpiredCheckIntervalParsed)
 	defer tk.Stop()
 	for t := range tk.C {
 		current := t.Format(time.DateTime)
@@ -125,7 +126,7 @@ func GetHotFromFileCache(path string, source model.Source, expireTime time.Durat
 			return nil, fmt.Errorf("source: [%s], decode file failed, err: %v", source, err)
 		}
 	}
-	if resp == nil || resp.HotData == nil {
+	if resp.HotData == nil {
 		return nil, fmt.Errorf("source: [%s], resp is nil", source)
 	}
 	if time.Since(resp.LastUpdateTime) > expireTime {
@@ -140,7 +141,7 @@ func GetHotBySource(k model.Source) (*model.HotData, error) {
 	if !ok {
 		return nil, fmt.Errorf("source: [%s], url conf not found", k)
 	} else if UrlConf.Disabled {
-		return nil, fmt.Errorf("source: [%s], url conf disabled, skip!", k)
+		return nil, fmt.Errorf("source: [%s], url conf disabled, skip", k)
 	}
 
 	switch k {

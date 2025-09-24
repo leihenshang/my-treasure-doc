@@ -2,7 +2,9 @@ package conf
 
 import (
 	"fmt"
+	"log"
 	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -10,25 +12,31 @@ import (
 const DefaultConfig = "config.toml"
 const DefaultPort = 2025
 const DefaultHost = ""
+const DefaultHotExpiredInterval = time.Second * 10
 
 type Conf struct {
 	App App
 	Ai  Ai
+	Hot Hot
 }
 
 const GinModeRelease = "release"
 const GinModeDev = "dev"
 
 type App struct {
-	Host            string
-	Port            int
-	Name            string
-	RunMode         string
-	RegisterEnabled bool
+	Host    string
+	Port    int
+	Name    string
+	RunMode string
 }
 
 type Ai struct {
 	DeepSeekToken string
+}
+
+type Hot struct {
+	ExpiredCheckInterval       string
+	ExpiredCheckIntervalParsed time.Duration `toml:"-"`
 }
 
 func (app *App) IsRelease() bool {
@@ -70,6 +78,13 @@ func InitConf(path string) (err error) {
 			}
 			if globalConfig.App.Host == "" {
 				globalConfig.App.Host = DefaultHost
+			}
+
+			if duration, err := time.ParseDuration(globalConfig.Hot.ExpiredCheckInterval); err != nil || duration <= 0 {
+				log.Println("parse hot expired check time failed,err: [%v], use default value: ", err, DefaultHotExpiredInterval)
+				globalConfig.Hot.ExpiredCheckIntervalParsed = DefaultHotExpiredInterval
+			} else {
+				globalConfig.Hot.ExpiredCheckIntervalParsed = duration
 			}
 		}
 	})
