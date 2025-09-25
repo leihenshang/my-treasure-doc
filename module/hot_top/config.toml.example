@@ -8,3 +8,6 @@ DeepSeekToken = "xxxxx"
 [hot]
 ExpiredCheckInterval = "10s"
 HotPullInterval = "1h"
+[hot.HotConf]
+kuaishou = { Disabled = true }
+earthquake = { Disabled = true }
