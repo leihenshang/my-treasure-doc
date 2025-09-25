@@ -86,6 +86,11 @@ func (h *Hot) GetExpiredHotSources() (res []conf.Source) {
 func (h *Hot) getHotMap(sources []conf.Source) map[conf.Source]*model.HotData {
 	res := make(map[conf.Source]*model.HotData, len(sources))
 	for _, k := range sources {
+		// TODO: perfect here
+		if hotConf, ok := conf.HotConfListMap[k]; ok && hotConf.Disabled {
+			log.Printf("source: [%s] is disabled, skip\n", string(k))
+			continue
+		}
 		if hotData, err := GetSpider().GetHotBySource(k); err != nil {
 			log.Printf("get [%s] failed, err: %v,using default values to fill in\n", string(k), err)
 			res[k] = &model.HotData{
