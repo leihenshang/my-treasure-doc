@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"fastduck/treasure-doc/module/hot_top/conf"
 	"fastduck/treasure-doc/module/hot_top/hot/token"
 	"fastduck/treasure-doc/module/hot_top/model"
 
@@ -3963,117 +3964,117 @@ func (s *Spider) GetLol() (*model.HotData, error) {
 	}, nil
 }
 
-func (s *Spider) GetHotBySource(k model.Source) (*model.HotData, error) {
+func (s *Spider) GetHotBySource(k conf.Source) (*model.HotData, error) {
 	switch k {
-	case model.SourceITHome:
+	case conf.SourceITHome:
 		return s.GetItHome()
-	case model.SourceZhihu:
+	case conf.SourceZhihu:
 		return s.GetZhihu()
-	case model.SourceWeibo:
+	case conf.SourceWeibo:
 		return s.GetWeibo()
-	case model.SourceBilibili:
+	case conf.SourceBilibili:
 		return s.GetBilibili()
-	case model.SourceBaidu:
+	case conf.SourceBaidu:
 		return s.GetBaidu()
-	case model.SourceV2EX:
+	case conf.SourceV2EX:
 		return s.GetV2EX()
-	case model.SourceGitHub:
+	case conf.SourceGitHub:
 		return s.GetGitHub()
-	case model.SourceDouyin:
+	case conf.SourceDouyin:
 		return s.GetDouyin()
-	case model.SourceKuaishou:
+	case conf.SourceKuaishou:
 		return s.GetKuaishou()
-	case model.SourceToutiao:
+	case conf.SourceToutiao:
 		return s.GetToutiao()
-	case model.SourceJuejin:
+	case conf.SourceJuejin:
 		return s.GetJuejin()
-	case model.Source36Kr:
+	case conf.Source36Kr:
 		return s.Get36Kr()
-	case model.SourceCSDN:
+	case conf.SourceCSDN:
 		return s.GetCSDN()
-	case model.SourceTieba:
+	case conf.SourceTieba:
 		return s.GetTieba()
-	case model.SourceZhihuDaily:
+	case conf.SourceZhihuDaily:
 		return s.GetZhihuDaily()
-	case model.SourceCoolapk:
+	case conf.SourceCoolapk:
 		return s.GetCoolapk()
-	case model.SourceHupu:
+	case conf.SourceHupu:
 		return s.GetHupu()
-	case model.SourceHuxiu:
+	case conf.SourceHuxiu:
 		return s.GetHuxiu()
-	case model.SourceJianshu:
+	case conf.SourceJianshu:
 		return s.GetJianshu()
-	case model.SourceSmzdm:
+	case conf.SourceSmzdm:
 		return s.GetSmzdm()
-	case model.SourceSspai:
+	case conf.SourceSspai:
 		return s.GetSspai()
-	case model.SourceNeteaseNews:
+	case conf.SourceNeteaseNews:
 		return s.GetNeteaseNews()
-	case model.SourceQQNews:
+	case conf.SourceQQNews:
 		return s.GetQQNews()
-	case model.SourceAcfun:
+	case conf.SourceAcfun:
 		return s.GetAcfun()
-	case model.Source51CTO:
+	case conf.Source51CTO:
 		return s.Get51CTO()
-	case model.Source52Pojie:
+	case conf.Source52Pojie:
 		return s.Get52Pojie()
-	case model.SourceDoubanGroup:
+	case conf.SourceDoubanGroup:
 		return s.GetDoubanGroup()
-	case model.SourceDgtle:
+	case conf.SourceDgtle:
 		return s.GetDgtle()
-	case model.SourceDoubanMovie:
+	case conf.SourceDoubanMovie:
 		return s.GetDoubanMovie()
-	case model.SourceEarthquake:
+	case conf.SourceEarthquake:
 		return s.GetEarthquake()
-	case model.SourceGameres:
+	case conf.SourceGameres:
 		return s.GetGameres()
-	case model.SourceGeekpark:
+	case conf.SourceGeekpark:
 		return s.GetGeekpark()
-	case model.SourceGenshin:
+	case conf.SourceGenshin:
 		return s.GetGenshin()
-	case model.SourceGuokr:
+	case conf.SourceGuokr:
 		return s.GetGuokr()
-	case model.SourceHackernews:
+	case conf.SourceHackernews:
 		return s.GetHackernews()
-	case model.SourceHelloGitHub:
+	case conf.SourceHelloGitHub:
 		return s.GetHelloGitHub()
-	case model.SourceHistory:
+	case conf.SourceHistory:
 		return s.GetHistory()
-	case model.SourceHonkai:
+	case conf.SourceHonkai:
 		return s.GetHonkai()
-	case model.SourceHostloc:
+	case conf.SourceHostloc:
 		return s.GetHostloc()
-	case model.SourceIfanr:
+	case conf.SourceIfanr:
 		return s.GetIfanr()
-	case model.SourceIthomeXijiayi:
+	case conf.SourceIthomeXijiayi:
 		return s.GetIthomeXijiayi()
-	case model.SourceMiyoushe:
+	case conf.SourceMiyoushe:
 		return s.GetMiyoushe()
-	case model.SourceNewsmth:
+	case conf.SourceNewsmth:
 		return s.GetNewsmth()
-	case model.SourceNgabbs:
+	case conf.SourceNgabbs:
 		return s.GetNgabbs()
-	case model.SourceNodeseek:
+	case conf.SourceNodeseek:
 		return s.GetNodeseek()
-	case model.SourceNytimes:
+	case conf.SourceNytimes:
 		return s.GetNytimes()
-	case model.SourceProducthunt:
+	case conf.SourceProducthunt:
 		return s.GetProducthunt()
-	case model.SourceSinaNews:
+	case conf.SourceSinaNews:
 		return s.GetSinaNews()
-	case model.SourceSina:
+	case conf.SourceSina:
 		return s.GetSina()
-	case model.SourceStarrail:
+	case conf.SourceStarrail:
 		return s.GetStarrail()
-	case model.SourceThepaper:
+	case conf.SourceThepaper:
 		return s.GetThepaper()
-	case model.SourceWeatheralarm:
+	case conf.SourceWeatheralarm:
 		return s.GetWeatheralarm()
-	case model.SourceWeread:
+	case conf.SourceWeread:
 		return s.GetWeread()
-	case model.SourceYystv:
+	case conf.SourceYystv:
 		return s.GetYystv()
-	case model.SourceLol:
+	case conf.SourceLol:
 		return s.GetLol()
 	default:
 		return nil, fmt.Errorf("resource [%s] not found", string(k))

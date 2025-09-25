@@ -145,6 +145,7 @@ type Hot struct {
 	HotPullInterval            string
 	HotPullIntervalParsed      time.Duration `toml:"-"`
 	HotFileCachePath           string
+	HotConf                    map[Source]*HotConf
 }
 
 func (h *Hot) Validate() error {
