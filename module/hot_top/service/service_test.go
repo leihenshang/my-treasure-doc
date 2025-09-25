@@ -43,7 +43,7 @@ func Test_Ai(t *testing.T) {
 	t.Logf("hot data json: %s,data len: %d", string(jsonData), len(jsonData))
 	word := `你是一个生活方面,军事方面,世界局势方面,投资方面的专家,根据以下JSON数据帮我分析一下关键信息,并输出为JSON格式的数据返回" \n` + string(jsonData)
 
-	if len(word) >= 128*1024 {
+	if len(word) > 128*1024 {
 		word = word[:128*1024]
 	}
 	t.Logf("word: %s,data len: %d, about: %.2f KB", word, len(word), math.Round(float64(len(word))/1024)*100/100)
