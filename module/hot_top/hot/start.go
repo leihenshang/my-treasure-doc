@@ -37,14 +37,14 @@ func (h *Hot) Start() error {
 		return fmt.Errorf("NewSpider failed, err: %v", err)
 	}
 
-	NewHotCache(len(conf.UrlList))
+	NewHotCache(len(conf.HotConfList))
 	go h.TickerGetHot()
 	return nil
 }
 
 func (h *Hot) TickerGetHot() {
-	var collectSources []model.Source
-	for _, v := range conf.UrlList {
+	var collectSources []conf.Source
+	for _, v := range conf.HotConfList {
 		if resp, err := h.GetHotFromFileCache(v.Source); err != nil {
 			log.Printf("get [%s] from file cache failed, err: %v\n", string(v.Source), err)
 		} else if resp != nil {
@@ -71,9 +71,9 @@ func (h *Hot) TickerGetHot() {
 	}
 }
 
-func (h *Hot) GetExpiredHotSources() (res []model.Source) {
+func (h *Hot) GetExpiredHotSources() (res []conf.Source) {
 	cacheMap := GetHotCache().GetAllMap()
-	for _, v := range conf.UrlList {
+	for _, v := range conf.HotConfList {
 		if hotCache, ok := cacheMap[v.Source]; !ok {
 			res = append(res, v.Source)
 		} else if hotCache != nil && hotCache.IsUpdateTimeExpired(h.HotConf.HotPullIntervalParsed) {
@@ -83,8 +83,8 @@ func (h *Hot) GetExpiredHotSources() (res []model.Source) {
 	return res
 }
 
-func (h *Hot) getHotMap(sources []model.Source) map[model.Source]*model.HotData {
-	res := make(map[model.Source]*model.HotData, len(sources))
+func (h *Hot) getHotMap(sources []conf.Source) map[conf.Source]*model.HotData {
+	res := make(map[conf.Source]*model.HotData, len(sources))
 	for _, k := range sources {
 		if hotData, err := GetSpider().GetHotBySource(k); err != nil {
 			log.Printf("get [%s] failed, err: %v,using default values to fill in\n", string(k), err)
@@ -100,7 +100,7 @@ func (h *Hot) getHotMap(sources []model.Source) map[model.Source]*model.HotData 
 	return res
 }
 
-func (h *Hot) setHotCache(hotMap map[model.Source]*model.HotData) {
+func (h *Hot) setHotCache(hotMap map[conf.Source]*model.HotData) {
 	for k, hotData := range hotMap {
 		GetHotCache().Set(k, hotData)
 		if err := h.SaveHotToFileCache(k, hotData); err != nil {
@@ -109,7 +109,7 @@ func (h *Hot) setHotCache(hotMap map[model.Source]*model.HotData) {
 	}
 }
 
-func (h *Hot) SaveHotToFileCache(source model.Source, resp *model.HotData) error {
+func (h *Hot) SaveHotToFileCache(source conf.Source, resp *model.HotData) error {
 	if resp == nil {
 		return fmt.Errorf("source: [%s], resp is nil", source)
 	}
@@ -134,7 +134,7 @@ func (h *Hot) SaveHotToFileCache(source model.Source, resp *model.HotData) error
 	return nil
 }
 
-func (h *Hot) GetHotFromFileCache(source model.Source) (resp *model.HotData, err error) {
+func (h *Hot) GetHotFromFileCache(source conf.Source) (resp *model.HotData, err error) {
 	resp = &model.HotData{}
 	savePath := filepath.Join(h.HotConf.HotFileCachePath, fmt.Sprintf("%s.json", source))
 	if _, err := os.Stat(savePath); os.IsNotExist(err) {

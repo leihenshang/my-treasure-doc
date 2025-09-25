@@ -171,5 +171,10 @@ func (h *Hot) Validate() error {
 		h.HotFileCachePath = DefaultHotCacheFilePath
 	}
 
+	h.HotConf = make(map[Source]*HotConf)
+	for _, v := range HotConfList {
+		h.HotConf[v.Source] = v
+	}
+
 	return nil
 }

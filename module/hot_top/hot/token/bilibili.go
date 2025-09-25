@@ -4,7 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
-	"fastduck/treasure-doc/module/hot_top/model"
+	"fastduck/treasure-doc/module/hot_top/conf"
 	"io"
 	"net/http"
 	"regexp"
@@ -146,13 +146,13 @@ func GetBilibiliWbi() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if token, ok := GetTokenCache().GetToken(model.SourceBilibili.String()); ok {
+	if token, ok := GetTokenCache().GetToken(conf.SourceBilibili.String()); ok {
 		return token, nil
 	}
 	token := EncWbi(WbiParams{
 		"foo": "114", "bar": "514", "baz": 1919810,
 	}, keys.ImgKey, keys.SubKey)
-	GetTokenCache().SetToken(model.SourceBilibili.String(), token)
+	GetTokenCache().SetToken(conf.SourceBilibili.String(), token)
 	return token, nil
 }
 

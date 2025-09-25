@@ -69,7 +69,7 @@ type HotConf struct {
 	Disabled bool
 }
 
-var UrlList = []*HotConf{
+var HotConfList = []*HotConf{
 	{Source: SourceLol},
 	{Source: SourceITHome},
 	{Source: SourceZhihu},
