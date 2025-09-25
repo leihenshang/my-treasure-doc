@@ -37,14 +37,14 @@ func (h *Hot) Start() error {
 		return fmt.Errorf("NewSpider failed, err: %v", err)
 	}
 
-	NewHotCache(len(conf.HotConfList))
+	NewHotCache(len(conf.HotConfListMap))
 	go h.TickerGetHot()
 	return nil
 }
 
 func (h *Hot) TickerGetHot() {
 	var collectSources []conf.Source
-	for _, v := range conf.HotConfList {
+	for _, v := range conf.HotConfListMap {
 		if resp, err := h.GetHotFromFileCache(v.Source); err != nil {
 			log.Printf("get [%s] from file cache failed, err: %v\n", string(v.Source), err)
 		} else if resp != nil {
@@ -73,7 +73,7 @@ func (h *Hot) TickerGetHot() {
 
 func (h *Hot) GetExpiredHotSources() (res []conf.Source) {
 	cacheMap := GetHotCache().GetAllMap()
-	for _, v := range conf.HotConfList {
+	for _, v := range conf.HotConfListMap {
 		if hotCache, ok := cacheMap[v.Source]; !ok {
 			res = append(res, v.Source)
 		} else if hotCache != nil && hotCache.IsUpdateTimeExpired(h.HotConf.HotPullIntervalParsed) {

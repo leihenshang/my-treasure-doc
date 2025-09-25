@@ -14,7 +14,7 @@ import (
 func InitRoute(r *gin.Engine) *gin.Engine {
 	route := r.Group("/").Use(MiddleWareCors())
 
-	for _, v := range conf.HotConfList {
+	for _, v := range conf.HotConfListMap {
 		route.GET(string(v.Source), func(c *gin.Context) {
 			resp, _ := hot.GetHotCache().Get(v.Source)
 			c.JSON(http.StatusOK, resp)
