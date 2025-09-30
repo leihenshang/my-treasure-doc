@@ -25,8 +25,8 @@ func InitRoute(r *gin.Engine) *gin.Engine {
 
 	route.POST("refresh", func(c *gin.Context) {
 		source := c.PostForm("source")
-		hot.GetHot().RefreshHotCache(conf.Source(source))
-		c.JSON(http.StatusOK, "success")
+		res := hot.GetHot().RefreshHotCache(conf.Source(source))
+		c.JSON(http.StatusOK, res)
 	})
 
 	// get all the hot data
