@@ -3,7 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fastduck/treasure-doc/module/hot_top/conf"
-	"fastduck/treasure-doc/module/hot_top/hot"
+	hotcache "fastduck/treasure-doc/module/hot_top/hot/hot_cache"
 	"fastduck/treasure-doc/module/hot_top/service/ai"
 	"fmt"
 	"log"
@@ -18,11 +18,10 @@ func Test_Ai(t *testing.T) {
 	}
 	originConf := conf.GetConf()
 	originConf.Hot.HotFileCachePath = `D:\my-project\my-treasure-doc\module\hot_top\hot_cache`
-	hot := hot.NewHot(&originConf.Hot)
 
 	var queryData [][2]string
 	for k := range conf.HotConfListMap {
-		res, err := hot.GetHotFromFileCache(k)
+		res, err := hotcache.GetHotFileCache().Get(k)
 		if err != nil || res == nil {
 			t.Logf("failed to get hot from file cache, source: %v, err: %v", k, err)
 			continue

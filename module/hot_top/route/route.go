@@ -3,6 +3,7 @@ package route
 import (
 	"fastduck/treasure-doc/module/hot_top/conf"
 	"fastduck/treasure-doc/module/hot_top/hot"
+	hotcache "fastduck/treasure-doc/module/hot_top/hot/hot_cache"
 	"fastduck/treasure-doc/module/hot_top/service"
 	"net/http"
 	"os"
@@ -14,17 +15,26 @@ import (
 func InitRoute(r *gin.Engine) *gin.Engine {
 	route := r.Group("/").Use(MiddleWareCors())
 
+	// register all the routes from conf.HotConfListMap
 	for _, v := range conf.HotConfListMap {
 		route.GET(string(v.Source), func(c *gin.Context) {
-			resp, _ := hot.GetHotCache().Get(v.Source)
+			resp, _ := hotcache.GetHotMemCache().Get(v.Source)
 			c.JSON(http.StatusOK, resp)
 		})
 	}
 
-	route.GET("all", func(c *gin.Context) {
-		c.JSON(http.StatusOK, hot.GetHotCache().GetAllMap())
+	route.POST("refresh", func(c *gin.Context) {
+		source := c.PostForm("source")
+		hot.GetHot().RefreshHotCache(conf.Source(source))
+		c.JSON(http.StatusOK, "success")
 	})
 
+	// get all the hot data
+	route.GET("all", func(c *gin.Context) {
+		c.JSON(http.StatusOK, hotcache.GetHotMemCache().GetAllMap())
+	})
+
+	// use deepseek to analyze hot data
 	route.GET("analysis-ds", func(c *gin.Context) {
 		question := c.Query("question")
 		answer, err := service.ThinkWithDeepSeek(question)
@@ -35,6 +45,7 @@ func InitRoute(r *gin.Engine) *gin.Engine {
 		c.JSON(http.StatusOK, answer)
 	})
 
+	// frontend static files
 	distDir := "./dist"
 	if _, err := os.Stat(distDir); !os.IsNotExist(err) {
 		r.StaticFS("/dist", gin.Dir(distDir, false))
@@ -44,7 +55,7 @@ func InitRoute(r *gin.Engine) *gin.Engine {
 		})
 	}
 
-	// 移除原来的重定向逻辑
+	// if direct access the "/", redirect to /dist
 	r.Any("/", func(ctx *gin.Context) {
 		ctx.Redirect(http.StatusMovedPermanently, "/dist")
 	})

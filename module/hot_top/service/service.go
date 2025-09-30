@@ -3,7 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fastduck/treasure-doc/module/hot_top/conf"
-	"fastduck/treasure-doc/module/hot_top/hot"
+	hotcache "fastduck/treasure-doc/module/hot_top/hot/hot_cache"
 	"fastduck/treasure-doc/module/hot_top/model"
 	"fastduck/treasure-doc/module/hot_top/service/ai"
 	"log"
@@ -14,7 +14,7 @@ func ThinkWithDeepSeek(question string) (answer string, err error) {
 	if err != nil {
 		return "", err
 	}
-	resMap := hot.GetHotCache().GetAllMap()
+	resMap := hotcache.GetHotMemCache().GetAllMap()
 	totalLen := len(resMap) / 2
 	filterMap := make(map[conf.Source]*model.HotData, totalLen)
 	var counter = 0

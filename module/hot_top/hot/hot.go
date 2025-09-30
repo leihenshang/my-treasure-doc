@@ -3964,119 +3964,129 @@ func (s *Spider) GetLol() (*model.HotData, error) {
 	}, nil
 }
 
-func (s *Spider) GetHotBySource(k conf.Source) (*model.HotData, error) {
+func (s *Spider) GetHotBySource(k conf.Source) (res *model.HotData, err error) {
+	defaultRes := &model.HotData{
+		Name:       string(k),
+		UpdateTime: time.Now(),
+		Data:       []*model.HotItem{},
+	}
+
 	switch k {
 	case conf.SourceITHome:
-		return s.GetItHome()
+		res, err = s.GetItHome()
 	case conf.SourceZhihu:
-		return s.GetZhihu()
+		res, err = s.GetZhihu()
 	case conf.SourceWeibo:
-		return s.GetWeibo()
+		res, err = s.GetWeibo()
 	case conf.SourceBilibili:
-		return s.GetBilibili()
+		res, err = s.GetBilibili()
 	case conf.SourceBaidu:
-		return s.GetBaidu()
+		res, err = s.GetBaidu()
 	case conf.SourceV2EX:
-		return s.GetV2EX()
+		res, err = s.GetV2EX()
 	case conf.SourceGitHub:
-		return s.GetGitHub()
+		res, err = s.GetGitHub()
 	case conf.SourceDouyin:
-		return s.GetDouyin()
+		res, err = s.GetDouyin()
 	case conf.SourceKuaishou:
-		return s.GetKuaishou()
+		res, err = s.GetKuaishou()
 	case conf.SourceToutiao:
-		return s.GetToutiao()
+		res, err = s.GetToutiao()
 	case conf.SourceJuejin:
-		return s.GetJuejin()
+		res, err = s.GetJuejin()
 	case conf.Source36Kr:
-		return s.Get36Kr()
+		res, err = s.Get36Kr()
 	case conf.SourceCSDN:
-		return s.GetCSDN()
+		res, err = s.GetCSDN()
 	case conf.SourceTieba:
-		return s.GetTieba()
+		res, err = s.GetTieba()
 	case conf.SourceZhihuDaily:
-		return s.GetZhihuDaily()
+		res, err = s.GetZhihuDaily()
 	case conf.SourceCoolapk:
-		return s.GetCoolapk()
+		res, err = s.GetCoolapk()
 	case conf.SourceHupu:
-		return s.GetHupu()
+		res, err = s.GetHupu()
 	case conf.SourceHuxiu:
-		return s.GetHuxiu()
+		res, err = s.GetHuxiu()
 	case conf.SourceJianshu:
-		return s.GetJianshu()
+		res, err = s.GetJianshu()
 	case conf.SourceSmzdm:
-		return s.GetSmzdm()
+		res, err = s.GetSmzdm()
 	case conf.SourceSspai:
-		return s.GetSspai()
+		res, err = s.GetSspai()
 	case conf.SourceNeteaseNews:
-		return s.GetNeteaseNews()
+		res, err = s.GetNeteaseNews()
 	case conf.SourceQQNews:
-		return s.GetQQNews()
+		res, err = s.GetQQNews()
 	case conf.SourceAcfun:
-		return s.GetAcfun()
+		res, err = s.GetAcfun()
 	case conf.Source51CTO:
-		return s.Get51CTO()
+		res, err = s.Get51CTO()
 	case conf.Source52Pojie:
-		return s.Get52Pojie()
+		res, err = s.Get52Pojie()
 	case conf.SourceDoubanGroup:
-		return s.GetDoubanGroup()
+		res, err = s.GetDoubanGroup()
 	case conf.SourceDgtle:
-		return s.GetDgtle()
+		res, err = s.GetDgtle()
 	case conf.SourceDoubanMovie:
-		return s.GetDoubanMovie()
+		res, err = s.GetDoubanMovie()
 	case conf.SourceEarthquake:
-		return s.GetEarthquake()
+		res, err = s.GetEarthquake()
 	case conf.SourceGameres:
-		return s.GetGameres()
+		res, err = s.GetGameres()
 	case conf.SourceGeekpark:
-		return s.GetGeekpark()
+		res, err = s.GetGeekpark()
 	case conf.SourceGenshin:
-		return s.GetGenshin()
+		res, err = s.GetGenshin()
 	case conf.SourceGuokr:
-		return s.GetGuokr()
+		res, err = s.GetGuokr()
 	case conf.SourceHackernews:
-		return s.GetHackernews()
+		res, err = s.GetHackernews()
 	case conf.SourceHelloGitHub:
-		return s.GetHelloGitHub()
+		res, err = s.GetHelloGitHub()
 	case conf.SourceHistory:
-		return s.GetHistory()
+		res, err = s.GetHistory()
 	case conf.SourceHonkai:
-		return s.GetHonkai()
+		res, err = s.GetHonkai()
 	case conf.SourceHostloc:
-		return s.GetHostloc()
+		res, err = s.GetHostloc()
 	case conf.SourceIfanr:
-		return s.GetIfanr()
+		res, err = s.GetIfanr()
 	case conf.SourceIthomeXijiayi:
-		return s.GetIthomeXijiayi()
+		res, err = s.GetIthomeXijiayi()
 	case conf.SourceMiyoushe:
-		return s.GetMiyoushe()
+		res, err = s.GetMiyoushe()
 	case conf.SourceNewsmth:
-		return s.GetNewsmth()
+		res, err = s.GetNewsmth()
 	case conf.SourceNgabbs:
-		return s.GetNgabbs()
+		res, err = s.GetNgabbs()
 	case conf.SourceNodeseek:
-		return s.GetNodeseek()
+		res, err = s.GetNodeseek()
 	case conf.SourceNytimes:
-		return s.GetNytimes()
+		res, err = s.GetNytimes()
 	case conf.SourceProducthunt:
-		return s.GetProducthunt()
+		res, err = s.GetProducthunt()
 	case conf.SourceSinaNews:
-		return s.GetSinaNews()
+		res, err = s.GetSinaNews()
 	case conf.SourceSina:
-		return s.GetSina()
+		res, err = s.GetSina()
 	case conf.SourceStarrail:
-		return s.GetStarrail()
+		res, err = s.GetStarrail()
 	case conf.SourceThepaper:
-		return s.GetThepaper()
+		res, err = s.GetThepaper()
 	case conf.SourceWeatheralarm:
-		return s.GetWeatheralarm()
+		res, err = s.GetWeatheralarm()
 	case conf.SourceWeread:
-		return s.GetWeread()
+		res, err = s.GetWeread()
 	case conf.SourceYystv:
-		return s.GetYystv()
+		res, err = s.GetYystv()
 	case conf.SourceLol:
-		return s.GetLol()
+		res, err = s.GetLol()
 	default:
-		return nil, fmt.Errorf("resource [%s] not found", string(k))
+		return defaultRes, fmt.Errorf("resource [%s] not found", string(k))
 	}
+	if err != nil {
+		return defaultRes, err
+	}
+	return res, err
 }

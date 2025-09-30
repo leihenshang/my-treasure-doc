@@ -2,6 +2,7 @@ package hot
 
 import (
 	"fastduck/treasure-doc/module/hot_top/conf"
+	hotcache "fastduck/treasure-doc/module/hot_top/hot/hot_cache"
 	"testing"
 	"time"
 )
@@ -12,7 +13,7 @@ func Test_GetHotFromFileCache(t *testing.T) {
 		HotPullIntervalParsed:      conf.DefaultHotPullInterval,
 		HotFileCachePath:           `D:\my-project\my-treasure-doc\module\hot_top\hot_cache`,
 	})
-	hotItem, err := hot.GetHotFromFileCache(conf.Source("weibo"))
+	hotItem, err := hotcache.GetHotFileCache().Get(conf.Source("weibo"))
 	if err != nil {
 		t.Fatalf("GetHotFromFileCache failed, err: %v", err)
 	} else if hotItem == nil {
