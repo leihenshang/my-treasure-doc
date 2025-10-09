@@ -6,8 +6,10 @@ toolchain go1.23.12
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.3
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gin-contrib/zap v0.0.1
 	github.com/gin-gonic/gin v1.9.1
+	github.com/go-deepseek/deepseek v0.8.0
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.14.0
@@ -26,10 +28,8 @@ require (
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
-	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/go-deepseek/deepseek v0.8.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
