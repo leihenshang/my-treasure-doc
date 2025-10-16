@@ -12,4 +12,5 @@ func Register(g *gin.Engine) {
 	rootPath.POST("/index", api.Index)
 	rootPath.GET("/search", api.Search)
 	rootPath.GET("/list", api.List)
+
 }
