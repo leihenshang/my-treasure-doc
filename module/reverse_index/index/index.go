@@ -41,7 +41,7 @@ func GetIndexCache() *IndexCache {
 	return indexCache
 }
 
-func init() {
+func InitDict() {
 	var err error
 	seg, err = jieba.LoadDictionaryAt("conf/dict.txt")
 	if err != nil {

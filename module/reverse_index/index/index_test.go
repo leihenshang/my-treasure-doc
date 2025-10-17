@@ -8,7 +8,7 @@ import (
 )
 
 func Test_SplitWords(t *testing.T) {
-	seg, err := jieba.LoadDictionaryAt("dict.txt")
+	seg, err := jieba.LoadDictionaryAt("conf/dict.txt")
 	if err != nil {
 		panic(err)
 	}
