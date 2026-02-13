@@ -25,24 +25,9 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build
 //mac
 CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build
 
-//减少包大小 -ldflags -s 去掉符号信息 -w 去掉调试信息 
-go build -ldflags "-s -w" -o main-ldflags main.go 
 
 ```
 
-## 目录说明
-
-```
-# 待更新
-```
-
-### 计划
-
-- [x] 加入 `gin` http框架,创建main.go
-- [x] 添加配置解析库 `viper` [github地址](https://github.com/spf13/viper)
-- [x] 添加日志库 `zap` [github地址](https://github.com/uber-go/zap)
-- [x] 添加orm库 `gorm` [github地址](https://github.com/go-gorm/gorm)
-- [x] 添加redis库 `go-redis` [github地址](https://github.com/go-redis/redis)
 
 ### 其他
 
@@ -55,7 +40,7 @@ docker run  --rm \
     sh -c  "go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct && cd /app/user && go run main.go"
 ```
 
-### 生成模型
+### 生成gin框架调用模型
 
 进入 service/mall/cli 目录
 
@@ -64,7 +49,7 @@ docker run  --rm \
 
 即可通过gin官方的gen工具生成模型到目录 `data/...` 下
 
-
+## 使用docker启动
 
 ```shell
 docker run -d --name treasure-doc \
@@ -91,6 +76,8 @@ docker run --rm --name treasure-doc -it \
 treasure-doc /bin/sh 
 ```
 
+## 构建docker镜像
+
 ```shell
 
 docker build -t treasure-doc .
@@ -108,12 +95,3 @@ sudo chmod 777 treasure-doc.tar.gz
 
 ```
 
-```shell
-docker run -d --name treasure-doc \
---restart=always \
--p 2021:2021 \
--v ${REPLACE}/treasure-doc/web:/app/web \
--v ${REPLACE}/treasure-doc/files:/app/files \
--v ${REPLACE}/treasure-doc/config.toml:/app/config.toml \
-treasure-doc
-```
