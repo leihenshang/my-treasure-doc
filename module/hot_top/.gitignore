@@ -1,6 +1,0 @@
-hot_cache
-
-config.toml
-
-dist/*
-!dist/.gitkeep
