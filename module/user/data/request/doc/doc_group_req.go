@@ -23,6 +23,7 @@ type GroupTreeRequest struct {
 	Pid        string `json:"pid" form:"pid" binding:"required,alphanum"`
 	ExcludeIds string `json:"excludeId" form:"excludeId" binding:""`
 	WithDoc    bool   `json:"withDoc" form:"withDoc"`
+	RoomId     string `json:"roomId" form:"roomId" binding:""`
 }
 
 type ListDocGroupRequest struct {

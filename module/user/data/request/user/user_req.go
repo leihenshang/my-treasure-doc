@@ -21,5 +21,5 @@ type UpdateRequest struct {
 	NickName string `json:"nickName" binding:"max=40"`
 	IconPath string `json:"iconPath" binding:"max=100"`
 	Bio      string `json:"bio" binding:"max=200"`
-	Mobile   string `json:"mobile" binding:"len=11"`
+	Mobile   string `json:"mobile" binding:"omitempty,len=11"`
 }
