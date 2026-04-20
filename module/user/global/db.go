@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 
+	"fastduck/treasure-doc/module/user/config"
 	"fastduck/treasure-doc/module/user/data/model"
 )
 
@@ -30,17 +31,35 @@ var TableMigrate = []schema.Tabler{
 }
 
 func initMysql() error {
-	var err error
+	cfg := GetConf()
+	if cfg == nil {
+		return fmt.Errorf("config is nil")
+	}
+
+	newDb, err := openMysqlWithConfig(cfg)
+	if err != nil {
+		return err
+	}
+
+	Db = newDb
+	return nil
+}
+
+func openMysqlWithConfig(cfg *config.Config) (*gorm.DB, error) {
+	if cfg == nil {
+		return nil, fmt.Errorf("config is nil")
+	}
+
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local",
-		Conf.Mysql.User,
-		Conf.Mysql.Password,
-		Conf.Mysql.Host,
-		Conf.Mysql.Port,
-		Conf.Mysql.DbName,
-		Conf.Mysql.Charset)
+		cfg.Mysql.User,
+		cfg.Mysql.Password,
+		cfg.Mysql.Host,
+		cfg.Mysql.Port,
+		cfg.Mysql.DbName,
+		cfg.Mysql.Charset)
 
 	// table prefix
-	tablePrefix := Conf.Mysql.TablePrefix
+	tablePrefix := cfg.Mysql.TablePrefix
 
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -51,7 +70,7 @@ func initMysql() error {
 		},
 	)
 
-	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger:                                   newLogger,
 		DisableForeignKeyConstraintWhenMigrating: true,
 		NamingStrategy: schema.NamingStrategy{
@@ -62,10 +81,23 @@ func initMysql() error {
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("faile to initialize mysql,%w", err)
+		return nil, fmt.Errorf("faile to initialize mysql,%w", err)
 	}
 
-	return nil
+	return db, nil
+}
+
+func closeMysql(db *gorm.DB) error {
+	if db == nil {
+		return nil
+	}
+
+	sqlDb, err := db.DB()
+	if err != nil {
+		return err
+	}
+
+	return sqlDb.Close()
 }
 
 func migrateDbTable() error {

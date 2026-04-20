@@ -31,7 +31,7 @@ func main() {
 		defer destructFunc()
 	}
 
-	if global.Conf.App.IsRelease() {
+	if global.GetConf().App.IsRelease() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -41,7 +41,7 @@ func main() {
 	r.Use(ginzap.Ginzap(global.Zap, time.RFC3339, true)).Use(ginzap.RecoveryWithZap(global.Zap, true))
 	router.InitRouter(r)
 	s := &http.Server{
-		Addr:           fmt.Sprintf(":%d", global.Conf.App.Port),
+		Addr:           fmt.Sprintf(":%d", global.GetConf().App.Port),
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,

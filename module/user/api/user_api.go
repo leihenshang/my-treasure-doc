@@ -20,7 +20,7 @@ func NewUserApi() *UserApi {
 
 // UserRegister 用户注册
 func (u *UserApi) UserRegister(c *gin.Context) {
-	if !global.Conf.App.RegisterEnabled {
+	if !global.GetConf().App.RegisterEnabled {
 		response.FailWithMessage(c, "注册未启用,请联系管理员！")
 		return
 	}
