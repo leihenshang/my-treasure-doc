@@ -1,79 +1,305 @@
-# 宝藏文档 (Treasure Doc) - API 后端服务
+# 宝藏文档 (Treasure Doc) — API 后端服务
 
-## 项目概述 Overview
+> 基于 Gin 框架构建的高性能文档管理系统后端，支持文档管理、空间隔离、团队协作、版本历史等功能。
+>
+> Backend API service for Treasure Doc — a high-performance document management system built on Gin, featuring document CRUD, room-based isolation, team collaboration, and version history.
 
-宝藏文档的后端API服务，基于Gin框架构建的高性能文档管理系统。
-
-Backend API service for Treasure Doc, a high-performance document management system built on Gin framework.
+---
 
 ## 技术栈 Tech Stack
 
-- **Web框架**: Gin Framework
-- **数据库ORM**: GORM  
-- **配置管理**: TOML配置文件
-- **日志系统**: Zap日志处理
-- **缓存支持**: Redis缓存处理
+| 类别 | 技术 | 版本 |
+|------|------|------|
+| **语言** | Go | 1.22+ |
+| **Web 框架** | Gin | v1.9.1 |
+| **ORM** | GORM | v1.24 |
+| **数据库** | MySQL | 5.7+ |
+| **缓存** | Redis | 可选 |
+| **配置管理** | Viper + TOML | v1.8.1 |
+| **日志** | Zap + Lumberjack | v1.17.0 |
+| **ID 生成** | Sonyflake | v1.2.0 |
+| **密码加密** | golang.org/x/crypto | v0.23.0 |
+| **验证码** | base64Captcha | v1.3.6 |
+| **参数校验** | go-playground/validator | v10.14.0 |
+| **部署** | Docker 多阶段构建 | Alpine 3.20 |
+
+---
+
+## 架构分层 Architecture
+
+```
+main.go
+  │
+  ├─ global.InitModule()        ← 统一初始化 Config → MySQL → Redis → Logger → Validator
+  │                               (支持配置热更新，动态刷新连接池)
+  │
+  ├─ router.InitRouter(r)       ← 路由注册 + 中间件
+  │     ├── middleware.Auth()   ← X-Token 认证（支持 Mock 开发模式）
+  │     ├── middleware.Cors()   ← 跨域
+  │     └── api.*Handler       ← Handler 层：参数解析 → 调用 Service → 组装响应
+  │
+  ├─ api/                       ← Handler 层（请求绑定、响应格式化）
+  │     └── internal/service/   ← Service 层（业务逻辑、DB 操作）
+  │
+  └─ data/model/                ← DO 层（GORM 模型 + BeforeCreate 钩子）
+```
+
+---
+
+## API 概览（≈30 个端点）
+
+所有 API 挂载在 `/api` 下，认证统一通过 Header `X-Token` 传递。
+
+### 用户模块
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | `/api/user/reg` | 注册（自动创建默认空间） | ❌ |
+| POST | `/api/user/login` | 登录（返回 token，7 天有效） | ❌ |
+| POST | `/api/user/logout` | 退出登录 | ✅ |
+| POST | `/api/user/update-profile` | 更新个人资料 | ✅ |
+| POST | `/api/user-manage/create` | 创建用户（管理） | ✅ |
+| GET | `/api/user-manage/detail` | 用户详情（管理） | ✅ |
+| GET | `/api/user-manage/list` | 用户列表（管理） | ✅ |
+| POST | `/api/user-manage/update` | 更新用户（管理） | ✅ |
+| POST | `/api/user-manage/delete` | 删除用户（管理） | ✅ |
+| POST | `/api/user-manage/reset-pwd` | 重置密码（管理） | ✅ |
+
+### 文档模块
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | `/api/doc/create` | 创建文档 | ✅ |
+| GET | `/api/doc/detail` | 文档详情 | ✅ |
+| GET | `/api/doc/list` | 文档列表 | ✅ |
+| POST | `/api/doc/update` | 更新文档 | ✅ |
+| POST | `/api/doc/delete` | 删除文档（进回收站） | ✅ |
+| POST | `/api/doc/recover` | 恢复文档 | ✅ |
+| GET | `/api/doc-history/detail` | 历史版本详情 | ✅ |
+| GET | `/api/doc-history/list` | 历史版本列表 | ✅ |
+| POST | `/api/doc-history/recover` | 恢复历史版本 | ✅ |
+
+### 文档分组
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | `/api/doc-group/create` | 创建分组 | ✅ |
+| GET | `/api/doc-group/list` | 分组列表 | ✅ |
+| GET | `/api/doc-group/tree` | 分组树形结构 | ✅ |
+| POST | `/api/doc-group/update` | 重命名/移动分组 | ✅ |
+| POST | `/api/doc-group/delete` | 删除分组 | ✅ |
+| GET | `/api/doc-group/detail` | 分组详情 | ✅ |
+
+### 笔记 & 文件 & 空间
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | `/api/note/create` | 创建笔记 | ✅ |
+| GET | `/api/note/detail` | 笔记详情 | ✅ |
+| GET | `/api/note/list` | 笔记列表 | ✅ |
+| POST | `/api/note/update` | 更新笔记 | ✅ |
+| POST | `/api/note/delete` | 删除笔记 | ✅ |
+| POST | `/api/file/upload` | 文件上传 | ✅ |
+| POST | `/api/room/create` | 创建空间 | ✅ |
+| GET | `/api/room/detail` | 空间详情 | ✅ |
+| GET | `/api/room/list` | 空间列表 | ✅ |
+| POST | `/api/room/update` | 更新空间 | ✅ |
+| POST | `/api/room/delete` | 删除空间 | ✅ |
+
+### 健康检查
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/ping` | 返回 `{"msg": "pong!"}` |
+| GET | `/` | 重定向到 `/web` 前端页面 |
+
+---
 
 ## 快速开始 Quick Start
 
 ### 环境要求 Requirements
 
-- Go 1.22+
-- MySQL 5.7+
-- Redis (可选)
+- **Go** 1.22+
+- **MySQL** 5.7+
+- **Redis** (可选，用于缓存/验证码)
 
 ### 配置文件 Configuration
-
-复制示例配置文件并修改相应参数：
 
 ```bash
 cp config.example.toml config.toml
 ```
 
 主要配置项：
-- 应用端口：2021
-- 数据库连接信息
-- Redis配置（可选）
+
+```toml
+[app]
+port = 2021
+release = false       # 生产环境改为 true
+
+[mysql]
+host = "127.0.0.1"
+port = 3306
+user = "root"
+password = ""
+db_name = "treasure_doc"
+
+[redis]
+enable = false        # 不启用 Redis 可跳过
+host = "127.0.0.1"
+port = 6379
+
+[log]
+level = "info"
+```
 
 ### 本地运行 Local Development
 
 ```bash
-# 进入用户模块目录
+# 进入用户模块
 cd module/user
 
 # 安装依赖
 go mod tidy
 
-# 运行服务
+# 运行服务（默认加载 ./config.toml）
 go run main.go
+
+# 指定配置文件路径
+go run main.go -c /path/to/config.toml
 ```
 
-## 编译部署 Build & Deployment
+启动后自动完成：
+1. 初始化数据库连接，自动建表（GORM AutoMigrate）
+2. 注册 root 账号：`treasure-root / treasure-root`（首次运行）
+3. 服务监听 `:2021`
 
-### 跨平台编译 Cross-platform Compilation
+> ⚠️ **首次登录后请立即修改 root 密码。**
+
+---
+
+## 项目结构 Project Structure
+
+```
+treasure-doc/
+│
+├── module/                          # 业务模块
+│   └── user/                        # 核心用户文档模块
+│       ├── main.go                  # 程序入口
+│       ├── config.example.toml      # 配置示例
+│       ├── config.toml              # 运行时配置（gitignore 建议）
+│       │
+│       ├── api/                     # Handler 层：请求解析 & 响应组装
+│       │   ├── user_api.go
+│       │   ├── user_manage_api.go
+│       │   ├── doc_api.go
+│       │   ├── doc_group_api.go
+│       │   ├── doc_history_api.go
+│       │   ├── note_api.go
+│       │   ├── file_api.go
+│       │   └── room_api.go
+│       │
+│       ├── config/                  # Config 结构体 + Viper 封装
+│       │   ├── config.go            # 热更新支持
+│       │   ├── app.go / mysql.go / redis.go / log.go / debug.go
+│       │
+│       ├── data/                    # 数据层
+│       │   ├── model/               # GORM 模型（DO）
+│       │   │   ├── base.go          # BaseModel + 雪花 ID 自动生成
+│       │   │   ├── user.go / user_token.go / user_conf.go
+│       │   │   ├── doc.go / doc_group.go / doc_history.go
+│       │   │   ├── note.go / room.go
+│       │   │   ├── team.go / team_user.go
+│       │   │   ├── global_conf.go / verify_code.go
+│       │   ├── request/             # 请求 DTO
+│       │   └── response/            # 响应 DTO + 错误码
+│       │
+│       ├── global/                  # 全局单例 & 初始/销毁
+│       │   ├── global.go            # InitModule / 热更新连接刷新
+│       │   ├── constant.go
+│       │   ├── db.go                # MySQL 初始化 + 优雅关闭
+│       │   ├── logger.go            # Zap 初始化
+│       │   ├── trans.go             # 校验器翻译
+│       │   └── gid/                 # Sonyflake ID 生成
+│       │
+│       ├── internal/                # 内部逻辑
+│       │   ├── service/             # Service 层（业务逻辑）
+│       │   │   ├── user_service.go / doc_service.go / ...
+│       │   │   ├── room_service.go / team_service.go
+│       │   │   ├── captcha_service.go
+│       │   │   └── doc_history_service.go
+│       │   └── auth/                # 认证逻辑
+│       │
+│       ├── router/                  # 路由 & 中间件
+│       │   ├── router.go
+│       │   └── middleware/
+│       │       ├── auth.go          # X-Token 认证（含 Mock 模式）
+│       │       └── cors.go          # 跨域
+│       │
+│       ├── utils/                   # 工具函数
+│       │   ├── datetime.go / file.go / slice.go / user.go
+│       │
+│       ├── cli/                     # CLI 工具
+│       │   ├── cli.go               # -gen 生成模型
+│       │   └── reset-pwd/           # 密码重置工具
+│       │
+│       ├── web/                     # 前端静态文件
+│       └── files/                   # 用户上传文件
+│
+├── module/admin/                    # 管理后台（开发中）
+├── list_sort/                       # 列表排序算法（独立工具包）
+├── log/                             # 运行时日志
+├── doc/                             # 设计文档
+├── template/                        # 模板文件
+│
+├── Dockerfile                       # 多阶段 Docker 构建
+├── build.sh                         # Docker 构建脚本
+├── go.mod / go.sum
+└── README.md
+```
+
+---
+
+## 数据模型 Database Models
+
+所有模型嵌入 `BaseModel`，使用 **Sonyflake 雪花 ID**（字符串类型，19 位数字），支持软删除。
+
+| 模型 | 对应表 | 关键字段 | 说明 |
+|------|--------|----------|------|
+| `User` | `td_user` | Account, Password, UserType, UserStatus, CurrentRoomId | 支持 root/普通用户 |
+| `UserToken` | `td_user_token` | Token, TokenExpire, LoginIp, LoginTime | 每用户最多 3 个并发会话 |
+| `Doc` | `td_doc` | Title, Content, GroupId, RoomId, UserId | 软删除 → 回收站 |
+| `DocGroup` | `td_doc_group` | Name, PId, RoomId | 树形分组 |
+| `DocHistory` | `td_doc_history` | DocId, Content, Version | 版本快照，支持恢复 |
+| `Note` | `td_note` | Title, Content, RoomId | 轻量笔记 |
+| `Room` | `td_room` | Name, UserId, IsDefault | 空间/文档隔离单元 |
+| `Team` / `TeamUser` | `td_team` / `td_team_user` | — | 团队及成员关系 |
+| `GlobalConf` | `td_global_conf` | Key, Value | 系统级 KV |
+| `UserConf` | `td_user_conf` | Key, Value, UserId | 用户级 KV |
+| `VerifyCode` | `td_verify_code` | Code, Type, Target, ExpireAt | 验证码（待流程接入） |
+
+---
+
+## 部署部署 Build & Deployment
+
+### 跨平台编译 Cross-platform Build
 
 ```bash
 # Linux
-GOARCH=amd64 GOOS=linux CGO_ENABLED=0 go build -o treasure_user
+GOARCH=amd64 GOOS=linux CGO_ENABLED=0 go build -o treasure_user ./module/user
 
-# Windows  
-CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build
+# Windows
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o treasure_user.exe ./module/user
 
 # macOS
-CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build
+CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o treasure_user ./module/user
 ```
 
-### Docker部署 Docker Deployment
-
-#### 构建镜像 Build Image
+### Docker 部署
 
 ```bash
+# 构建镜像
 docker build -t treasure-doc .
-```
 
-#### 运行容器 Run Container
-
-```bash
 # 后台运行
 docker run -d --name treasure-doc \
   --restart=always \
@@ -83,7 +309,7 @@ docker run -d --name treasure-doc \
   -v /path/to/config.toml:/app/config.toml \
   treasure-doc
 
-# 前台调试模式
+# 调试模式
 docker run --rm --name treasure-doc -it \
   -p 2021:2021 \
   -v /path/to/web:/app/web \
@@ -92,44 +318,67 @@ docker run --rm --name treasure-doc -it \
   treasure-doc /bin/sh
 ```
 
+---
+
 ## 开发工具 Development Tools
 
-### 数据库模型生成 Generate Database Models
-
-进入CLI目录生成Gin模型：
+### CLI 数据库模型生成
 
 ```bash
 cd module/user/cli
 go run . -gen
 ```
 
-生成的模型将保存在 `data/model/` 目录下。
+自动读取数据库表结构，生成 GORM 模型到 `data/model/`。
 
-## 项目结构 Project Structure
+### CLI 密码重置
 
+```bash
+cd module/user/cli/reset-pwd
+go run reset_pwd.go -c ../../config.toml -account <账号> -pwd <新密码>
 ```
-module/user/
-├── api/          # API接口层
-├── config/       # 配置文件
-├── data/         # 数据模型和传输对象
-├── global/       # 全局变量和初始化
-├── internal/     # 内部服务逻辑
-├── router/       # 路由配置
-├── utils/        # 工具函数
-└── web/          # 前端静态文件
-```
+
+---
+
+## 关键设计 Key Design Decisions
+
+| 决策 | 实现 |
+|------|------|
+| **ID 生成** | Sonyflake → 19 位数字字符串，比 UUID 更短，分布式友好 |
+| **密码加密** | `golang.org/x/crypto/bcrypt` |
+| **会话管理** | 每用户最多 3 个 token，超限自动剔除最早的会话 |
+| **空间隔离** | 注册时自动创建默认 Room，文档按 Room 隔离（多租户基础） |
+| **配置热更新** | Viper WatchConfig → 动态刷新 MySQL/Redis 连接，无需重启 |
+| **Mock 认证** | `Debug.EnableMockLogin` 开关，开发时跳过 token 验证 |
+
+---
+
+## 已知问题 & 待改进 Known Issues
+
+> 以下对应 `question.md` 中的记录：
+
+1. **缺少 DAO 层** — Service 直接操作 `global.Db`，查询逻辑分散。建议抽取 `data/repository/` 封装。
+2. **CLI 配置路径** — cli 子工具默认 CWD 加载 config，应通过 `-c` 参数或环境变量传递路径。
+3. **GORM SQL 日志** — 当前未配置 GORM Logger，不打印 SQL。需在 `initMysql` 中设置：
+   ```go
+   &gorm.Config{Logger: logger.Default.LogMode(logger.Info)}
+   ```
+4. **测试覆盖** — 仅在 `list_sort/` 和 `gid/` 有测试，核心 Service 缺少单元测试。
+5. **Admin 模块** — `module/admin/` 仅占位，用户管理功能暂在 user 模块 `user-manage` 路由下。
+
+---
 
 ## 数据库维护 Database Maintenance
-
-数据修复SQL：
 
 ```sql
 -- 修复文档分组关联
 UPDATE td_doc SET group_id = 'root' WHERE group_id = '' OR group_id = '0';
 
--- 修复文档组父子关系  
+-- 修复文档组父子关系
 UPDATE td_doc_group SET p_id = 'root' WHERE p_id = '' OR p_id = '0';
 ```
+
+---
 
 ## 许可证 License
 
