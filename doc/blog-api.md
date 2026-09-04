@@ -14,7 +14,7 @@
 ### 1.1 Base URL
 
 ```text
-/api/public
+/api/blog
 ```
 
 本地开发时由 Vite 将 `/api` 代理至 Go 服务。当前 `vite.config.ts` 的目标为 `http://localhost:2021`。
@@ -110,23 +110,23 @@ HTTP 状态码与业务码应同时正确返回。
 
 | 模块 | 方法 | Endpoint | 说明 |
 | --- | --- | --- | --- |
-| 文章 | GET | `/api/public/blog/categories` | 文章分类 |
-| 文章 | GET | `/api/public/blog/tags` | 文章标签 |
-| 文章 | GET | `/api/public/blog/posts` | 文章分页列表 |
-| 文章 | GET | `/api/public/blog/posts/{id}` | 文章详情 |
-| 日记 | GET | `/api/public/diary/tags` | 日记标签 |
-| 日记 | GET | `/api/public/diaries` | 日记分页列表 |
-| 日记 | GET | `/api/public/diaries/{id}` | 日记详情 |
-| 作品 | GET | `/api/public/portfolio/categories` | 作品分类 |
-| 作品 | GET | `/api/public/portfolio/items` | 作品列表 |
-| 作品 | GET | `/api/public/portfolio/items/{id}` | 作品详情 |
-| 工具 | GET | `/api/public/tools` | 工具与外链列表 |
-| 工具 | GET | `/api/public/tools/{id}` | 自研工具详情 |
-| 书签 | GET | `/api/public/bookmark/categories` | 书签分类 |
-| 书签 | GET | `/api/public/bookmarks` | 书签列表 |
-| 关于 | GET | `/api/public/profile` | 个人资料 |
-| 关于 | GET | `/api/public/site` | 站点信息 |
-| 统计 | GET | `/api/public/stats` | 内容数量，可选优化接口 |
+| 文章 | GET | `/api/blog/categories` | 文章分类 |
+| 文章 | GET | `/api/blog/tags` | 文章标签 |
+| 文章 | GET | `/api/blog/posts` | 文章分页列表 |
+| 文章 | GET | `/api/blog/posts/{id}` | 文章详情 |
+| 日记 | GET | `/api/blog/diary/tags` | 日记标签 |
+| 日记 | GET | `/api/blog/diaries` | 日记分页列表 |
+| 日记 | GET | `/api/blog/diaries/{id}` | 日记详情 |
+| 作品 | GET | `/api/blog/portfolio/categories` | 作品分类 |
+| 作品 | GET | `/api/blog/portfolio/items` | 作品列表 |
+| 作品 | GET | `/api/blog/portfolio/items/{id}` | 作品详情 |
+| 工具 | GET | `/api/blog/tools` | 工具与外链列表 |
+| 工具 | GET | `/api/blog/tools/{id}` | 自研工具详情 |
+| 书签 | GET | `/api/blog/bookmark/categories` | 书签分类 |
+| 书签 | GET | `/api/blog/bookmarks` | 书签列表 |
+| 关于 | GET | `/api/blog/profile` | 个人资料 |
+| 关于 | GET | `/api/blog/site` | 站点信息 |
+| 统计 | GET | `/api/blog/stats` | 内容数量，可选优化接口 |
 
 ## 4. 文章接口
 
@@ -163,7 +163,7 @@ HTTP 状态码与业务码应同时正确返回。
 ### 4.2 获取文章分类
 
 ```http
-GET /api/public/blog/categories
+GET /api/blog/categories
 ```
 
 成功响应：
@@ -185,7 +185,7 @@ GET /api/public/blog/categories
 ### 4.3 获取文章标签
 
 ```http
-GET /api/public/blog/tags
+GET /api/blog/tags
 ```
 
 成功响应：
@@ -203,7 +203,7 @@ GET /api/public/blog/tags
 ### 4.4 获取文章列表
 
 ```http
-GET /api/public/blog/posts
+GET /api/blog/posts
 ```
 
 查询参数：
@@ -228,7 +228,7 @@ GET /api/public/blog/posts
 请求示例：
 
 ```http
-GET /api/public/blog/posts?categoryId=tech&tag=Vue&keyword=性能&sort=desc&page=1&pageSize=3
+GET /api/blog/posts?categoryId=tech&tag=Vue&keyword=性能&sort=desc&page=1&pageSize=3
 ```
 
 成功响应：
@@ -265,7 +265,7 @@ GET /api/public/blog/posts?categoryId=tech&tag=Vue&keyword=性能&sort=desc&page
 ### 4.5 获取文章详情
 
 ```http
-GET /api/public/blog/posts/{id}
+GET /api/blog/posts/{id}
 ```
 
 路径参数：
@@ -324,7 +324,7 @@ GET /api/public/blog/posts/{id}
 ### 5.2 获取日记标签
 
 ```http
-GET /api/public/diary/tags
+GET /api/blog/diary/tags
 ```
 
 响应 `data` 为去重并稳定排序后的 `string[]`。
@@ -340,7 +340,7 @@ GET /api/public/diary/tags
 ### 5.3 获取日记列表
 
 ```http
-GET /api/public/diaries
+GET /api/blog/diaries
 ```
 
 | 参数 | 类型 | 必填 | 默认值 | 约束与说明 |
@@ -385,7 +385,7 @@ GET /api/public/diaries
 ### 5.4 获取日记详情
 
 ```http
-GET /api/public/diaries/{id}
+GET /api/blog/diaries/{id}
 ```
 
 成功响应 `data` 为完整 `Diary`，包含 Markdown `content`。不存在时返回 HTTP 404 和业务码 `40402`。
@@ -432,7 +432,7 @@ GET /api/public/diaries/{id}
 ### 6.2 获取作品分类
 
 ```http
-GET /api/public/portfolio/categories
+GET /api/blog/portfolio/categories
 ```
 
 `data` 返回 `PortfolioCategory[]`，按后台配置顺序排列。
@@ -440,7 +440,7 @@ GET /api/public/portfolio/categories
 ### 6.3 获取作品列表
 
 ```http
-GET /api/public/portfolio/items?categoryId=website
+GET /api/blog/portfolio/items?categoryId=website
 ```
 
 | 参数 | 类型 | 必填 | 说明 |
@@ -470,7 +470,7 @@ GET /api/public/portfolio/items?categoryId=website
 ### 6.4 获取作品详情
 
 ```http
-GET /api/public/portfolio/items/{id}
+GET /api/blog/portfolio/items/{id}
 ```
 
 ```json
@@ -526,7 +526,7 @@ GET /api/public/portfolio/items/{id}
 ### 7.2 获取工具列表
 
 ```http
-GET /api/public/tools
+GET /api/blog/tools
 ```
 
 ```json
@@ -559,7 +559,7 @@ GET /api/public/tools
 ### 7.3 获取自研工具详情
 
 ```http
-GET /api/public/tools/{id}
+GET /api/blog/tools/{id}
 ```
 
 仅 `type=own` 的条目存在详情。成功返回完整 `OwnTool`。
@@ -595,7 +595,7 @@ GET /api/public/tools/{id}
 ### 8.2 获取书签分类
 
 ```http
-GET /api/public/bookmark/categories
+GET /api/blog/bookmark/categories
 ```
 
 `data` 返回 `BookmarkCategory[]`，顺序同时用于前端分组展示。
@@ -603,7 +603,7 @@ GET /api/public/bookmark/categories
 ### 8.3 获取书签列表
 
 ```http
-GET /api/public/bookmarks
+GET /api/blog/bookmarks
 ```
 
 | 参数 | 类型 | 必填 | 说明 |
@@ -636,7 +636,7 @@ GET /api/public/bookmarks
 ### 9.1 获取个人资料
 
 ```http
-GET /api/public/profile
+GET /api/blog/profile
 ```
 
 #### ProfileLink
@@ -702,7 +702,7 @@ GET /api/public/profile
 ### 9.2 获取站点信息
 
 ```http
-GET /api/public/site
+GET /api/blog/site
 ```
 
 #### SiteModule
@@ -770,7 +770,7 @@ GET /api/public/site
 关于页当前分别请求文章、日记和作品列表来计算数量。后端建议增加聚合接口，减少请求和无用数据传输。
 
 ```http
-GET /api/public/stats
+GET /api/blog/stats
 ```
 
 ```json
@@ -905,7 +905,7 @@ Cache-Control: public, max-age=60, stale-while-revalidate=300
 
 以下能力不属于当前前端的硬性依赖，可在后端基础接口稳定后扩展：
 
-- OpenAPI 3.1 文档：`GET /api/public/openapi.json`
+- OpenAPI 3.1 文档：`GET /api/blog/openapi.json`
 - RSS/Atom：文章与日记订阅
 - 归档接口：按年月聚合内容数量
 - 相邻内容：详情页上一篇/下一篇

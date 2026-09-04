@@ -6,16 +6,17 @@ import (
 	"os"
 	"time"
 
+	blogmodel "fastduck/treasure-doc/module/blog/data/model"
+	"fastduck/treasure-doc/module/user/config"
+	"fastduck/treasure-doc/module/user/data/model"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-
-	"fastduck/treasure-doc/module/user/config"
-	"fastduck/treasure-doc/module/user/data/model"
 )
 
-var TableMigrate = []schema.Tabler{
+var TableMigrate = append([]schema.Tabler{
 	&model.Doc{},
 	&model.DocGroup{},
 	&model.GlobalConf{},
@@ -28,6 +29,15 @@ var TableMigrate = []schema.Tabler{
 	&model.UserConf{},
 	&model.UserToken{},
 	&model.Room{},
+}, blogTables()...)
+
+func blogTables() []schema.Tabler {
+	tables := blogmodel.Tables()
+	result := make([]schema.Tabler, 0, len(tables))
+	for _, table := range tables {
+		result = append(result, table.(schema.Tabler))
+	}
+	return result
 }
 
 func initDatabase() error {

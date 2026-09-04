@@ -113,6 +113,10 @@ main.go
 | GET | `/ping` | 返回 `{"msg": "pong!"}` |
 | GET | `/` | 重定向到 `/web` 前端页面 |
 
+### Blog 公开接口
+
+匿名只读接口挂载在 `/api/blog`，覆盖文章、日记、作品、工具、书签、个人资料、站点信息和内容统计。完整请求参数与响应契约见 [doc/blog-api.md](doc/blog-api.md)，后端模块说明见 [module/blog/README.md](module/blog/README.md)。
+
 ---
 
 ## 快速开始 Quick Start
