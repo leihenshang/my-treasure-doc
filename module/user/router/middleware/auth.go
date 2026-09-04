@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"fastduck/treasure-doc/module/user/config"
 	"fastduck/treasure-doc/module/user/data/model"
 	"fastduck/treasure-doc/module/user/data/response"
 	"fastduck/treasure-doc/module/user/global"
@@ -33,12 +32,14 @@ func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authKey := c.GetHeader("X-Token")
 		result := &response.Response{Code: response.ERROR}
+		cfg := global.GetConf()
 
-		if config.GetConfig().Debug.EnableMockLogin {
-			if config.GetConfig().Debug.MockUserId != "" {
-				mockUser.Id = config.GetConfig().Debug.MockUserId
+		if cfg != nil && cfg.Debug.EnableMockLogin {
+			requestUser := *mockUser
+			if cfg.Debug.MockUserId != "" {
+				requestUser.Id = cfg.Debug.MockUserId
 			}
-			c.Set("userinfo", mockUser)
+			c.Set(global.UserInfoKey, &requestUser)
 		} else {
 			if authKey == "" {
 				result.Msg = "参数错误"
@@ -53,7 +54,7 @@ func Auth() gin.HandlerFunc {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, result)
 				return
 			}
-			c.Set("userinfo", u)
+			c.Set(global.UserInfoKey, u)
 		}
 
 		c.Next()

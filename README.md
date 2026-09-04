@@ -31,7 +31,7 @@
 main.go
   │
   ├─ global.InitModule()        ← 统一初始化 Config → Logger → Redis → PostgreSQL → Validator
-  │                               (支持配置热更新，动态刷新连接池)
+  │                               (仅注册开关支持热更新，基础设施配置变更需重启)
   │
   ├─ router.InitRouter(r)       ← 路由注册 + 中间件
   │     ├── middleware.Auth()   ← X-Token 认证（支持 Mock 开发模式）
@@ -208,7 +208,7 @@ treasure-doc/
 │       │   └── room_api.go
 │       │
 │       ├── config/                  # Config 结构体 + Viper 封装
-│       │   ├── config.go            # 热更新支持
+│       │   ├── config.go            # 配置加载与受限热更新
 │       │   ├── app.go / database.go / redis.go / log.go / debug.go
 │       │
 │       ├── data/                    # 数据层
@@ -223,7 +223,7 @@ treasure-doc/
 │       │   └── response/            # 响应 DTO + 错误码
 │       │
 │       ├── global/                  # 全局单例 & 初始/销毁
-│       │   ├── global.go            # InitModule / 热更新连接刷新
+│       │   ├── global.go            # InitModule / 业务配置热更新策略
 │       │   ├── constant.go
 │       │   ├── db.go                # PostgreSQL 初始化 + 优雅关闭
 │       │   ├── logger.go            # Zap 初始化
@@ -356,7 +356,7 @@ go run ./module/user/cli/reset-pwd -u <账号> -p <新密码> -cfg <config.toml 
 | **密码加密** | `golang.org/x/crypto/bcrypt` |
 | **会话管理** | 每用户最多 3 个 token，超限自动剔除最早的会话 |
 | **空间隔离** | 注册时自动创建默认 Room，文档按 Room 隔离（多租户基础） |
-| **配置热更新** | Viper WatchConfig → 动态刷新 PostgreSQL/Redis 连接，无需重启 |
+| **配置热更新** | 仅 `app.registerEnabled` 可热更新；PostgreSQL、Redis、日志、端口、运行模式和 Debug 变更需重启 |
 | **Mock 认证** | `Debug.EnableMockLogin` 开关，开发时跳过 token 验证 |
 
 ---

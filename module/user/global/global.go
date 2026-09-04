@@ -3,6 +3,8 @@ package global
 import (
 	"fmt"
 	"log"
+	"reflect"
+	"strings"
 	"sync"
 
 	ut "github.com/go-playground/universal-translator"
@@ -22,7 +24,6 @@ var (
 	Trans ut.Translator
 
 	confMu sync.RWMutex
-	connMu sync.Mutex
 )
 
 func GetConf() *config.Config {
@@ -76,101 +77,59 @@ func InitModule(cfgPath string) (destructFunc func(), err error) {
 }
 
 func initConfigHotReload() error {
-	return config.WatchConf(func(cfg *config.Config) {
-		oldCfg := GetConf()
-		setConf(cfg)
-		if err := applyConnectionHotReload(oldCfg, cfg); err != nil {
+	return config.WatchConf(func(candidate *config.Config) {
+		effective, restartRequired := effectiveHotReloadConfig(GetConf(), candidate)
+		setConf(effective)
+		config.PublishConfig(effective)
+
+		if len(restartRequired) > 0 {
+			message := fmt.Sprintf("config changes require restart and were ignored: %s", strings.Join(restartRequired, ", "))
 			if Log != nil {
-				Log.Errorf("config hot reload connection refresh failed: %v", err)
+				Log.Warn(message)
 			} else {
-				fmt.Printf("config hot reload connection refresh failed: %v\n", err)
+				fmt.Println(message)
 			}
 		}
-
 		if Log != nil {
-			Log.Infof("config hot reloaded")
-			return
+			Log.Infof("business config hot reloaded")
+		} else {
+			fmt.Println("business config hot reloaded")
 		}
-		fmt.Println("config hot reloaded")
 	})
 }
 
-func applyConnectionHotReload(oldCfg, newCfg *config.Config) error {
-	if oldCfg == nil || newCfg == nil {
-		return nil
+func effectiveHotReloadConfig(current, candidate *config.Config) (*config.Config, []string) {
+	if current == nil {
+		return candidate, nil
+	}
+	if candidate == nil {
+		snapshot := *current
+		return &snapshot, nil
 	}
 
-	connMu.Lock()
-	defer connMu.Unlock()
-
-	if oldCfg.Database != newCfg.Database {
-		if err := reloadDatabase(newCfg); err != nil {
-			return err
-		}
-		if Log != nil {
-			Log.Infof("database connection refreshed by config hot reload")
-		}
+	effective := *current
+	effective.App.RegisterEnabled = candidate.App.RegisterEnabled
+	restartRequired := make([]string, 0, 5)
+	currentApp := current.App
+	candidateApp := candidate.App
+	currentApp.RegisterEnabled = false
+	candidateApp.RegisterEnabled = false
+	if !reflect.DeepEqual(currentApp, candidateApp) {
+		restartRequired = append(restartRequired, "app")
 	}
-
-	if oldCfg.Redis != newCfg.Redis {
-		if err := reloadRedis(newCfg); err != nil {
-			return err
-		}
-		if Log != nil {
-			Log.Infof("redis connection refreshed by config hot reload")
-		}
+	if !reflect.DeepEqual(current.Database, candidate.Database) {
+		restartRequired = append(restartRequired, "database")
 	}
-
-	return nil
-}
-
-func reloadDatabase(cfg *config.Config) error {
-	newDb, err := openDatabaseWithConfig(cfg)
-	if err != nil {
-		return err
+	if !reflect.DeepEqual(current.Redis, candidate.Redis) {
+		restartRequired = append(restartRequired, "redis")
 	}
-
-	oldDb := Db
-	Db = newDb
-
-	if oldDb != nil {
-		if err := closeDatabase(oldDb); err != nil {
-			if Log != nil {
-				Log.Warnf("close old database connection failed: %v", err)
-			} else {
-				log.Printf("close old database connection failed: %v\n", err)
-			}
-		}
+	if !reflect.DeepEqual(current.Log, candidate.Log) {
+		restartRequired = append(restartRequired, "log")
 	}
-
-	return nil
-}
-
-func reloadRedis(cfg *config.Config) error {
-	if !cfg.Redis.Enable {
-		if Redis != nil {
-			if err := Redis.Close(); err != nil && Log != nil {
-				Log.Warnf("close old redis connection failed: %v", err)
-			}
-			Redis = nil
-		}
-		return nil
+	if !reflect.DeepEqual(current.Debug, candidate.Debug) {
+		restartRequired = append(restartRequired, "debug")
 	}
-
-	newRedis, err := initRedisWithConfig(cfg)
-	if err != nil {
-		return err
-	}
-
-	oldRedis := Redis
-	Redis = newRedis
-	if oldRedis != nil {
-		if err := oldRedis.Close(); err != nil && Log != nil {
-			Log.Warnf("close old redis connection failed: %v", err)
-		}
-	}
-
-	return nil
+	return &effective, restartRequired
 }
 
 func destructModule() func() {
@@ -221,7 +180,12 @@ func initLog() error {
 }
 
 func initRedis() error {
-	return reloadRedis(GetConf())
+	client, err := initRedisWithConfig(GetConf())
+	if err != nil {
+		return err
+	}
+	Redis = client
+	return nil
 }
 
 func initRedisWithConfig(cfg *config.Config) (*redis.Client, error) {

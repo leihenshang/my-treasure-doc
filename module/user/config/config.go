@@ -38,6 +38,16 @@ func GetConfig() *Config {
 	return globalConfig
 }
 
+func PublishConfig(cfg *Config) {
+	if cfg == nil {
+		return
+	}
+	snapshot := *cfg
+	cfgMu.Lock()
+	globalConfig = &snapshot
+	cfgMu.Unlock()
+}
+
 func InitConf(path string) (err error) {
 	fmt.Println("load config file:", path)
 
@@ -53,8 +63,8 @@ func InitConf(path string) (err error) {
 		return fmt.Errorf("failed to unmarshal config: %w \n", err)
 	}
 
+	PublishConfig(cfg)
 	cfgMu.Lock()
-	globalConfig = cfg
 	cfgViper = v
 	cfgMu.Unlock()
 
@@ -77,10 +87,6 @@ func ReloadConf() (*Config, error) {
 	if err := v.Unmarshal(cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal reloaded config: %w", err)
 	}
-
-	cfgMu.Lock()
-	globalConfig = cfg
-	cfgMu.Unlock()
 
 	return cfg, nil
 }

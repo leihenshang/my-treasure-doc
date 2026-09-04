@@ -45,7 +45,7 @@ go run . -c config.toml
 ## 实现约束
 
 - 用户资源查询必须显式包含 `user_id` 所有权条件，并沿用相邻 Service 的鉴权方式。当前 Room/Team 权限仍不完整，不要把 [doc/space.md](doc/space.md) 的规划当成已实现规则。
-- 配置热更新会替换 `global.Db` 和 `global.Redis`；不要把这两个全局连接复制到长期存活的包级变量或结构体字段中。
+- 配置文件监听只允许热更新 `app.registerEnabled`。PostgreSQL、Redis、日志、端口、运行模式和 Debug 配置运行中变更会被忽略并记录警告，修改后必须重启服务。
 - 模型的 `TableName()` 当前硬编码为 `td_*`。不要假设修改 `database.tablePrefix` 会自动改变已有模型表名。
 - 普通业务成功和失败通常通过 HTTP 200 响应体中的 `code` 区分，但认证中间件会返回 HTTP 401。新增响应时遵循相邻端点。
 - 文档更新使用 `Doc.Version` 做乐观锁，并在事务中写入历史快照；修改更新或恢复流程时必须保留并发冲突检查和事务边界。
