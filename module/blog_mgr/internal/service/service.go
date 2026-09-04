@@ -35,6 +35,21 @@ type Pagination struct {
 	OrderBy  string `json:"orderBy"`
 }
 
+type PostWithTags struct {
+	blogmodel.Post
+	TagIDs []string `json:"tagIds"`
+}
+
+type DiaryWithTags struct {
+	blogmodel.Diary
+	TagIDs []string `json:"tagIds"`
+}
+
+type BookmarkWithTags struct {
+	blogmodel.Bookmark
+	TagIDs []string `json:"tagIds"`
+}
+
 func New() *Service { return &Service{} }
 func (s *Service) database(ctx context.Context) (*gorm.DB, error) {
 	if global.Db == nil {
@@ -107,7 +122,11 @@ func (s *Service) List(ctx context.Context, resource string, query request.List)
 	if err := q.Order(order).Offset(query.Offset()).Limit(query.PageSize).Find(list).Error; err != nil {
 		return Page{}, err
 	}
-	return Page{List: list, Pagination: Pagination{Page: query.Page, PageSize: query.PageSize, Total: total, OrderBy: "created_at_" + query.Sort}}, nil
+	enriched, err := enrichListWithTags(db, resource, list)
+	if err != nil {
+		return Page{}, err
+	}
+	return Page{List: enriched, Pagination: Pagination{Page: query.Page, PageSize: query.PageSize, Total: total, OrderBy: "created_at_" + query.Sort}}, nil
 }
 
 func (s *Service) Get(ctx context.Context, resource, id string) (interface{}, error) {
@@ -125,7 +144,7 @@ func (s *Service) Get(ctx context.Context, resource, id string) (interface{}, er
 		}
 		return nil, err
 	}
-	return item, nil
+	return enrichItemWithTags(db, resource, item)
 }
 
 func publishedTimes(status, date string, at *time.Time) (time.Time, time.Time, error) {
@@ -177,7 +196,10 @@ func (s *Service) Create(ctx context.Context, resource string, payload interface
 				return err
 			}
 		}
-		result = item
+		result, err = enrichItemWithTags(tx, resource, item)
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 	return result, err
@@ -228,10 +250,106 @@ func (s *Service) Update(ctx context.Context, resource, id string, payload inter
 			}
 		}
 		loaded, err := s.getWithDB(tx, resource, id)
-		result = loaded
+		if err != nil {
+			return err
+		}
+		result, err = enrichItemWithTags(tx, resource, loaded)
 		return err
 	})
 	return result, err
+}
+
+type tagRelation struct {
+	OwnerID string `gorm:"column:owner_id"`
+	TagID   string `gorm:"column:tag_id"`
+}
+
+func loadTagIDs(db *gorm.DB, relationTable, ownerColumn string, ownerIDs []string) (map[string][]string, error) {
+	result := make(map[string][]string, len(ownerIDs))
+	for _, ownerID := range ownerIDs {
+		result[ownerID] = []string{}
+	}
+	if len(ownerIDs) == 0 {
+		return result, nil
+	}
+	var relations []tagRelation
+	err := db.Table(relationTable).
+		Select(ownerColumn+" AS owner_id", "tag_id").
+		Where(ownerColumn+" IN ?", ownerIDs).
+		Order(ownerColumn + " ASC, created_at ASC, tag_id ASC").
+		Scan(&relations).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, relation := range relations {
+		result[relation.OwnerID] = append(result[relation.OwnerID], relation.TagID)
+	}
+	return result, nil
+}
+
+func enrichListWithTags(db *gorm.DB, resource string, list interface{}) (interface{}, error) {
+	switch values := list.(type) {
+	case *[]blogmodel.Post:
+		ids := make([]string, 0, len(*values))
+		for _, value := range *values {
+			ids = append(ids, value.ID)
+		}
+		tags, err := loadTagIDs(db, "td_blog_post_tag", "post_id", ids)
+		if err != nil {
+			return nil, err
+		}
+		result := make([]PostWithTags, 0, len(*values))
+		for _, value := range *values {
+			result = append(result, PostWithTags{Post: value, TagIDs: tags[value.ID]})
+		}
+		return result, nil
+	case *[]blogmodel.Diary:
+		ids := make([]string, 0, len(*values))
+		for _, value := range *values {
+			ids = append(ids, value.ID)
+		}
+		tags, err := loadTagIDs(db, "td_blog_diary_tag", "diary_id", ids)
+		if err != nil {
+			return nil, err
+		}
+		result := make([]DiaryWithTags, 0, len(*values))
+		for _, value := range *values {
+			result = append(result, DiaryWithTags{Diary: value, TagIDs: tags[value.ID]})
+		}
+		return result, nil
+	case *[]blogmodel.Bookmark:
+		ids := make([]string, 0, len(*values))
+		for _, value := range *values {
+			ids = append(ids, value.ID)
+		}
+		tags, err := loadTagIDs(db, "td_blog_bookmark_tag", "bookmark_id", ids)
+		if err != nil {
+			return nil, err
+		}
+		result := make([]BookmarkWithTags, 0, len(*values))
+		for _, value := range *values {
+			result = append(result, BookmarkWithTags{Bookmark: value, TagIDs: tags[value.ID]})
+		}
+		return result, nil
+	default:
+		return list, nil
+	}
+}
+
+func enrichItemWithTags(db *gorm.DB, resource string, item interface{}) (interface{}, error) {
+	switch value := item.(type) {
+	case *blogmodel.Post:
+		tags, err := loadTagIDs(db, "td_blog_post_tag", "post_id", []string{value.ID})
+		return &PostWithTags{Post: *value, TagIDs: tags[value.ID]}, err
+	case *blogmodel.Diary:
+		tags, err := loadTagIDs(db, "td_blog_diary_tag", "diary_id", []string{value.ID})
+		return &DiaryWithTags{Diary: *value, TagIDs: tags[value.ID]}, err
+	case *blogmodel.Bookmark:
+		tags, err := loadTagIDs(db, "td_blog_bookmark_tag", "bookmark_id", []string{value.ID})
+		return &BookmarkWithTags{Bookmark: *value, TagIDs: tags[value.ID]}, err
+	default:
+		return item, nil
+	}
 }
 
 func (s *Service) Delete(ctx context.Context, resource, id string) error {

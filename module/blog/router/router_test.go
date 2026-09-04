@@ -20,14 +20,18 @@ type fakeService struct{}
 func (fakeService) Categories(context.Context, string) ([]response.Category, error) {
 	return []response.Category{}, nil
 }
-func (fakeService) PostTags(context.Context) ([]string, error) { return []string{}, nil }
+func (fakeService) PostTags(context.Context) ([]response.Tag, error) {
+	return []response.Tag{{ID: "tag-1", Name: "Go"}}, nil
+}
 func (fakeService) ListPosts(_ context.Context, query request.PostQuery) (response.Page, error) {
 	return response.Page{List: []response.PostSummary{}, Pagination: response.Pagination{Page: query.Page, PageSize: query.PageSize, OrderBy: "date_" + query.Sort}}, nil
 }
 func (fakeService) GetPost(context.Context, string) (response.Post, error) {
 	return response.Post{}, service.ErrPostNotFound
 }
-func (fakeService) DiaryTags(context.Context) ([]string, error) { return []string{}, nil }
+func (fakeService) DiaryTags(context.Context) ([]response.Tag, error) {
+	return []response.Tag{{ID: "tag-1", Name: "Go"}}, nil
+}
 func (fakeService) ListDiaries(_ context.Context, query request.DiaryQuery) (response.Page, error) {
 	return response.Page{List: []response.DiarySummary{}, Pagination: response.Pagination{Page: query.Page, PageSize: query.PageSize, OrderBy: "date_" + query.Sort}}, nil
 }
@@ -81,6 +85,17 @@ func TestPublicRoutes(t *testing.T) {
 				t.Fatalf("GET %s returned unexpected envelope: %s", path, recorder.Body.String())
 			}
 		})
+	}
+}
+
+func TestTagRoutesIncludeIDAndName(t *testing.T) {
+	for _, path := range []string{"/api/blog/tags", "/api/blog/diary/tags"} {
+		recorder := httptest.NewRecorder()
+		newEngine().ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, path, nil))
+		body := recorder.Body.String()
+		if recorder.Code != http.StatusOK || !strings.Contains(body, `"id":"tag-1"`) || !strings.Contains(body, `"name":"Go"`) {
+			t.Fatalf("GET %s returned unexpected tag response: %d %s", path, recorder.Code, body)
+		}
 	}
 }
 

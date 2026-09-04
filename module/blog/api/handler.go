@@ -15,10 +15,10 @@ import (
 
 type PublicService interface {
 	Categories(context.Context, string) ([]response.Category, error)
-	PostTags(context.Context) ([]string, error)
+	PostTags(context.Context) ([]response.Tag, error)
 	ListPosts(context.Context, request.PostQuery) (response.Page, error)
 	GetPost(context.Context, string) (response.Post, error)
-	DiaryTags(context.Context) ([]string, error)
+	DiaryTags(context.Context) ([]response.Tag, error)
 	ListDiaries(context.Context, request.DiaryQuery) (response.Page, error)
 	GetDiary(context.Context, string) (response.Diary, error)
 	ListPortfolio(context.Context, request.PortfolioQuery) ([]response.PortfolioSummary, error)

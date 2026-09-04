@@ -25,6 +25,8 @@ POST   /api/blog-mgr/{resource}/{id}/restore
 
 管理路径中的 `id` 是数据库 ID，不是文章 slug 或日记 publicId。删除使用软删除，不提供物理删除。
 
+文章、日记和书签的管理列表、详情、创建和更新响应均包含 `tagIds`。公开 `/api/blog/tags` 和 `/api/blog/diary/tags` 返回包含 `id`、`name` 的标签对象数组，可直接用于管理端选择器。
+
 列表参数包括 `page`、`pageSize`、`keyword`、`status`、`deleted`、`scope`、`categoryId` 和 `sort`。`deleted` 可取 `exclude`、`only`、`all`；`sort` 可取 `asc`、`desc`。
 
 Profile 和 Site 使用单例接口：

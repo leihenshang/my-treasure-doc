@@ -78,26 +78,26 @@ func (s *Service) Categories(ctx context.Context, scope string) ([]response.Cate
 	return result, nil
 }
 
-func (s *Service) PostTags(ctx context.Context) ([]string, error) {
+func (s *Service) PostTags(ctx context.Context) ([]response.Tag, error) {
 	return s.publishedTags(ctx, "td_blog_post_tag", "post_id", "td_blog_post")
 }
 
-func (s *Service) DiaryTags(ctx context.Context) ([]string, error) {
+func (s *Service) DiaryTags(ctx context.Context) ([]response.Tag, error) {
 	return s.publishedTags(ctx, "td_blog_diary_tag", "diary_id", "td_blog_diary")
 }
 
-func (s *Service) publishedTags(ctx context.Context, relationTable, ownerColumn, ownerTable string) ([]string, error) {
+func (s *Service) publishedTags(ctx context.Context, relationTable, ownerColumn, ownerTable string) ([]response.Tag, error) {
 	db, err := s.database(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	tags := make([]string, 0)
-	err = db.Table("td_blog_tag AS tag").Distinct("tag.name").
+	tags := make([]response.Tag, 0)
+	err = db.Table("td_blog_tag AS tag").Distinct("tag.id", "tag.name").
 		Joins(fmt.Sprintf("JOIN %s AS relation ON relation.tag_id = tag.id", relationTable)).
 		Joins(fmt.Sprintf("JOIN %s AS owner ON owner.id = relation.%s", ownerTable, ownerColumn)).
 		Where("owner.publish_status = ? AND owner.published_at <= ? AND owner.deleted_at IS NULL AND tag.deleted_at IS NULL", model.StatusPublished, time.Now()).
-		Order("tag.name ASC").Pluck("tag.name", &tags).Error
+		Order("tag.name ASC").Scan(&tags).Error
 	return tags, err
 }
 

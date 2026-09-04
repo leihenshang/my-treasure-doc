@@ -5,6 +5,11 @@ type Category struct {
 	Name string `json:"name"`
 }
 
+type Tag struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type PostSummary struct {
 	ID       string   `json:"id"`
 	Title    string   `json:"title"`
