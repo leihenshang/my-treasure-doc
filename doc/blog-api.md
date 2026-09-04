@@ -1,15 +1,15 @@
-# Treasure Blog 公开 API 接口文档
+# Treasure Blog API 接口文档
 
 > 版本：v1.0  
 > 适用范围：当前前端 `/Blog` 模块  
 > 后端实现建议：Go 1.23+、Gin/Echo/Chi 均可  
-> 文档状态：前后端联调契约
+> 文档状态：公开端与管理端联调契约
 
 ## 1. 概述
 
-本文档定义 Treasure Doc 前端 `/Blog` 公开模块所需的只读 API，包括文章、日记、作品、工具、书签、个人资料和站点信息。
+本文档定义 Treasure Doc 前端 `/Blog` 公开模块所需的只读 API，以及对应内容的后台管理 API，包括文章、日记、作品、工具、书签、分类、标签、个人资料和站点信息。
 
-这些接口应允许匿名访问，不要求登录，不校验 `X-Token`。后台内容管理、登录鉴权、图片上传及其他文档管理接口不在本文档范围内。
+公开接口允许匿名访问，不要求登录，不校验 `X-Token`。管理接口要求登录且仅允许 admin/root 用户访问。图片上传及其他文档管理接口不在本文档范围内。
 
 ### 1.1 Base URL
 
@@ -912,4 +912,490 @@ Cache-Control: public, max-age=60, stale-while-revalidate=300
 - 搜索建议与热门标签
 - 作品和书签分页
 - 备案号、版权年份等站点配置接口
-- 管理端 CRUD、草稿预览和发布工作流
+
+## 15. Blog 管理 API
+
+管理 API 用于维护公开 Blog 使用的 PostgreSQL 数据。
+
+### 15.1 Base URL
+
+```text
+/api/blog-mgr
+```
+
+管理 API 与公开 API 使用相同响应信封，但管理路径中的资源 `id` 是数据库内部 ID，不是公开 slug/publicId。
+
+标识对应关系：
+
+| 资源 | 管理路径 ID | 公开 API ID |
+| --- | --- | --- |
+| 分类 | 数据库 `id` | `slug`，公开响应为 `id` |
+| 标签 | 数据库 `id` | 标签名称 |
+| 文章 | 数据库 `id` | `slug` |
+| 日记 | 数据库 `id` | `publicId` |
+| 作品 | 数据库 `id` | `slug` |
+| 工具 | 数据库 `id` | `slug` |
+| 书签 | 数据库 `id` | `publicId` |
+
+### 15.2 认证与权限
+
+除 CORS 预检请求外，所有管理请求必须携带：
+
+```http
+X-Token: <login-token>
+```
+
+仅以下用户类型允许访问：
+
+| userType | 角色 |
+| --- | --- |
+| `2` | admin |
+| `100` | root |
+
+认证和授权顺序为 `CORS -> Auth -> RequireAdmin -> Handler`。`OPTIONS` 预检请求由 CORS 中间件直接返回 HTTP 204。
+
+认证相关响应：
+
+| 场景 | HTTP | 业务码 | 说明 |
+| --- | --- | --- | --- |
+| 缺少或无效 Token | 401 | `1` | 沿用用户模块现有认证响应 |
+| 认证上下文缺失 | 401 | `40100` | 未登录或登录已失效 |
+| 普通用户访问 | 403 | `40300` | 无管理权限 |
+
+开发模式启用 `debug.enableMockLogin` 时，认证中间件使用 Mock root 用户，不检查 `X-Token`。该配置仅在服务重启后生效。
+
+### 15.3 管理响应与错误码
+
+普通成功响应：
+
+```json
+{
+  "code": 0,
+  "msg": "",
+  "data": {}
+}
+```
+
+创建成功使用 HTTP 201；查询、更新、删除、恢复和单例保存成功使用 HTTP 200。
+
+| HTTP | 业务码 | 含义 |
+| --- | --- | --- |
+| 200 | `0` | 操作成功 |
+| 201 | `0` | 创建成功 |
+| 400 | `40001` | 请求参数格式错误 |
+| 404 | `40410` | 资源不存在 |
+| 409 | `40900` | 版本冲突或唯一标识重复 |
+| 500 | `50000` | 服务内部错误 |
+
+错误时 `data` 固定为 `null`：
+
+```json
+{
+  "code": 40900,
+  "msg": "数据已变更或标识重复",
+  "data": null
+}
+```
+
+## 16. 管理路由总览
+
+以下资源使用统一的 CRUD、软删除和恢复路由：
+
+- `categories`
+- `tags`
+- `posts`
+- `diaries`
+- `portfolio-items`
+- `tools`
+- `bookmarks`
+
+每种资源均注册以下 6 个端点，共 42 个：
+
+| 方法 | Endpoint | 说明 |
+| --- | --- | --- |
+| GET | `/api/blog-mgr/{resource}` | 分页列表 |
+| POST | `/api/blog-mgr/{resource}` | 创建资源 |
+| GET | `/api/blog-mgr/{resource}/{id}` | 资源详情，包括已软删除记录 |
+| PATCH | `/api/blog-mgr/{resource}/{id}` | 更新资源，当前为全量覆盖语义 |
+| DELETE | `/api/blog-mgr/{resource}/{id}` | 软删除资源 |
+| POST | `/api/blog-mgr/{resource}/{id}/restore` | 恢复资源 |
+
+Profile 和 Site 额外提供 4 个单例端点：
+
+| 方法 | Endpoint | 说明 |
+| --- | --- | --- |
+| GET | `/api/blog-mgr/profile` | 获取个人资料配置 |
+| PUT | `/api/blog-mgr/profile` | 创建或覆盖个人资料配置 |
+| GET | `/api/blog-mgr/site` | 获取站点配置 |
+| PUT | `/api/blog-mgr/site` | 创建或覆盖站点配置 |
+
+管理端共计 46 个端点。
+
+## 17. 管理列表
+
+```http
+GET /api/blog-mgr/{resource}
+```
+
+### 17.1 查询参数
+
+| 参数 | 默认值 | 约束与说明 |
+| --- | --- | --- |
+| `page` | `1` | 大于等于 1 |
+| `pageSize` | `20` | 1 至 100 |
+| `keyword` | - | 去除首尾空格；分类、标签、工具匹配 `name`，其他资源匹配 `title` |
+| `status` | - | `draft`、`published` 或 `archived`；仅内容资源使用 |
+| `deleted` | `exclude` | `exclude`、`only` 或 `all` |
+| `scope` | - | `post`、`portfolio` 或 `bookmark`；仅分类使用 |
+| `categoryId` | - | 分类 slug；仅文章、作品、书签使用 |
+| `sort` | `desc` | `asc` 或 `desc`，按 `created_at` 排序 |
+
+请求示例：
+
+```http
+GET /api/blog-mgr/posts?page=1&pageSize=20&status=draft&deleted=exclude&sort=desc
+```
+
+响应示例：
+
+```json
+{
+  "code": 0,
+  "msg": "",
+  "data": {
+    "list": [],
+    "pagination": {
+      "page": 1,
+      "pageSize": 20,
+      "total": 0,
+      "orderBy": "created_at_desc"
+    }
+  }
+}
+```
+
+管理列表和详情响应包含资源业务字段以及 `id`、`createdAt`、`updatedAt`、`deletedAt`。文章、日记和书签响应当前不回填 `tagIds`。
+
+## 18. 分类与标签管理
+
+### 18.1 分类 Category
+
+请求字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `scope` | string | 是 | `post`、`portfolio`、`bookmark`；创建后不可修改 |
+| `slug` | string | 是 | 长度 1 至 128；同一 scope 内唯一 |
+| `name` | string | 是 | 展示名称，去除首尾空格后不能为空 |
+| `sortOrder` | integer | 否 | 排序值，默认 0 |
+| `enabled` | boolean | 否 | 是否启用，缺省为 true |
+
+```http
+POST /api/blog-mgr/categories
+Content-Type: application/json
+```
+
+```json
+{
+  "scope": "post",
+  "slug": "tech",
+  "name": "技术",
+  "sortOrder": 10,
+  "enabled": true
+}
+```
+
+修改分类 slug 时，服务会在同一事务中同步该 scope 对应内容的 `categoryId`。仍有未删除内容引用分类时，删除返回 HTTP 409。
+
+### 18.2 标签 Tag
+
+```json
+{
+  "name": "Go"
+}
+```
+
+`name` 去除首尾空格后不能为空。服务端生成小写 `normalizedName`，因此标签名称按大小写不敏感语义保持唯一。删除标签不会删除关系记录；公开接口会过滤已删除标签。
+
+## 19. 内容资源管理
+
+### 19.1 文章 Post
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `slug` | string | 公开文章 ID，长度 1 至 128 |
+| `title` | string | 必填 |
+| `summary` | string | 摘要 |
+| `categoryId` | string | 文章分类 slug，非空时必须属于 `post` scope |
+| `author` | string | 作者展示名 |
+| `content` | string | Markdown 正文 |
+| `publishStatus` | string | `draft`、`published`、`archived` |
+| `publishedOn` | string | `YYYY-MM-DD` |
+| `publishedAt` | string | 可选，RFC 3339 时间 |
+| `pinned` | boolean | 是否置顶 |
+| `version` | integer | 更新时必填且大于等于 1 |
+| `tagIds` | string[] | 标签数据库 ID；去重后整体替换 |
+
+创建示例：
+
+```json
+{
+  "slug": "hello-world",
+  "title": "Hello World",
+  "summary": "第一篇文章",
+  "categoryId": "essay",
+  "author": "Treasure Doc",
+  "content": "# Hello World",
+  "publishStatus": "draft",
+  "publishedOn": "2026-09-04",
+  "pinned": false,
+  "tagIds": []
+}
+```
+
+更新使用相同字段，并携带当前版本：
+
+```http
+PATCH /api/blog-mgr/posts/123456789
+```
+
+```json
+{
+  "slug": "hello-world",
+  "title": "Hello World（修订）",
+  "summary": "第一篇文章",
+  "categoryId": "essay",
+  "author": "Treasure Doc",
+  "content": "# Hello World\n\n更新后的正文。",
+  "publishStatus": "published",
+  "publishedOn": "2026-09-04",
+  "pinned": true,
+  "version": 1,
+  "tagIds": ["10001", "10002"]
+}
+```
+
+### 19.2 日记 Diary
+
+请求字段为：`publicId`、`title`、`summary`、`content`、`mood`、`weather`、`publishStatus`、`publishedOn`、`publishedAt`、`pinned`、`version`、`tagIds`。
+
+```json
+{
+  "publicId": "2026-09-04",
+  "title": "九月四日",
+  "summary": "今天的简短记录。",
+  "content": "# 九月四日",
+  "mood": "充实",
+  "weather": "晴",
+  "publishStatus": "published",
+  "publishedOn": "2026-09-04",
+  "pinned": false,
+  "version": 1,
+  "tagIds": []
+}
+```
+
+`publicId` 是公开日记 ID，但管理详情和更新路径仍使用数据库 `id`。
+
+### 19.3 作品 PortfolioItem
+
+请求字段为：`slug`、`title`、`summary`、`categoryId`、`cover`、`techStack`、`links`、`content`、`publishStatus`、`publishedOn`、`publishedAt`、`version`。
+
+```json
+{
+  "slug": "treasure-doc",
+  "title": "Treasure Doc",
+  "summary": "Markdown 文档管理系统",
+  "categoryId": "website",
+  "cover": "📚",
+  "techStack": ["Vue 3", "Go"],
+  "links": [
+    {"label": "GitHub", "url": "https://github.com/leihenshang/my-treasure-doc"}
+  ],
+  "content": "# Treasure Doc",
+  "publishStatus": "published",
+  "publishedOn": "2026-09-04",
+  "version": 1
+}
+```
+
+`techStack` 和 `links` 以 JSONB 保存并保持数组顺序。非空 `categoryId` 必须属于 `portfolio` scope。
+
+### 19.4 工具 Tool
+
+请求字段为：`slug`、`kind`、`name`、`description`、`url`、`cover`、`developmentStatus`、`content`、`publishStatus`、`publishedAt`、`sortOrder`、`version`。
+
+外链工具示例：
+
+```json
+{
+  "slug": "mdn",
+  "kind": "link",
+  "name": "MDN Web 文档",
+  "description": "Web 标准参考",
+  "url": "https://developer.mozilla.org/zh-CN/",
+  "publishStatus": "published",
+  "sortOrder": 10,
+  "version": 1
+}
+```
+
+`kind=link` 时 URL 必须使用 HTTPS，服务端清空 `cover`、`developmentStatus`、`content`。`kind=own` 时 `developmentStatus` 必填，服务端清空 `url`。
+
+### 19.5 书签 Bookmark
+
+请求字段为：`publicId`、`title`、`url`、`description`、`categoryId`、`icon`、`publishStatus`、`publishedAt`、`sortOrder`、`version`、`tagIds`。
+
+```json
+{
+  "publicId": "github",
+  "title": "GitHub",
+  "url": "https://github.com/",
+  "description": "代码托管与开源社区",
+  "categoryId": "dev",
+  "icon": "🐙",
+  "publishStatus": "published",
+  "sortOrder": 10,
+  "version": 1,
+  "tagIds": []
+}
+```
+
+书签 URL 必须使用 HTTPS。非空 `categoryId` 必须属于 `bookmark` scope。
+
+## 20. Profile 与 Site 管理
+
+### 20.1 Profile
+
+```http
+PUT /api/blog-mgr/profile
+Content-Type: application/json
+```
+
+```json
+{
+  "name": "Treasure",
+  "avatar": "🧑‍💻",
+  "role": "前端工程师",
+  "location": "中国 · 杭州",
+  "motto": "写代码，写生活。",
+  "bio": "个人简介。",
+  "links": [
+    {
+      "id": "github",
+      "label": "GitHub",
+      "value": "github.com/leihenshang",
+      "url": "https://github.com/leihenshang",
+      "icon": "🐙"
+    }
+  ],
+  "skills": [
+    {"name": "Vue 3", "level": 95, "group": "前端"}
+  ]
+}
+```
+
+`name` 必填；链接 ID 不可重复，非空 URL 仅允许 HTTPS 或 `mailto:`；技能名称和分组必填，`level` 必须在 0 至 100。
+
+### 20.2 Site
+
+```http
+PUT /api/blog-mgr/site
+Content-Type: application/json
+```
+
+```json
+{
+  "name": "Treasure Blog",
+  "slogan": "records · thinking · life",
+  "intro": "个人站点介绍。",
+  "techStack": ["Vue 3", "TypeScript", "Go"],
+  "modules": [
+    {
+      "id": "blog",
+      "icon": "📝",
+      "name": "文章",
+      "desc": "技术笔记与长文",
+      "path": "/Blog"
+    }
+  ],
+  "milestones": [
+    {"date": "2026-09-04", "title": "管理 API 上线", "desc": "支持内容维护。"}
+  ]
+}
+```
+
+`name` 必填；模块 ID 不可重复，路径必须以 `/Blog` 开头；里程碑日期必须为 `YYYY-MM-DD` 且标题不能为空。
+
+Profile 和 Site 使用固定单例 key `default`。记录不存在时 GET 返回结构完整的空对象，数组为 `[]`；PUT 执行创建或覆盖，并恢复已软删除的单例记录。
+
+## 21. 内容生命周期
+
+### 21.1 发布状态和时间
+
+- `publishStatus` 仅允许 `draft`、`published`、`archived`。
+- 首次保存为 `published` 且未提供 `publishedAt` 时，使用服务器当前时间。
+- 文章、日记、作品发布时若未提供 `publishedOn`，使用 `publishedAt` 对应日期。
+- 未来的 `publishedAt` 表示预约发布；到达该时间前公开接口不可见。
+- 草稿和归档内容不会出现在公开 API。
+
+### 21.2 乐观锁
+
+文章、日记、作品、工具和书签更新必须携带当前 `version >= 1`。更新 SQL 同时匹配数据库 ID 和版本号，成功后版本原子递增。
+
+版本过期、唯一 slug/publicId 冲突或唯一标签名称冲突统一返回 HTTP 409 和业务码 `40900`。
+
+### 21.3 标签事务
+
+文章、日记和书签的主体更新与标签关系替换位于同一事务：
+
+1. 去除 `tagIds` 中的首尾空格和重复值。
+2. 验证所有标签存在且未删除。
+3. 创建或更新主体。
+4. 删除旧关系并写入请求中的完整标签集合。
+5. 任一步失败则整体回滚。
+
+### 21.4 软删除与恢复
+
+普通资源使用 GORM 软删除。删除成功响应：
+
+```json
+{"code": 0, "msg": "", "data": {"deleted": true}}
+```
+
+恢复成功响应：
+
+```json
+{"code": 0, "msg": "", "data": {"restored": true}}
+```
+
+管理详情使用 `Unscoped()`，因此已删除资源仍可通过数据库 ID 查询。管理列表通过 `deleted=only` 查看回收站，通过 `deleted=all` 查看全部数据。
+
+软删除记录仍占用唯一 slug/publicId/标签名称，不能用相同标识重新创建，只能恢复原记录。
+
+## 22. 管理 API 当前实现限制
+
+以下内容描述当前实现边界，调用方应避免依赖未实现语义：
+
+1. `PATCH` 当前是全量覆盖，不是真正的部分更新。应提交资源全部字段；省略字段会写入零值，分类省略 `enabled` 会重置为 true。
+2. 管理文章、日记、书签的列表和详情响应暂不回填 `tagIds`。编辑页面需要自行保存创建/更新时使用的标签集合，或等待后续补充响应 DTO。
+3. 管理列表过滤器没有按资源自动裁剪。不要给不含相应列的资源传 `status`、`scope` 或 `categoryId`，否则当前实现可能返回 HTTP 500。
+4. `keyword` 只搜索一个主字段，且 `%`、`_` 当前会按 SQL LIKE 通配符解释。
+5. 作品 `links[].url` 当前未执行 HTTPS 协议校验；书签、外链工具和 Profile 链接已校验。
+6. 创建版本化内容时请求中的 `version` 可以大于 1；调用方应省略或传 1。
+7. 非版本资源更新不存在与版本资源冲突的错误语义并不完全一致；调用方应同时处理 404 和 409。
+8. 禁用或删除分类不会自动隐藏引用该分类的公开内容，只会使分类不再出现在分类列表。
+9. 标签精确筛选在 PostgreSQL 中通常区分大小写；关键词搜索才显式不区分大小写。
+10. 当前单元测试未连接真实 PostgreSQL，JSONB、事务回滚、分类 slug 级联和并发乐观锁仍需集成测试验证。
+
+## 23. 管理端验收清单
+
+- 无 Token 返回 401，普通用户返回 403，admin/root 可以访问。
+- 七类普通资源的列表、创建、详情、更新、删除、恢复均可用。
+- 创建返回 HTTP 201，其余成功返回 HTTP 200。
+- 内容更新使用当前 version，过期版本返回 409。
+- 草稿、归档、预约发布时间未到的内容不出现在公开 API。
+- 删除后公开详情返回 404，管理详情仍可读取，恢复后按状态重新决定是否公开。
+- 分类 scope 校验正确，修改 slug 后引用内容同步更新。
+- 标签整体替换无重复，任一步失败时主体和关系同时回滚。
+- Profile/Site GET 在空库返回空数组而不是 null，PUT 后公开接口可读取新配置。
