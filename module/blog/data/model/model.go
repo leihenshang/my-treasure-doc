@@ -162,6 +162,7 @@ type Tool struct {
 	PublishStatus     string    `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index"`
 	PublishedAt       time.Time `gorm:"column:published_at;type:timestamptz;not null;index"`
 	SortOrder         int       `gorm:"column:sort_order;not null;default:0;index"`
+	Version           int       `gorm:"column:version;not null;default:1"`
 }
 
 func (*Tool) TableName() string { return "td_blog_tool" }
@@ -177,6 +178,7 @@ type Bookmark struct {
 	PublishStatus string    `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index"`
 	PublishedAt   time.Time `gorm:"column:published_at;type:timestamptz;not null;index"`
 	SortOrder     int       `gorm:"column:sort_order;not null;default:0;index"`
+	Version       int       `gorm:"column:version;not null;default:1"`
 }
 
 func (*Bookmark) TableName() string { return "td_blog_bookmark" }

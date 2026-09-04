@@ -117,6 +117,8 @@ main.go
 
 匿名只读接口挂载在 `/api/blog`，覆盖文章、日记、作品、工具、书签、个人资料、站点信息和内容统计。完整请求参数与响应契约见 [doc/blog-api.md](doc/blog-api.md)，后端模块说明见 [module/blog/README.md](module/blog/README.md)。
 
+Blog 管理接口挂载在 `/api/blog-mgr`，仅 admin/root 可访问，提供分类、标签、全部内容资源以及 Profile、Site 的管理能力。管理接口说明见 [module/blog_mgr/README.md](module/blog_mgr/README.md)。
+
 ---
 
 ## 快速开始 Quick Start

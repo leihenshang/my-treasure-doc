@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	blogrouter "fastduck/treasure-doc/module/blog/router"
+	blogmgrrouter "fastduck/treasure-doc/module/blog_mgr/router"
 	"fastduck/treasure-doc/module/user/config"
 	"fastduck/treasure-doc/module/user/global"
 	"fastduck/treasure-doc/module/user/router/middleware"
@@ -30,6 +31,9 @@ func InitRouter(r *gin.Engine) {
 
 	apiBase := r.Group("api")
 	blogrouter.Register(apiBase, func() *gorm.DB { return global.Db })
+	blogMgrRoute := apiBase.Group("blog-mgr")
+	blogMgrRoute.Use(middleware.Cors(), middleware.Auth(), middleware.RequireAdmin())
+	blogmgrrouter.Register(blogMgrRoute, func() *gorm.DB { return global.Db })
 
 	{
 		userApi := api.NewUserApi()
