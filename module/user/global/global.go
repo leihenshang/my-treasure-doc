@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
+	blogseed "fastduck/treasure-doc/module/blog/seed"
 	"fastduck/treasure-doc/module/user/config"
 )
 
@@ -44,6 +45,9 @@ func InitModule(cfgPath string) (destructFunc func(), err error) {
 	}
 	fmt.Println("初始化配置完成")
 	setConf(config.GetConfig())
+	if err = validateStartupConfig(GetConf()); err != nil {
+		return
+	}
 
 	if err = initLog(); err != nil {
 		return
@@ -73,7 +77,40 @@ func InitModule(cfgPath string) (destructFunc func(), err error) {
 	}
 	fmt.Println("初始化配置热更新完成")
 
-	return destructModule(), migrateDbTable()
+	destructFunc = destructModule()
+	if err = migrateDbTable(); err != nil {
+		destructFunc()
+		destructFunc = nil
+		return
+	}
+	if err = seedBlogData(); err != nil {
+		destructFunc()
+		destructFunc = nil
+		return
+	}
+	return
+}
+
+func seedBlogData() error {
+	cfg := GetConf()
+	if cfg == nil || !cfg.BlogSeed.Enabled {
+		return nil
+	}
+	result, err := blogseed.Seed(Db, blogseed.Options{
+		Enabled: cfg.BlogSeed.Enabled, AllowRemote: cfg.BlogSeed.AllowRemote,
+		RestoreDeleted: cfg.BlogSeed.RestoreDeleted, Release: cfg.App.IsRelease(),
+		Host: cfg.Database.Host, Database: cfg.Database.DbName,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to seed blog data: %w", err)
+	}
+	message := fmt.Sprintf("blog seed completed for %s/%s: created=%d existing=%d restored=%d skipped=%d", cfg.Database.Host, cfg.Database.DbName, result.Created, result.Existing, result.Restored, result.Skipped)
+	if Log != nil {
+		Log.Info(message)
+	} else {
+		fmt.Println(message)
+	}
+	return nil
 }
 
 func initConfigHotReload() error {
@@ -109,7 +146,7 @@ func effectiveHotReloadConfig(current, candidate *config.Config) (*config.Config
 
 	effective := *current
 	effective.App.RegisterEnabled = candidate.App.RegisterEnabled
-	restartRequired := make([]string, 0, 5)
+	restartRequired := make([]string, 0, 6)
 	currentApp := current.App
 	candidateApp := candidate.App
 	currentApp.RegisterEnabled = false
@@ -129,7 +166,23 @@ func effectiveHotReloadConfig(current, candidate *config.Config) (*config.Config
 	if !reflect.DeepEqual(current.Debug, candidate.Debug) {
 		restartRequired = append(restartRequired, "debug")
 	}
+	if !reflect.DeepEqual(current.BlogSeed, candidate.BlogSeed) {
+		restartRequired = append(restartRequired, "blogSeed")
+	}
 	return &effective, restartRequired
+}
+
+func validateStartupConfig(cfg *config.Config) error {
+	if cfg == nil {
+		return fmt.Errorf("config is nil")
+	}
+	if cfg.App.IsRelease() && cfg.Debug.EnableMockLogin {
+		return fmt.Errorf("debug mock login is forbidden in release mode")
+	}
+	if cfg.App.IsRelease() && cfg.BlogSeed.Enabled {
+		return fmt.Errorf("blog seed is forbidden in release mode")
+	}
+	return nil
 }
 
 func destructModule() func() {

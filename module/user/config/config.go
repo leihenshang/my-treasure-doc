@@ -16,6 +16,7 @@ type Config struct {
 	Redis    Redis
 	Log      Log
 	Debug    Debug
+	BlogSeed BlogSeed
 }
 
 var globalConfig *Config

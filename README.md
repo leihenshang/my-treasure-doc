@@ -357,7 +357,8 @@ go run ./module/user/cli/reset-pwd -u <账号> -p <新密码> -cfg <config.toml 
 | **会话管理** | 每用户最多 3 个 token，超限自动剔除最早的会话 |
 | **空间隔离** | 注册时自动创建默认 Room，文档按 Room 隔离（多租户基础） |
 | **配置热更新** | 仅 `app.registerEnabled` 可热更新；PostgreSQL、Redis、日志、端口、运行模式和 Debug 变更需重启 |
-| **Mock 认证** | `Debug.EnableMockLogin` 开关，开发时跳过 token 验证 |
+| **Mock 认证** | 仅 dev 模式可通过 `debug.enableMockLogin` 注入固定 root，修改后需重启 |
+| **Blog Seed** | 默认关闭；迁移后幂等填充公开演示数据，远程库需显式 `allowRemote=true` |
 
 ---
 

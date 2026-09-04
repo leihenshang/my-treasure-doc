@@ -9,7 +9,28 @@
 - 分类的 `scope` 可取 `post`、`portfolio`、`bookmark`。
 - 工具的 `kind` 可取 `own` 或 `link`。只有 `own` 类型可以通过详情接口访问。
 - Profile 与 Site 使用 `default` 作为单例 key；空库时返回字段完整的空对象。
-- 本模块不自动写入演示数据，也不提供管理端 CRUD。
+- 本模块提供默认关闭的配置驱动 Seed；管理 CRUD 由 `module/blog_mgr` 提供。
+
+## Mock 数据 Seed
+
+Seed 在全部 `AutoMigrate` 成功后执行，默认关闭：
+
+```toml
+[blogSeed]
+enabled = false
+allowRemote = false
+restoreDeleted = false
+```
+
+- `enabled`：启动时执行 Seed。
+- `allowRemote`：允许向非 localhost 数据库写入；远程库必须显式设为 true。
+- `restoreDeleted`：恢复与 Seed 固定业务键匹配的软删除记录；默认跳过。
+
+Seed 仅允许在 `runMode = "dev"` 下执行。配置运行中修改不会触发 Seed，必须重启服务。
+
+固定数据包括 20 篇文章、20 篇日记、11 个分类、10 个标签、8 个作品、8 个工具、8 个书签以及 Profile/Site。文章和日记各有 12 条当前公开数据，其余覆盖预约发布、软删除、草稿和归档；公开作品为 4 条。
+
+Seed 使用单一事务并按 slug/publicId/default key 幂等查找。已有记录不会被覆盖，标签关系只补缺失项，不删除管理员后来添加的关系。
 
 ## 表
 

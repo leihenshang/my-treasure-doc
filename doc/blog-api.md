@@ -977,7 +977,22 @@ X-Token: <login-token>
 | 认证上下文缺失 | 401 | `40100` | 未登录或登录已失效 |
 | 普通用户访问 | 403 | `40300` | 无管理权限 |
 
-开发模式启用 `debug.enableMockLogin` 时，认证中间件使用 Mock root 用户，不检查 `X-Token`。该配置仅在服务重启后生效。
+开发模式启用 `debug.enableMockLogin` 时，认证中间件使用 Mock root 用户，不检查 `X-Token`。`mockUserId` 只改变内存 Mock 用户 ID，不查询数据库用户，角色固定为 root。release 模式禁止启用 Mock；开启或关闭均需重启服务。
+
+### 15.2.1 演示数据 Seed
+
+开发环境可在启动时幂等填充 Blog 演示数据：
+
+```toml
+[blogSeed]
+enabled = true
+allowRemote = false
+restoreDeleted = false
+```
+
+Seed 在全部表迁移成功后运行。默认仅允许本机数据库；连接远程数据库时必须显式设置 `allowRemote=true`。release 模式禁止执行，配置热更新也不会触发 Seed。
+
+数据集包含 20 篇文章和 20 篇日记，其中各 12 条当前公开，并补齐分类、标签、作品、工具、书签、Profile 和 Site。Seed 不覆盖已有记录；软删除记录默认跳过，`restoreDeleted=true` 时恢复。
 
 ### 15.3 管理响应与错误码
 

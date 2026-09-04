@@ -34,7 +34,7 @@ func Auth() gin.HandlerFunc {
 		result := &response.Response{Code: response.ERROR}
 		cfg := global.GetConf()
 
-		if cfg != nil && cfg.Debug.EnableMockLogin {
+		if cfg != nil && cfg.App.IsDev() && cfg.Debug.EnableMockLogin {
 			requestUser := *mockUser
 			if cfg.Debug.MockUserId != "" {
 				requestUser.Id = cfg.Debug.MockUserId

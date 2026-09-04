@@ -2,6 +2,19 @@
 
 本模块管理 `module/blog` 使用的 PostgreSQL 数据，挂载在 `/api/blog-mgr`。所有请求必须携带有效 `X-Token`，且当前用户类型必须为 admin 或 root。
 
+开发环境可通过配置启用固定 root Mock：
+
+```toml
+[app]
+runMode = "dev"
+
+[debug]
+enableMockLogin = true
+mockUserId = "9999999999"
+```
+
+启用后管理请求可以不带 `X-Token`。`mockUserId` 只设置内存 Mock 用户 ID，不查询数据库，角色固定为 root。release 模式禁止启用 Mock，配置修改后必须重启。
+
 ## 资源路由
 
 以下资源使用统一 CRUD：

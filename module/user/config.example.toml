@@ -26,3 +26,12 @@ port = 6379
 user = ""
 password = ""
 dbId = 0
+
+[debug]
+enableMockLogin = false
+mockUserId = "9999999999"
+
+[blogSeed]
+enabled = false
+allowRemote = false
+restoreDeleted = false
