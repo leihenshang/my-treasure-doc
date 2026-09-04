@@ -9,11 +9,11 @@
 ## 技术栈 Tech Stack
 
 | 类别 | 技术 | 版本 |
-|------|------|------|
+| ------ | ------ | ------ |
 | **语言** | Go | 1.22+ |
 | **Web 框架** | Gin | v1.9.1 |
 | **ORM** | GORM | v1.24 |
-| **数据库** | MySQL | 5.7+ |
+| **数据库** | PostgreSQL | 12+ |
 | **缓存** | Redis | 可选 |
 | **配置管理** | Viper + TOML | v1.8.1 |
 | **日志** | Zap + Lumberjack | v1.17.0 |
@@ -30,7 +30,7 @@
 ```
 main.go
   │
-  ├─ global.InitModule()        ← 统一初始化 Config → MySQL → Redis → Logger → Validator
+  ├─ global.InitModule()        ← 统一初始化 Config → Logger → Redis → PostgreSQL → Validator
   │                               (支持配置热更新，动态刷新连接池)
   │
   ├─ router.InitRouter(r)       ← 路由注册 + 中间件
@@ -53,7 +53,7 @@ main.go
 ### 用户模块
 
 | 方法 | 路径 | 说明 | 认证 |
-|------|------|------|------|
+| ------ | ------ | ------ | ------ |
 | POST | `/api/user/reg` | 注册（自动创建默认空间） | ❌ |
 | POST | `/api/user/login` | 登录（返回 token，7 天有效） | ❌ |
 | POST | `/api/user/logout` | 退出登录 | ✅ |
@@ -68,7 +68,7 @@ main.go
 ### 文档模块
 
 | 方法 | 路径 | 说明 | 认证 |
-|------|------|------|------|
+| ------ | ------ | ------ | ------ |
 | POST | `/api/doc/create` | 创建文档 | ✅ |
 | GET | `/api/doc/detail` | 文档详情 | ✅ |
 | GET | `/api/doc/list` | 文档列表 | ✅ |
@@ -82,7 +82,7 @@ main.go
 ### 文档分组
 
 | 方法 | 路径 | 说明 | 认证 |
-|------|------|------|------|
+| ------ | ------ | ------ | ------ |
 | POST | `/api/doc-group/create` | 创建分组 | ✅ |
 | GET | `/api/doc-group/list` | 分组列表 | ✅ |
 | GET | `/api/doc-group/tree` | 分组树形结构 | ✅ |
@@ -93,7 +93,7 @@ main.go
 ### 笔记 & 文件 & 空间
 
 | 方法 | 路径 | 说明 | 认证 |
-|------|------|------|------|
+| ------ | ------ | ------ | ------ |
 | POST | `/api/note/create` | 创建笔记 | ✅ |
 | GET | `/api/note/detail` | 笔记详情 | ✅ |
 | GET | `/api/note/list` | 笔记列表 | ✅ |
@@ -120,7 +120,7 @@ main.go
 ### 环境要求 Requirements
 
 - **Go** 1.22+
-- **MySQL** 5.7+
+- **PostgreSQL** 12+
 - **Redis** (可选，用于缓存/验证码)
 
 ### 配置文件 Configuration
@@ -134,14 +134,17 @@ cp config.example.toml config.toml
 ```toml
 [app]
 port = 2021
-release = false       # 生产环境改为 true
+runMode = "dev"       # dev-开发模式 release-生产模式
 
-[mysql]
+[database]
 host = "127.0.0.1"
-port = 3306
-user = "root"
-password = ""
-db_name = "treasure_doc"
+port = 5432
+user = "postgres"
+password = "postgres"
+dbName = "treasure_doc"
+sslMode = "disable"
+timeZone = "Asia/Shanghai"
+tablePrefix = "td_"
 
 [redis]
 enable = false        # 不启用 Redis 可跳过
@@ -158,20 +161,20 @@ level = "info"
 # 进入用户模块
 cd module/user
 
-# 安装依赖
-go mod tidy
-
 # 运行服务（默认加载 ./config.toml）
-go run main.go
+go run . -c config.toml
 
 # 指定配置文件路径
-go run main.go -c /path/to/config.toml
+go run . -c /path/to/config.toml
 ```
 
 启动后自动完成：
+
 1. 初始化数据库连接，自动建表（GORM AutoMigrate）
 2. 注册 root 账号：`treasure-root / treasure-root`（首次运行）
 3. 服务监听 `:2021`
+
+> AutoMigrate 仅用于在空 PostgreSQL 数据库中初始化或调整表结构，不会迁移已有 MySQL 数据。
 
 > ⚠️ **首次登录后请立即修改 root 密码。**
 
@@ -200,7 +203,7 @@ treasure-doc/
 │       │
 │       ├── config/                  # Config 结构体 + Viper 封装
 │       │   ├── config.go            # 热更新支持
-│       │   ├── app.go / mysql.go / redis.go / log.go / debug.go
+│       │   ├── app.go / database.go / redis.go / log.go / debug.go
 │       │
 │       ├── data/                    # 数据层
 │       │   ├── model/               # GORM 模型（DO）
@@ -216,7 +219,7 @@ treasure-doc/
 │       ├── global/                  # 全局单例 & 初始/销毁
 │       │   ├── global.go            # InitModule / 热更新连接刷新
 │       │   ├── constant.go
-│       │   ├── db.go                # MySQL 初始化 + 优雅关闭
+│       │   ├── db.go                # PostgreSQL 初始化 + 优雅关闭
 │       │   ├── logger.go            # Zap 初始化
 │       │   ├── trans.go             # 校验器翻译
 │       │   └── gid/                 # Sonyflake ID 生成
@@ -264,7 +267,7 @@ treasure-doc/
 所有模型嵌入 `BaseModel`，使用 **Sonyflake 雪花 ID**（字符串类型，19 位数字），支持软删除。
 
 | 模型 | 对应表 | 关键字段 | 说明 |
-|------|--------|----------|------|
+| ------ | -------- | ---------- | ------ |
 | `User` | `td_user` | Account, Password, UserType, UserStatus, CurrentRoomId | 支持 root/普通用户 |
 | `UserToken` | `td_user_token` | Token, TokenExpire, LoginIp, LoginTime | 每用户最多 3 个并发会话 |
 | `Doc` | `td_doc` | Title, Content, GroupId, RoomId, UserId | 软删除 → 回收站 |
@@ -334,8 +337,7 @@ go run . -gen
 ### CLI 密码重置
 
 ```bash
-cd module/user/cli/reset-pwd
-go run reset_pwd.go -c ../../config.toml -account <账号> -pwd <新密码>
+go run ./module/user/cli/reset-pwd -u <账号> -p <新密码> -cfg <config.toml 绝对路径>
 ```
 
 ---
@@ -343,12 +345,12 @@ go run reset_pwd.go -c ../../config.toml -account <账号> -pwd <新密码>
 ## 关键设计 Key Design Decisions
 
 | 决策 | 实现 |
-|------|------|
+| ------ | ------ |
 | **ID 生成** | Sonyflake → 19 位数字字符串，比 UUID 更短，分布式友好 |
 | **密码加密** | `golang.org/x/crypto/bcrypt` |
 | **会话管理** | 每用户最多 3 个 token，超限自动剔除最早的会话 |
 | **空间隔离** | 注册时自动创建默认 Room，文档按 Room 隔离（多租户基础） |
-| **配置热更新** | Viper WatchConfig → 动态刷新 MySQL/Redis 连接，无需重启 |
+| **配置热更新** | Viper WatchConfig → 动态刷新 PostgreSQL/Redis 连接，无需重启 |
 | **Mock 认证** | `Debug.EnableMockLogin` 开关，开发时跳过 token 验证 |
 
 ---
@@ -358,11 +360,13 @@ go run reset_pwd.go -c ../../config.toml -account <账号> -pwd <新密码>
 > 以下对应 `question.md` 中的记录：
 
 1. **缺少 DAO 层** — Service 直接操作 `global.Db`，查询逻辑分散。建议抽取 `data/repository/` 封装。
-2. **CLI 配置路径** — cli 子工具默认 CWD 加载 config，应通过 `-c` 参数或环境变量传递路径。
-3. **GORM SQL 日志** — 当前未配置 GORM Logger，不打印 SQL。需在 `initMysql` 中设置：
+2. **CLI 配置路径** — cli 子工具应通过 `-cfg` 参数传递配置文件绝对路径。
+3. **GORM SQL 日志** — 当前 GORM Logger 使用 Silent 级别，不打印 SQL。排查时可临时切换为 Info：
+
    ```go
    &gorm.Config{Logger: logger.Default.LogMode(logger.Info)}
    ```
+
 4. **测试覆盖** — 仅在 `list_sort/` 和 `gid/` 有测试，核心 Service 缺少单元测试。
 5. **Admin 模块** — `module/admin/` 仅占位，用户管理功能暂在 user 模块 `user-manage` 路由下。
 

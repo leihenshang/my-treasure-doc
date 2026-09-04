@@ -2,16 +2,16 @@ package model
 
 type Doc struct {
 	BaseModel
-	UserId    string    `gorm:"column:user_id;type:varchar(100);default:'';NOT NULL" json:"userId"`    // 用户id
-	RoomId    string    `gorm:"column:room_id;type:varchar(100);default:'';NOT NULL" json:"roomId"`    // 房间id
-	Title     string    `gorm:"column:title;type:varchar(100);default:'';NOT NULL" json:"title"`       // 标题
-	Content   string    `gorm:"column:content;type:text;NOT NULL" json:"content"`                      // 文档内容
-	DocStatus int       `gorm:"column:doc_status;type:tinyint(4);default:1;NOT NULL" json:"docStatus"` // 1正常2审核中3禁用
-	IsTop     int8      `gorm:"column:is_top;type:tinyint(4);NOT NULL" json:"isTop"`                   // 是否置顶
-	Priority  int       `gorm:"column:priority;type:int(255);NOT NULL" json:"priority"`                // 优先级
-	GroupId   string    `gorm:"column:group_id;type:varchar(100);default:'';NOT NULL" json:"groupId"`  // 分组id
-	ReadOnly  int8      `gorm:"column:read_only;type:tinyint(4);NOT NULL" json:"readOnly"`             // 1-读写，2-只读
-	Version   int       `gorm:"column:version;type:int(11);NOT NULL" json:"version"`
+	UserId    string    `gorm:"column:user_id;type:varchar(100);default:'';NOT NULL" json:"userId"`   // 用户id
+	RoomId    string    `gorm:"column:room_id;type:varchar(100);default:'';NOT NULL" json:"roomId"`   // 房间id
+	Title     string    `gorm:"column:title;type:varchar(100);default:'';NOT NULL" json:"title"`      // 标题
+	Content   string    `gorm:"column:content;type:text;NOT NULL" json:"content"`                     // 文档内容
+	DocStatus int       `gorm:"column:doc_status;type:smallint;default:1;NOT NULL" json:"docStatus"`  // 1正常2审核中3禁用
+	IsTop     int8      `gorm:"column:is_top;type:smallint;NOT NULL" json:"isTop"`                    // 是否置顶
+	Priority  int       `gorm:"column:priority;type:integer;NOT NULL" json:"priority"`                // 优先级
+	GroupId   string    `gorm:"column:group_id;type:varchar(100);default:'';NOT NULL" json:"groupId"` // 分组id
+	ReadOnly  int8      `gorm:"column:read_only;type:smallint;NOT NULL" json:"readOnly"`              // 1-读写，2-只读
+	Version   int       `gorm:"column:version;type:integer;NOT NULL" json:"version"`
 	GroupPath DocGroups `gorm:"-:all" json:"groupPath"`
 	IsPin     int       `gorm:"-" json:"isPin"`
 }

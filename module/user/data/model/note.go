@@ -7,8 +7,8 @@ type Note struct {
 	Content  string   `gorm:"column:content;type:text;NOT NULL" json:"content"`           // 文档内容
 	Color    string   `gorm:"column:color;type:varchar(100);default:'';" json:"color"`    // 颜色
 	Icon     string   `gorm:"column:icon;type:varchar(100);default:'';" json:"icon"`      // 颜色
-	IsTop    int      `gorm:"column:is_top;type:tinyint(4);NOT NULL" json:"isTop"`        // 是否置顶
-	Priority int      `gorm:"column:priority;type:int(255);NOT NULL" json:"priority"`     // 优先级
+	IsTop    int      `gorm:"column:is_top;type:smallint;NOT NULL" json:"isTop"`          // 是否置顶
+	Priority int      `gorm:"column:priority;type:integer;NOT NULL" json:"priority"`      // 优先级
 	DocId    string   `gorm:"column:doc_id;type:varchar(100);default:'';" json:"docId"`
 	NoteType NoteType `gorm:"column:note_type;type:varchar(100);default:'';" json:"noteType"`
 }

@@ -128,7 +128,7 @@ func (user *UserService) UserRegister(r *userReq.RegisterRequest) (u *model.User
 // checkAccountIsDuplicate 检查账号是否重复
 func checkAccountIsDuplicate(account string) bool {
 	var u *model.User
-	err := global.Db.Where("account = ?", account).First(&u).Error
+	err := global.Db.Where("LOWER(account) = LOWER(?)", account).First(&u).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	} else {
@@ -160,7 +160,7 @@ func checkAccountRule(account string, accountLen int) (err error) {
 // checkEmailIsDuplicate 检查邮箱是否重复
 func checkEmailIsDuplicate(email string) bool {
 	var u *model.User
-	err := global.Db.Where("email = ?", email).First(&u).Error
+	err := global.Db.Where("LOWER(email) = LOWER(?)", email).First(&u).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	} else {
@@ -189,7 +189,7 @@ func (user *UserService) UserLogin(r userReq.LoginRequest, clientIp string) (u *
 		return nil, errors.New("密码或账号(邮箱)不能为空")
 	}
 
-	err = global.Db.Where("account = ? OR email = ?", r.Account, r.Account).First(&u).Error
+	err = global.Db.Where("LOWER(account) = LOWER(?) OR LOWER(email) = LOWER(?)", r.Account, r.Account).First(&u).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.New(fmt.Sprintf("账号 %s 没有找到", r.Account))
 	}

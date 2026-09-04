@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
@@ -30,13 +30,13 @@ var TableMigrate = []schema.Tabler{
 	&model.Room{},
 }
 
-func initMysql() error {
+func initDatabase() error {
 	cfg := GetConf()
 	if cfg == nil {
 		return fmt.Errorf("config is nil")
 	}
 
-	newDb, err := openMysqlWithConfig(cfg)
+	newDb, err := openDatabaseWithConfig(cfg)
 	if err != nil {
 		return err
 	}
@@ -45,21 +45,22 @@ func initMysql() error {
 	return nil
 }
 
-func openMysqlWithConfig(cfg *config.Config) (*gorm.DB, error) {
+func openDatabaseWithConfig(cfg *config.Config) (*gorm.DB, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("config is nil")
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local",
-		cfg.Mysql.User,
-		cfg.Mysql.Password,
-		cfg.Mysql.Host,
-		cfg.Mysql.Port,
-		cfg.Mysql.DbName,
-		cfg.Mysql.Charset)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
+		cfg.Database.Host,
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.DbName,
+		cfg.Database.Port,
+		cfg.Database.SSLMode,
+		cfg.Database.TimeZone)
 
 	// table prefix
-	tablePrefix := cfg.Mysql.TablePrefix
+	tablePrefix := cfg.Database.TablePrefix
 
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -70,7 +71,7 @@ func openMysqlWithConfig(cfg *config.Config) (*gorm.DB, error) {
 		},
 	)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger:                                   newLogger,
 		DisableForeignKeyConstraintWhenMigrating: true,
 		NamingStrategy: schema.NamingStrategy{
@@ -81,13 +82,13 @@ func openMysqlWithConfig(cfg *config.Config) (*gorm.DB, error) {
 		},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("faile to initialize mysql,%w", err)
+		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
 	return db, nil
 }
 
-func closeMysql(db *gorm.DB) error {
+func closeDatabase(db *gorm.DB) error {
 	if db == nil {
 		return nil
 	}

@@ -7,16 +7,16 @@ import (
 // VerifyCode [...]
 type VerifyCode struct {
 	ID         string    `gorm:"primaryKey;column:id;type:varchar(100);default:'';" json:"-"`
-	UserID     string    `gorm:"column:user_id;type:varchar(100);default:'';" json:"userId"`  // 用户id
-	Content    string    `gorm:"column:content;type:varchar(500)" json:"content"`             // 内容
-	Title      string    `gorm:"column:title;type:varchar(100)" json:"title"`                 // 标题
-	ExpireTime time.Time `gorm:"column:expire_time;type:datetime;not null" json:"expireTime"` // 过期时间
-	UsedTime   time.Time `gorm:"column:used_time;type:datetime" json:"usedTime"`              // 使用时间
-	IsUsed     int8      `gorm:"column:is_used;type:tinyint(4);not null" json:"isUsed"`       // 0正常1已使用
-	Code       string    `gorm:"column:code;type:varchar(100)" json:"code"`                   // 验证码
-	CreateTime time.Time `gorm:"column:create_time;type:datetime;default:CURRENT_TIMESTAMP" json:"createTime"`
-	UpdateTime time.Time `gorm:"column:update_time;type:datetime;default:CURRENT_TIMESTAMP" json:"updateTime"`
-	DeleteTime time.Time `gorm:"column:delete_time;type:datetime" json:"deleteTime"`
+	UserID     string    `gorm:"column:user_id;type:varchar(100);default:'';" json:"userId"`     // 用户id
+	Content    string    `gorm:"column:content;type:varchar(500)" json:"content"`                // 内容
+	Title      string    `gorm:"column:title;type:varchar(100)" json:"title"`                    // 标题
+	ExpireTime time.Time `gorm:"column:expire_time;type:timestamptz;not null" json:"expireTime"` // 过期时间
+	UsedTime   time.Time `gorm:"column:used_time;type:timestamptz" json:"usedTime"`              // 使用时间
+	IsUsed     int8      `gorm:"column:is_used;type:smallint;not null" json:"isUsed"`            // 0正常1已使用
+	Code       string    `gorm:"column:code;type:varchar(100)" json:"code"`                      // 验证码
+	CreateTime time.Time `gorm:"column:create_time;type:timestamptz;default:CURRENT_TIMESTAMP" json:"createTime"`
+	UpdateTime time.Time `gorm:"column:update_time;type:timestamptz;default:CURRENT_TIMESTAMP" json:"updateTime"`
+	DeleteTime time.Time `gorm:"column:delete_time;type:timestamptz" json:"deleteTime"`
 }
 
 // TableName get sql table name.获取数据库表名

@@ -11,11 +11,11 @@ import (
 const DefaultConfig = "config.toml"
 
 type Config struct {
-	App   App
-	Mysql Mysql
-	Redis Redis
-	Log   Log
-	Debug Debug
+	App      App
+	Database Database
+	Redis    Redis
+	Log      Log
+	Debug    Debug
 }
 
 var globalConfig *Config

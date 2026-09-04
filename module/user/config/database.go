@@ -1,11 +1,12 @@
 package config
 
-type Mysql struct {
+type Database struct {
 	Host        string ``
 	Port        int    ``
 	User        string ``
 	Password    string ``
-	Charset     string ``
 	DbName      string ``
+	SSLMode     string ``
+	TimeZone    string ``
 	TablePrefix string ``
 }

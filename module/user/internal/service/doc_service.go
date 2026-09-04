@@ -121,7 +121,7 @@ func (doc *DocService) List(r doc.ListDocRequest, userId string) (res response.L
 
 	if r.Keyword != "" {
 		likeStr := fmt.Sprintf(`%%%s%%`, r.Keyword)
-		q = q.Where("title LIKE ? OR content LIKE ?", likeStr, likeStr)
+		q = q.Where("title ILIKE ? OR content ILIKE ?", likeStr, likeStr)
 	}
 
 	if r.Pagination.PageSize > 0 {

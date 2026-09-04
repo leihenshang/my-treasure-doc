@@ -56,10 +56,10 @@ func InitModule(cfgPath string) (destructFunc func(), err error) {
 		fmt.Println("初始化redis完成")
 	}
 
-	if err = initMysql(); err != nil {
+	if err = initDatabase(); err != nil {
 		return
 	}
-	fmt.Println("初始化mysql完成")
+	fmt.Println("初始化PostgreSQL完成")
 
 	if err = InitTrans("zh"); err != nil {
 		log.Fatalf("init trans failed, err:%v\n", err)
@@ -103,12 +103,12 @@ func applyConnectionHotReload(oldCfg, newCfg *config.Config) error {
 	connMu.Lock()
 	defer connMu.Unlock()
 
-	if oldCfg.Mysql != newCfg.Mysql {
-		if err := reloadMysql(newCfg); err != nil {
+	if oldCfg.Database != newCfg.Database {
+		if err := reloadDatabase(newCfg); err != nil {
 			return err
 		}
 		if Log != nil {
-			Log.Infof("mysql connection refreshed by config hot reload")
+			Log.Infof("database connection refreshed by config hot reload")
 		}
 	}
 
@@ -124,8 +124,8 @@ func applyConnectionHotReload(oldCfg, newCfg *config.Config) error {
 	return nil
 }
 
-func reloadMysql(cfg *config.Config) error {
-	newDb, err := openMysqlWithConfig(cfg)
+func reloadDatabase(cfg *config.Config) error {
+	newDb, err := openDatabaseWithConfig(cfg)
 	if err != nil {
 		return err
 	}
@@ -134,11 +134,11 @@ func reloadMysql(cfg *config.Config) error {
 	Db = newDb
 
 	if oldDb != nil {
-		if err := closeMysql(oldDb); err != nil {
+		if err := closeDatabase(oldDb); err != nil {
 			if Log != nil {
-				Log.Warnf("close old mysql connection failed: %v", err)
+				Log.Warnf("close old database connection failed: %v", err)
 			} else {
-				log.Printf("close old mysql connection failed: %v\n", err)
+				log.Printf("close old database connection failed: %v\n", err)
 			}
 		}
 	}
@@ -188,7 +188,7 @@ func destructModule() func() {
 		}
 
 		if Db != nil {
-			if err := closeMysql(Db); err != nil {
+			if err := closeDatabase(Db); err != nil {
 				log.Printf("failed to close Db,error:%v \n", err)
 			}
 		}
@@ -207,11 +207,11 @@ func InitRestPwd(cfgPath string) error {
 	}
 	setConf(config.GetConfig())
 	fmt.Println("初始化配置完成")
-	err := initMysql()
+	err := initDatabase()
 	if err != nil {
 		return err
 	}
-	fmt.Println("初始化mysql完成")
+	fmt.Println("初始化PostgreSQL完成")
 	fmt.Printf("\n")
 	return nil
 }

@@ -28,7 +28,7 @@ func (u *UserManageService) List(r userReq.ListUserManageRequest) (res response.
 	q := global.Db.Model(&model.User{}).Omit("password")
 	if r.Keyword != "" {
 		likeStr := fmt.Sprintf(`%%%s%%`, r.Keyword)
-		q = q.Where("account LIKE ? OR email LIKE ?", likeStr, likeStr)
+		q = q.Where("account ILIKE ? OR email ILIKE ?", likeStr, likeStr)
 	}
 
 	if r.Id != "" {
@@ -36,7 +36,7 @@ func (u *UserManageService) List(r userReq.ListUserManageRequest) (res response.
 	}
 
 	if r.Account != "" {
-		q = q.Where("account = ?", r.Account)
+		q = q.Where("LOWER(account) = LOWER(?)", r.Account)
 	}
 
 	if r.Pagination.PageSize > 0 {

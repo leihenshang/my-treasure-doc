@@ -76,7 +76,7 @@ func (s *RoomService) List(req room.ListRoomRequest, userId string) (res respons
 
 	db := global.Db.Model(&model.Room{}).Where("user_id = ?", userId)
 	if req.Name != "" {
-		db = db.Where("name LIKE ?", "%"+req.Name+"%")
+		db = db.Where("name ILIKE ?", "%"+req.Name+"%")
 	}
 	if req.Status != "" {
 		db = db.Where("status = ?", req.Status)
