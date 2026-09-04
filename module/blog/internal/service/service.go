@@ -11,6 +11,7 @@ import (
 	"fastduck/treasure-doc/module/blog/data/model"
 	"fastduck/treasure-doc/module/blog/data/request"
 	"fastduck/treasure-doc/module/blog/data/response"
+	"fastduck/treasure-doc/module/user/global"
 
 	"gorm.io/gorm"
 )
@@ -22,21 +23,17 @@ var (
 	ErrToolNotFound      = errors.New("tool not found")
 )
 
-type DBProvider func() *gorm.DB
+type Service struct{}
 
-type Service struct {
-	db DBProvider
-}
-
-func New(db DBProvider) *Service {
-	return &Service{db: db}
+func New() *Service {
+	return &Service{}
 }
 
 func (s *Service) database(ctx context.Context) (*gorm.DB, error) {
-	if s.db == nil || s.db() == nil {
+	if global.Db == nil {
 		return nil, errors.New("database is not initialized")
 	}
-	return s.db().WithContext(ctx), nil
+	return global.Db.WithContext(ctx), nil
 }
 
 func published(db *gorm.DB) *gorm.DB {

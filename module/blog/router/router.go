@@ -5,11 +5,10 @@ import (
 	"fastduck/treasure-doc/module/blog/internal/service"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func Register(apiGroup *gin.RouterGroup, dbProvider func() *gorm.DB) {
-	RegisterService(apiGroup, service.New(dbProvider))
+func Register(apiGroup *gin.RouterGroup) {
+	RegisterService(apiGroup, service.New())
 }
 
 func RegisterService(apiGroup *gin.RouterGroup, publicService api.PublicService) {

@@ -11,6 +11,7 @@ import (
 	blogmodel "fastduck/treasure-doc/module/blog/data/model"
 	blogresponse "fastduck/treasure-doc/module/blog/data/response"
 	"fastduck/treasure-doc/module/blog_mgr/data/request"
+	"fastduck/treasure-doc/module/user/global"
 
 	"gorm.io/gorm"
 )
@@ -21,8 +22,7 @@ var (
 	ErrInvalid  = errors.New("invalid resource")
 )
 
-type DBProvider func() *gorm.DB
-type Service struct{ db DBProvider }
+type Service struct{}
 
 type Page struct {
 	List       interface{} `json:"list"`
@@ -35,12 +35,12 @@ type Pagination struct {
 	OrderBy  string `json:"orderBy"`
 }
 
-func New(db DBProvider) *Service { return &Service{db: db} }
+func New() *Service { return &Service{} }
 func (s *Service) database(ctx context.Context) (*gorm.DB, error) {
-	if s.db == nil || s.db() == nil {
+	if global.Db == nil {
 		return nil, errors.New("database is not initialized")
 	}
-	return s.db().WithContext(ctx), nil
+	return global.Db.WithContext(ctx), nil
 }
 
 func modelFor(resource string) (interface{}, interface{}, string, error) {
