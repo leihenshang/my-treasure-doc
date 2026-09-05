@@ -6,6 +6,7 @@ import "fastduck/treasure-doc/module/user/data/request"
 type CreateDocGroupRequest struct {
 	Title    string `json:"title" binding:"required,min=1,max=250"`
 	PId      string `json:"pId" binding:"required,alphanum"`
+	RoomId   string `json:"roomId" binding:"omitempty,alphanum"`
 	Icon     string `json:"icon" binding:"max=250"`
 	Priority int    `json:"priority" binding:""`
 }

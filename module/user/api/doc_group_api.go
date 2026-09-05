@@ -39,6 +39,7 @@ func (d *DocGroupApi) Create(c *gin.Context) {
 		Title:    req.Title,
 		Icon:     req.Icon,
 		PId:      req.PId,
+		RoomId:   req.RoomId,
 		UserId:   u.Id,
 		Priority: req.Priority,
 	}

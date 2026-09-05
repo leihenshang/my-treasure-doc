@@ -4,6 +4,7 @@ package model
 type DocGroup struct {
 	BaseModel
 	UserId        string      `gorm:"column:user_id;type:varchar(100);default:'';NOT NULL" json:"userId"` // 用户Id
+	RoomId        string      `gorm:"column:room_id;type:varchar(100);default:'';NOT NULL" json:"roomId"` // 房间id
 	Title         string      `gorm:"column:title;NOT NULL" json:"title"`                                 // 组名
 	Icon          string      `gorm:"column:icon;NOT NULL" json:"icon"`                                   // 图标
 	PId           string      `gorm:"column:p_id;type:varchar(100);default:'';NOT NULL" json:"pid"`       // 父级id
