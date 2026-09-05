@@ -20,27 +20,6 @@ func NewUserApi() *UserApi {
 	return &UserApi{UserService: service.NewUserService()}
 }
 
-// UserRegister 用户注册
-func (u *UserApi) UserRegister(c *gin.Context) {
-	if !global.GetConf().App.RegisterEnabled {
-		response.FailWithMessage(c, "注册未启用,请联系管理员！")
-		return
-	}
-
-	var reg *user.RegisterRequest
-	err := c.ShouldBindJSON(&reg)
-	if err != nil {
-		response.FailWithMessage(c, err.Error())
-		return
-	}
-
-	if u, ok := u.UserService.UserRegister(reg); ok != nil {
-		response.FailWithMessage(c, ok.Error())
-	} else {
-		response.OkWithData(c, u)
-	}
-}
-
 // UserCaptcha 生成图形验证码，登录前匿名获取
 func (u *UserApi) UserCaptcha(c *gin.Context) {
 	captcha, err := service.GenCaptcha(c)
@@ -86,26 +65,4 @@ func (u *UserApi) UserLogout(c *gin.Context) {
 	}
 
 	response.Ok(c)
-}
-
-// UserProfileUpdate 更新用户个人资料
-func (u *UserApi) UserProfileUpdate(c *gin.Context) {
-	var profile user.UpdateRequest
-	if err := c.ShouldBindJSON(&profile); err != nil {
-		response.FailWithMessage(c, global.ErrResp(err))
-		return
-	}
-
-	loginUser, err := auth.GetUserInfoByCtx(c)
-	if err != nil {
-		response.FailWithMessage(c, err.Error())
-		return
-	}
-	if _, err := u.UserService.UserProfileUpdate(profile, loginUser.Id); err != nil {
-		response.FailWithMessage(c, err.Error())
-		return
-	} else {
-		response.Ok(c)
-	}
-
 }

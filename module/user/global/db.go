@@ -17,18 +17,8 @@ import (
 )
 
 var TableMigrate = append([]schema.Tabler{
-	&model.Doc{},
-	&model.DocGroup{},
-	&model.GlobalConf{},
-	&model.Team{},
-	&model.TeamUser{},
 	&model.User{},
-	&model.VerifyCode{},
-	&model.Note{},
-	&model.DocHistory{},
-	&model.UserConf{},
 	&model.UserToken{},
-	&model.Room{},
 }, blogTables()...)
 
 func blogTables() []schema.Tabler {

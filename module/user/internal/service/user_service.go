@@ -12,7 +12,6 @@ import (
 	"fastduck/treasure-doc/module/user/data/model"
 	userReq "fastduck/treasure-doc/module/user/data/request/user"
 	"fastduck/treasure-doc/module/user/global"
-	"fastduck/treasure-doc/module/user/global/gid"
 	"fastduck/treasure-doc/module/user/utils"
 
 	"gorm.io/gorm"
@@ -42,87 +41,39 @@ var rootUser = &model.User{
 	Password: "treasure-root",
 }
 
+// RegisterRootUser 确保博客管理员默认账号存在，仅用于服务启动时初始化。
 func (user *UserService) RegisterRootUser() error {
-	regRequest := &userReq.RegisterRequest{
-		Password:   rootUser.Password,
-		RePassword: rootUser.Password,
-		Account:    rootUser.Account,
-		Email:      rootUser.Email,
+	if checkAccountIsDuplicate(rootUser.Account) {
+		log.Printf("root account [%v] already exists, cancel registration\n", rootUser.Account)
+		return nil
 	}
-	if checkAccountIsDuplicate(regRequest.Account) {
-		log.Printf("root account [%v] already existes,cancel registration\n", regRequest.Account)
-	} else {
-		if _, err := userService.UserRegister(regRequest); err != nil {
-			return err
-		}
-		log.Printf("root user is registered,account is [%v],password is [%v],"+
-			"please update your password immediately\n", regRequest.Account, regRequest.Password)
-	}
-	return nil
-}
 
-// UserRegister 用户注册
-func (user *UserService) UserRegister(r *userReq.RegisterRequest) (u *model.User, err error) {
-	pwd, err := checkPasswordRule(r.Password, r.RePassword)
+	pwd, err := checkPasswordRule(rootUser.Password, rootUser.Password)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
 	encryptedPwd, err := utils.PasswordEncrypt(pwd)
 	if err != nil {
-		return nil, errors.New("加密密码失败")
+		return errors.New("加密密码失败")
+	}
+	if err := checkAccountRule(rootUser.Account, 8); err != nil {
+		return err
 	}
 
-	if err := checkAccountRule(r.Account, 8); err != nil {
-		return nil, err
+	u := &model.User{
+		Nickname:   rootUser.Account,
+		Account:    rootUser.Account,
+		Email:      rootUser.Email,
+		Password:   encryptedPwd,
+		UserStatus: model.UserStatusAvailable,
+		UserType:   model.UserTypeRoot,
 	}
-
-	if checkAccountIsDuplicate(r.Account) {
-		return nil, errors.New("账号重复")
+	if err := global.Db.Create(&u).Error; err != nil {
+		global.Log.Errorf("failed to create root user: %v", err)
+		return errors.New("创建默认管理员失败")
 	}
-
-	if checkEmailIsDuplicate(r.Email) {
-		return nil, errors.New("邮箱重复")
-	}
-
-	fistRoomId := gid.GenId()
-	u = &model.User{}
-	u.Nickname = r.Account
-	u.Account = r.Account
-	u.Email = r.Email
-	u.Password = encryptedPwd
-	u.CurrentRoomId = fistRoomId
-
-	if r.Account == rootUser.Account && r.Password == rootUser.Password {
-		u.UserStatus = model.UserStatusAvailable
-		u.UserType = model.UserTypeRoot
-	}
-
-	trans := global.Db.Begin()
-	err = trans.Create(&u).Error
-	if err != nil {
-		trans.Rollback()
-		global.Log.Errorf("failed to create userReq:%v", err)
-		return nil, errors.New("注册失败")
-	}
-
-	room := &model.Room{
-		Name:      "个人空间",
-		UserId:    u.Id,
-		IsDefault: 1,
-	}
-	room.Id = fistRoomId
-
-	err = trans.Create(room).Error
-	if err != nil {
-		trans.Rollback()
-		global.Log.Errorf("failed to create room:%v", err)
-		return nil, errors.New("创建空间失败")
-	}
-	trans.Commit()
-
-	u.Password = ""
-	return u, err
+	log.Printf("root user is registered,account is [%v],password is [%v], please update your password immediately\n", u.Account, rootUser.Password)
+	return nil
 }
 
 // checkAccountIsDuplicate 检查账号是否重复
@@ -132,7 +83,7 @@ func checkAccountIsDuplicate(account string) bool {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	} else {
-		global.Log.Errorf("failed to get userReq:%v", err)
+		global.Log.Errorf("failed to get user by account:%v", err)
 	}
 	return true
 }
@@ -155,19 +106,6 @@ func checkAccountRule(account string, accountLen int) (err error) {
 	}
 
 	return
-}
-
-// checkEmailIsDuplicate 检查邮箱是否重复
-func checkEmailIsDuplicate(email string) bool {
-	var u *model.User
-	err := global.Db.Where("LOWER(email) = LOWER(?)", email).First(&u).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return false
-	} else {
-		global.Log.Errorf("failed to get userReq from email:%v", err)
-	}
-
-	return true
 }
 
 // checkPasswordRule 检查密码规则是否符合规则
@@ -211,14 +149,14 @@ func (user *UserService) UserLogin(r userReq.LoginRequest, clientIp string) (u *
 
 	var userTokens model.UserTokens
 	if err = global.Db.Where("user_id = ?", u.Id).Order("created_at ASC").Find(&userTokens).Error; err != nil {
-		global.Log.Errorf("failed to get userReq token:%v", err)
+		global.Log.Errorf("failed to get user token:%v", err)
 		return nil, errors.New("获取用户token失败")
 	}
 
 	tx := global.Db.Begin()
 	if len(userTokens) == 3 {
 		if err = tx.Delete(&userTokens[0]).Error; err != nil {
-			global.Log.Errorf("failed to delete userReq token:%v", err)
+			global.Log.Errorf("failed to delete user token:%v", err)
 			tx.Rollback()
 			return nil, errors.New("删除用户token失败")
 		}
@@ -233,7 +171,7 @@ func (user *UserService) UserLogin(r userReq.LoginRequest, clientIp string) (u *
 	}
 
 	if err = tx.Save(&userToken).Error; err != nil {
-		global.Log.Errorf("failed to save userReq token:%v", err)
+		global.Log.Errorf("failed to save user token:%v", err)
 		tx.Rollback()
 		return nil, errors.New("保存用户token失败")
 	}
@@ -250,40 +188,19 @@ func (user *UserService) UserLogout(userId string, token string) error {
 	tx := global.Db.Begin()
 	userToken := &model.UserToken{}
 	if err := tx.Model(&userToken).Where("user_id = ? AND token = ?", userId, token).Update("login_out_time", time.Now()).Error; err != nil {
-		global.Log.Errorf("failed to update userReq token login out time:%v", err)
+		global.Log.Errorf("failed to update user token login out time:%v", err)
 		tx.Rollback()
 		return errors.New("更新用户token信息失败")
 	}
 
 	if err := tx.Model(&userToken).Where("user_id = ? AND token = ?", userId, token).Delete(&model.UserToken{}).Error; err != nil {
-		global.Log.Errorf("failed to delete userReq token:%v", err)
+		global.Log.Errorf("failed to delete user token:%v", err)
 		tx.Rollback()
 		return errors.New("删除用户token信息失败")
 	}
 	tx.Commit()
 
 	return nil
-}
-
-// UserProfileUpdate 更新用户个人资料
-func (user *UserService) UserProfileUpdate(profile userReq.UpdateRequest, userId string) (u model.User, err error) {
-	if errors.Is(global.Db.Where("id = ?", userId).First(&u).Error, gorm.ErrRecordNotFound) {
-		return u, errors.New("用户没有找到")
-	}
-
-	if err := global.Db.Model(&u).
-		Select("NickName", "IconPath", "Bio", "Mobile").
-		Updates(model.User{
-			Nickname: profile.NickName,
-			Avatar:   profile.NickName,
-			Bio:      profile.Bio,
-			Mobile:   profile.Mobile,
-		}).
-		Error; err != nil {
-		return u, errors.New("更新个人资料失败")
-	}
-
-	return u, nil
 }
 
 // GetUserByToken 通过token获取用户
@@ -303,38 +220,4 @@ func GetUserByToken(token string) (u *model.User, err error) {
 
 	u.HiddenPwd().Token = token
 	return
-}
-
-func ResetPwd(account string, pwd string, rePwd string) error {
-	if _, err := checkPasswordRule(pwd, rePwd); err != nil {
-		return err
-	}
-
-	var u *model.User
-	result := global.Db.Where("account = ?", account).First(&u)
-	if result.RowsAffected <= 0 {
-		return errors.New(fmt.Sprintf("账号 %s 没有找到", account))
-	}
-
-	//对密码进行加密
-	encryptedPwd, err := utils.PasswordEncrypt(pwd)
-	if err != nil {
-		return errors.New("加密密码失败")
-	}
-	u.Password = encryptedPwd
-
-	if err := global.Db.Select("Password").Save(&u).Error; err != nil {
-		return errors.New("更新密码失败")
-	}
-
-	tx := global.Db.Begin()
-	userToken := &model.UserToken{}
-	if err := tx.Model(&userToken).Where("user_id = ?", u.Id).Delete(&model.UserToken{}).Error; err != nil {
-		global.Log.Errorf("failed to delete userReq token:%v", err)
-		tx.Rollback()
-		return errors.New("删除用户token信息失败")
-	}
-	tx.Commit()
-
-	return nil
 }
