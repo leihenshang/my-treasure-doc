@@ -244,15 +244,9 @@ func (user *UserService) UserLogin(r userReq.LoginRequest, clientIp string) (u *
 }
 
 // UserLogout 用户退出登陆
+// 幂等操作：按 user_id + token 使 token 失效即可，无需校验用户记录是否存在
+// （开发模式下的 mock 超级管理员在 td_user 中并不存在，也能正常退出）。
 func (user *UserService) UserLogout(userId string, token string) error {
-	var userInfo model.User
-	if err := global.Db.Where("id = ?", userId).First(&userInfo).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-		return errors.New("用户不存在")
-	} else if err != nil {
-		global.Log.Errorf("userReq logout error:%v", err)
-		return errors.New("查询用户信息失败")
-	}
-
 	tx := global.Db.Begin()
 	userToken := &model.UserToken{}
 	if err := tx.Model(&userToken).Where("user_id = ? AND token = ?", userId, token).Update("login_out_time", time.Now()).Error; err != nil {

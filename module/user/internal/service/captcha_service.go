@@ -14,14 +14,14 @@ var store = base64Captcha.DefaultMemStore
 var CaptchaFonts []string
 
 const (
-	CaptchaHeight          = 40
-	CaptchaWidth           = 240
-	CaptchaShowLineOptions = 2
+	CaptchaHeight          = 60
+	CaptchaWidth           = 280
+	CaptchaShowLineOptions = 0
 	CaptchaNoiseCount      = 0
-	CaptchaBgColorR        = 221
-	CaptchaBgColorG        = 221
-	CaptchaBgColorB        = 3
-	CaptchaBgColorA        = 221
+	CaptchaBgColorR        = 255
+	CaptchaBgColorG        = 255
+	CaptchaBgColorB        = 255
+	CaptchaBgColorA        = 255
 )
 
 // ErrCaptchaInvalid 验证码为空、错误或已过期。
