@@ -110,11 +110,12 @@ type Profile struct {
 }
 
 type SiteModule struct {
-	ID   string `json:"id"`
-	Icon string `json:"icon"`
-	Name string `json:"name"`
-	Desc string `json:"desc"`
-	Path string `json:"path"`
+	ID      string `json:"id"`
+	Icon    string `json:"icon"`
+	Name    string `json:"name"`
+	Desc    string `json:"desc"`
+	Path    string `json:"path"`
+	Visible bool   `json:"visible"`
 }
 
 type SiteMilestone struct {

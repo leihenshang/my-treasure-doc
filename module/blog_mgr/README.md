@@ -80,7 +80,8 @@ PUT /api/blog-mgr/site
 - 工具 `kind` 仅允许 `own` 或 `link`。外链工具必须提供 HTTPS URL。
 - 分类 scope 仅允许 `post`、`portfolio`、`bookmark`，创建后不可修改。
 - Profile 技能 level 必须在 0 至 100。
-- Site 模块路径必须以 `/Blog` 开头。
+- Site 模块必须是 `blog`、`diary`、`portfolio`、`tools`、`bookmark`、`about` 六个固定模块，各出现一次，且路径与固定映射一致；只有 `icon`、`name`、`desc`、`visible` 可修改。PUT 会返回标准化后的完整 Site 对象。
+- 旧 Site 数据缺少 `visible` 时按 `true` 迁移，缺少固定模块时自动补齐，不会被解释为隐藏。`visible=false` 的模块仍会返回给公开接口。
 - 文章、日记和书签的标签关系与主体更新处于同一事务。
 
 ## 验证

@@ -1,8 +1,8 @@
 # Treasure Blog API 接口文档
 
-> 版本：v1.0  
-> 适用范围：当前前端 `/Blog` 模块  
-> 后端实现建议：Go 1.23+、Gin/Echo/Chi 均可  
+> 版本：v1.0
+> 适用范围：当前前端 `/Blog` 模块
+> 后端实现建议：Go 1.23+、Gin/Echo/Chi 均可
 > 文档状态：公开端与管理端联调契约
 
 ## 1. 概述
@@ -47,10 +47,10 @@
 ```
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| -------- | ------- | ---- | -------------------------------------- |
 | `code` | integer | 是 | 业务状态码，`0` 表示成功 |
 | `msg` | string | 是 | 成功时为空字符串，失败时为可读错误信息 |
-| `data` | any | 是 | 业务数据；错误时为 `null` |
+| `data` | any | 是 | 业务数据；错误时为`null` |
 
 ### 2.2 分页响应
 
@@ -71,28 +71,28 @@
 ```
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| ---------------------------- | ------- | ---- | ----------------------------- |
 | `data.list` | array | 是 | 当前页数据 |
-| `data.pagination.page` | integer | 是 | 当前页，从 `1` 开始 |
+| `data.pagination.page` | integer | 是 | 当前页，从`1` 开始 |
 | `data.pagination.pageSize` | integer | 是 | 每页数量 |
 | `data.pagination.total` | integer | 是 | 筛选后的总数 |
-| `data.pagination.orderBy` | string | 是 | 实际排序规则，如 `date_desc` |
+| `data.pagination.orderBy` | string | 是 | 实际排序规则，如`date_desc` |
 
 ### 2.3 HTTP 状态和业务错误码
 
 HTTP 状态码与业务码应同时正确返回。
 
-| HTTP | 业务码 | 含义 |
-| --- | --- | --- |
-| 200 | `0` | 成功 |
-| 400 | `40001` | 查询参数格式错误 |
-| 400 | `40002` | 不支持的排序方式 |
-| 404 | `40401` | 文章不存在或已删除 |
-| 404 | `40402` | 日记不存在或已删除 |
-| 404 | `40403` | 作品不存在或已移除 |
-| 404 | `40404` | 工具不存在，或该条目不是自研工具 |
-| 429 | `42900` | 请求过于频繁 |
-| 500 | `50000` | 服务内部错误 |
+| HTTP | 业务码    | 含义                             |
+| ---- | --------- | -------------------------------- |
+| 200  | `0`     | 成功                             |
+| 400  | `40001` | 查询参数格式错误                 |
+| 400  | `40002` | 不支持的排序方式                 |
+| 404  | `40401` | 文章不存在或已删除               |
+| 404  | `40402` | 日记不存在或已删除               |
+| 404  | `40403` | 作品不存在或已移除               |
+| 404  | `40404` | 工具不存在，或该条目不是自研工具 |
+| 429  | `42900` | 请求过于频繁                     |
+| 500  | `50000` | 服务内部错误                     |
 
 错误示例：
 
@@ -108,25 +108,25 @@ HTTP 状态码与业务码应同时正确返回。
 
 ## 3. 接口总览
 
-| 模块 | 方法 | Endpoint | 说明 |
-| --- | --- | --- | --- |
-| 文章 | GET | `/api/blog/categories` | 文章分类 |
-| 文章 | GET | `/api/blog/tags` | 文章标签 |
-| 文章 | GET | `/api/blog/posts` | 文章分页列表 |
-| 文章 | GET | `/api/blog/posts/{id}` | 文章详情 |
-| 日记 | GET | `/api/blog/diary/tags` | 日记标签 |
-| 日记 | GET | `/api/blog/diaries` | 日记分页列表 |
-| 日记 | GET | `/api/blog/diaries/{id}` | 日记详情 |
-| 作品 | GET | `/api/blog/portfolio/categories` | 作品分类 |
-| 作品 | GET | `/api/blog/portfolio/items` | 作品列表 |
-| 作品 | GET | `/api/blog/portfolio/items/{id}` | 作品详情 |
-| 工具 | GET | `/api/blog/tools` | 工具与外链列表 |
-| 工具 | GET | `/api/blog/tools/{id}` | 自研工具详情 |
-| 书签 | GET | `/api/blog/bookmark/categories` | 书签分类 |
-| 书签 | GET | `/api/blog/bookmarks` | 书签列表 |
-| 关于 | GET | `/api/blog/profile` | 个人资料 |
-| 关于 | GET | `/api/blog/site` | 站点信息 |
-| 统计 | GET | `/api/blog/stats` | 内容数量，可选优化接口 |
+| 模块 | 方法 | Endpoint                           | 说明                   |
+| ---- | ---- | ---------------------------------- | ---------------------- |
+| 文章 | GET  | `/api/blog/categories`           | 文章分类               |
+| 文章 | GET  | `/api/blog/tags`                 | 文章标签               |
+| 文章 | GET  | `/api/blog/posts`                | 文章分页列表           |
+| 文章 | GET  | `/api/blog/posts/{id}`           | 文章详情               |
+| 日记 | GET  | `/api/blog/diary/tags`           | 日记标签               |
+| 日记 | GET  | `/api/blog/diaries`              | 日记分页列表           |
+| 日记 | GET  | `/api/blog/diaries/{id}`         | 日记详情               |
+| 作品 | GET  | `/api/blog/portfolio/categories` | 作品分类               |
+| 作品 | GET  | `/api/blog/portfolio/items`      | 作品列表               |
+| 作品 | GET  | `/api/blog/portfolio/items/{id}` | 作品详情               |
+| 工具 | GET  | `/api/blog/tools`                | 工具与外链列表         |
+| 工具 | GET  | `/api/blog/tools/{id}`           | 自研工具详情           |
+| 书签 | GET  | `/api/blog/bookmark/categories`  | 书签分类               |
+| 书签 | GET  | `/api/blog/bookmarks`            | 书签列表               |
+| 关于 | GET  | `/api/blog/profile`              | 个人资料               |
+| 关于 | GET  | `/api/blog/site`                 | 站点信息               |
+| 统计 | GET  | `/api/blog/stats`                | 内容数量，可选优化接口 |
 
 ## 4. 文章接口
 
@@ -135,37 +135,37 @@ HTTP 状态码与业务码应同时正确返回。
 #### BlogCategory
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `id` | string | 是 | 分类稳定标识，如 `tech` |
-| `name` | string | 是 | 分类展示名称，如 `技术` |
+| -------- | ------ | ---- | ------------------------ |
+| `id` | string | 是 | 分类稳定标识，如`tech` |
+| `name` | string | 是 | 分类展示名称，如`技术` |
 
 #### BlogTag
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `id` | string | 是 | 标签数据库 ID，可用于管理端的 `tagIds` |
+| -------- | ------ | ---- | --------------------------------------- |
+| `id` | string | 是 | 标签数据库 ID，可用于管理端的`tagIds` |
 | `name` | string | 是 | 标签展示名称 |
 
 #### BlogPostSummary
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `id` | string | 是 | 文章 slug，如 `hello-world` |
-| `title` | string | 是 | 标题 |
-| `summary` | string | 是 | 列表摘要，建议纯文本 |
-| `category` | string | 是 | 分类 ID，必须对应 `BlogCategory.id` |
-| `tags` | string[] | 是 | 标签列表 |
-| `author` | string | 是 | 作者展示名 |
-| `date` | string | 是 | 发布日期，`YYYY-MM-DD` |
-| `pinned` | boolean | 是 | 是否置顶 |
+| 字段         | 类型     | 必填 | 说明                                 |
+| ------------ | -------- | ---- | ------------------------------------ |
+| `id`       | string   | 是   | 文章 slug，如`hello-world`         |
+| `title`    | string   | 是   | 标题                                 |
+| `summary`  | string   | 是   | 列表摘要，建议纯文本                 |
+| `category` | string   | 是   | 分类 ID，必须对应`BlogCategory.id` |
+| `tags`     | string[] | 是   | 标签列表                             |
+| `author`   | string   | 是   | 作者展示名                           |
+| `date`     | string   | 是   | 发布日期，`YYYY-MM-DD`             |
+| `pinned`   | boolean  | 是   | 是否置顶                             |
 
 #### BlogPost
 
 包含 `BlogPostSummary` 的全部字段，并增加：
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `content` | string | 是 | Markdown 正文 |
+| 字段        | 类型   | 必填 | 说明          |
+| ----------- | ------ | ---- | ------------- |
+| `content` | string | 是   | Markdown 正文 |
 
 ### 4.2 获取文章分类
 
@@ -220,11 +220,11 @@ GET /api/blog/posts
 查询参数：
 
 | 参数 | 类型 | 必填 | 默认值 | 约束与说明 |
-| --- | --- | --- | --- | --- |
+| -------------- | ------- | ---- | -------- | -------------------------- |
 | `categoryId` | string | 否 | - | 分类精确匹配 |
 | `tag` | string | 否 | - | 标签精确匹配 |
 | `keyword` | string | 否 | - | 去除首尾空格，大小写不敏感 |
-| `sort` | string | 否 | `desc` | 仅允许 `desc`、`asc` |
+| `sort` | string | 否 | `desc` | 仅允许`desc`、`asc` |
 | `page` | integer | 否 | `1` | 必须大于等于 1 |
 | `pageSize` | integer | 否 | `10` | 1 至 100；前端当前传入 3 |
 
@@ -239,7 +239,7 @@ GET /api/blog/posts
 请求示例：
 
 ```http
-GET /api/blog/posts?categoryId=tech&tag=Vue&keyword=性能&sort=desc&page=1&pageSize=3
+GET /api/blog/posts?categorncyId=tech&tag=Vue&keyword=性能&sort=desc&page=1&pageSize=3
 ```
 
 成功响应：
@@ -281,8 +281,8 @@ GET /api/blog/posts/{id}
 
 路径参数：
 
-| 参数 | 类型 | 说明 |
-| --- | --- | --- |
+| 参数   | 类型   | 说明                                            |
+| ------ | ------ | ----------------------------------------------- |
 | `id` | string | 文章稳定 ID/slug，必须进行 URL 解码和参数化查询 |
 
 成功响应：
@@ -314,12 +314,12 @@ GET /api/blog/posts/{id}
 #### DiarySummary
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| ----------- | -------- | ---- | ---------------------------------------------- |
 | `id` | string | 是 | 不透明 ID；即使形似日期也不得按日期主键解析 |
 | `title` | string | 是 | 标题 |
 | `summary` | string | 是 | 列表摘要 |
 | `tags` | string[] | 是 | 标签 |
-| `date` | string | 是 | 必须为 `YYYY-MM-DD`，前端按固定位置拆分年月日 |
+| `date` | string | 是 | 必须为`YYYY-MM-DD`，前端按固定位置拆分年月日 |
 | `mood` | string | 是 | 心情展示文本 |
 | `weather` | string | 是 | 天气展示文本 |
 | `pinned` | boolean | 是 | 是否置顶 |
@@ -328,9 +328,9 @@ GET /api/blog/posts/{id}
 
 包含 `DiarySummary` 全部字段，并增加：
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `content` | string | 是 | Markdown 正文 |
+| 字段        | 类型   | 必填 | 说明          |
+| ----------- | ------ | ---- | ------------- |
+| `content` | string | 是   | Markdown 正文 |
 
 ### 5.2 获取日记标签
 
@@ -359,7 +359,7 @@ GET /api/blog/diaries
 ```
 
 | 参数 | 类型 | 必填 | 默认值 | 约束与说明 |
-| --- | --- | --- | --- | --- |
+| ------------ | ------- | ---- | -------- | ---------------------------------------- |
 | `tag` | string | 否 | - | 标签精确匹配 |
 | `keyword` | string | 否 | - | 匹配标题、摘要、标签和正文，大小写不敏感 |
 | `sort` | string | 否 | `desc` | `desc` 或 `asc` |
@@ -412,37 +412,37 @@ GET /api/blog/diaries/{id}
 #### PortfolioCategory
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| -------- | ------ | ---- | -------- |
 | `id` | string | 是 | 分类 ID |
 | `name` | string | 是 | 展示名称 |
 
 #### PortfolioLink
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `label` | string | 是 | 链接名称，如 `GitHub` |
+| --------- | ------ | ---- | ---------------------- |
+| `label` | string | 是 | 链接名称，如`GitHub` |
 | `url` | string | 是 | `https://` URL |
 
 #### PortfolioSummary
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `id` | string | 是 | 作品 slug |
-| `title` | string | 是 | 标题 |
-| `summary` | string | 是 | 摘要 |
-| `category` | string | 是 | 分类 ID |
-| `cover` | string | 是 | 当前可返回 emoji；未来可扩展为图片 URL |
-| `techStack` | string[] | 是 | 技术栈 |
-| `date` | string | 是 | `YYYY-MM-DD` |
+| 字段          | 类型     | 必填 | 说明                                   |
+| ------------- | -------- | ---- | -------------------------------------- |
+| `id`        | string   | 是   | 作品 slug                              |
+| `title`     | string   | 是   | 标题                                   |
+| `summary`   | string   | 是   | 摘要                                   |
+| `category`  | string   | 是   | 分类 ID                                |
+| `cover`     | string   | 是   | 当前可返回 emoji；未来可扩展为图片 URL |
+| `techStack` | string[] | 是   | 技术栈                                 |
+| `date`      | string   | 是   | `YYYY-MM-DD`                         |
 
 #### PortfolioItem
 
 包含 `PortfolioSummary` 全部字段，并增加：
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `links` | PortfolioLink[] | 是 | 项目外链 |
-| `content` | string | 是 | Markdown 详情 |
+| 字段        | 类型            | 必填 | 说明          |
+| ----------- | --------------- | ---- | ------------- |
+| `links`   | PortfolioLink[] | 是   | 项目外链      |
+| `content` | string          | 是   | Markdown 详情 |
 
 ### 6.2 获取作品分类
 
@@ -458,9 +458,9 @@ GET /api/blog/portfolio/categories
 GET /api/blog/portfolio/items?categoryId=website
 ```
 
-| 参数 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `categoryId` | string | 否 | 分类精确匹配；缺省返回全部 |
+| 参数           | 类型   | 必填 | 说明                       |
+| -------------- | ------ | ---- | -------------------------- |
+| `categoryId` | string | 否   | 分类精确匹配；缺省返回全部 |
 
 当前前端不分页、不搜索。建议按 `date DESC, id ASC` 返回，以保证稳定顺序。
 
@@ -519,23 +519,23 @@ GET /api/blog/portfolio/items/{id}
 #### ExternalLink
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| -------- | ------ | ---- | --------------------- |
 | `id` | string | 是 | 唯一 ID |
-| `type` | string | 是 | 固定为 `link` |
+| `type` | string | 是 | 固定为`link` |
 | `name` | string | 是 | 名称 |
 | `desc` | string | 是 | 描述 |
-| `url` | string | 是 | 外部 `https://` 地址 |
+| `url` | string | 是 | 外部`https://` 地址 |
 
 #### OwnTool
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| ----------- | ------ | ---- | ------------------------------ |
 | `id` | string | 是 | 工具 slug |
-| `type` | string | 是 | 固定为 `own` |
+| `type` | string | 是 | 固定为`own` |
 | `name` | string | 是 | 名称 |
 | `desc` | string | 是 | 描述 |
 | `cover` | string | 是 | 当前可返回 emoji |
-| `status` | string | 是 | 当前允许 `开发中`、`规划中` |
+| `status` | string | 是 | 当前允许`开发中`、`规划中` |
 | `content` | string | 是 | Markdown 说明 |
 
 ### 7.2 获取工具列表
@@ -591,21 +591,21 @@ GET /api/blog/tools/{id}
 #### BookmarkCategory
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| -------- | ------ | ---- | -------- |
 | `id` | string | 是 | 分类 ID |
 | `name` | string | 是 | 分类名称 |
 
 #### Bookmark
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `id` | string | 是 | 唯一 ID |
-| `title` | string | 是 | 标题 |
-| `url` | string | 是 | 外部 `https://` 地址 |
-| `desc` | string | 是 | 描述 |
-| `category` | string | 是 | 分类 ID |
-| `tags` | string[] | 是 | 标签 |
-| `icon` | string | 是 | 当前可返回 emoji；未来可使用 favicon URL |
+| 字段         | 类型     | 必填 | 说明                                     |
+| ------------ | -------- | ---- | ---------------------------------------- |
+| `id`       | string   | 是   | 唯一 ID                                  |
+| `title`    | string   | 是   | 标题                                     |
+| `url`      | string   | 是   | 外部`https://` 地址                    |
+| `desc`     | string   | 是   | 描述                                     |
+| `category` | string   | 是   | 分类 ID                                  |
+| `tags`     | string[] | 是   | 标签                                     |
+| `icon`     | string   | 是   | 当前可返回 emoji；未来可使用 favicon URL |
 
 ### 8.2 获取书签分类
 
@@ -622,7 +622,7 @@ GET /api/blog/bookmarks
 ```
 
 | 参数 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| -------------- | ------ | ---- | ---------------------------------------- |
 | `categoryId` | string | 否 | 分类精确匹配 |
 | `keyword` | string | 否 | 匹配标题、描述、标签和 URL，大小写不敏感 |
 
@@ -657,33 +657,33 @@ GET /api/blog/profile
 #### ProfileLink
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| --------- | ------ | ---- | --------------------------------------------- |
 | `id` | string | 是 | 链接 ID |
 | `label` | string | 是 | 展示名称 |
 | `value` | string | 是 | 展示值 |
-| `url` | string | 否 | 为空时仅展示；允许 `https://` 或 `mailto:` |
+| `url` | string | 否 | 为空时仅展示；允许`https://` 或 `mailto:` |
 | `icon` | string | 是 | 当前可返回 emoji |
 
 #### ProfileSkill
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| --------- | ------- | ---- | ------------------------------------------ |
 | `name` | string | 是 | 技能名称 |
 | `level` | integer | 是 | 熟练度，范围 0 至 100 |
-| `group` | string | 是 | 分组名称，如 `前端`、`后端`、`工程化` |
+| `group` | string | 是 | 分组名称，如`前端`、`后端`、`工程化` |
 
 #### Profile
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `name` | string | 是 | 姓名/昵称 |
-| `avatar` | string | 是 | 当前可返回 emoji、首字母或图片 URL |
-| `role` | string | 是 | 职位或身份 |
-| `location` | string | 是 | 所在地 |
-| `motto` | string | 是 | 一句话签名 |
-| `bio` | string | 是 | 个人简介 |
-| `links` | ProfileLink[] | 是 | 联系方式和外链 |
-| `skills` | ProfileSkill[] | 是 | 技能列表 |
+| 字段         | 类型           | 必填 | 说明                               |
+| ------------ | -------------- | ---- | ---------------------------------- |
+| `name`     | string         | 是   | 姓名/昵称                          |
+| `avatar`   | string         | 是   | 当前可返回 emoji、首字母或图片 URL |
+| `role`     | string         | 是   | 职位或身份                         |
+| `location` | string         | 是   | 所在地                             |
+| `motto`    | string         | 是   | 一句话签名                         |
+| `bio`      | string         | 是   | 个人简介                           |
+| `links`    | ProfileLink[]  | 是   | 联系方式和外链                     |
+| `skills`   | ProfileSkill[] | 是   | 技能列表                           |
 
 成功响应：
 
@@ -722,32 +722,48 @@ GET /api/blog/site
 
 #### SiteModule
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `id` | string | 是 | 模块 ID |
-| `icon` | string | 是 | 当前可返回 emoji |
-| `name` | string | 是 | 模块名称 |
-| `desc` | string | 是 | 模块描述 |
-| `path` | string | 是 | 前端站内路径，必须以 `/Blog` 开头 |
+| 字段        | 类型    | 必填 | 说明                                                              |
+| ----------- | ------- | ---- | ----------------------------------------------------------------- |
+| `id`      | string  | 是   | 模块 ID                                                           |
+| `icon`    | string  | 是   | 当前可返回 emoji                                                  |
+| `name`    | string  | 是   | 模块名称                                                          |
+| `desc`    | string  | 是   | 模块描述                                                          |
+| `path`    | string  | 是   | 前端站内路径，必须以`/Blog` 开头                                |
+| `visible` | boolean | 是   | 是否在公开站点显示并允许前端路由访问；旧数据缺失时按`true` 迁移 |
+
+站点模块为固定集合，后端必须使用以下 ID 与路径，不允许由管理请求修改 ID 或路径：
+
+| ID | 模块 | 固定路径 |
+| ------------- | ---- | ------------------- |
+| `blog` | 文章 | `/Blog` |
+| `diary` | 日记 | `/Blog/Diary` |
+| `portfolio` | 作品 | `/Blog/Portfolio` |
+| `tools` | 工具 | `/Blog/Tools` |
+| `bookmark` | 书签 | `/Blog/Bookmark` |
+| `about` | 关于 | `/Blog/About` |
+
+`GET /api/blog/site` 应返回全部六个模块，包括 `visible: false` 的模块，并保持上表顺序。前端使用该字段控制导航、关于页模块卡片和直接 URL 路由访问。允许六个模块全部为 `false`，此时前端展示站点维护页。
+
+`visible` 是前台展示配置，不是安全权限边界。如果关闭模块还需要禁止公开 API 获取数据，后端必须在对应公开内容接口中额外校验模块状态并返回明确错误；不能只依赖前端路由守卫。
 
 #### SiteMilestone
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| --------- | ------ | ---- | -------------- |
 | `date` | string | 是 | `YYYY-MM-DD` |
 | `title` | string | 是 | 里程碑标题 |
 | `desc` | string | 是 | 说明 |
 
 #### SiteInfo
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `name` | string | 是 | 站点名称 |
-| `slogan` | string | 是 | 标语 |
-| `intro` | string | 是 | 站点介绍 |
-| `techStack` | string[] | 是 | 技术栈 |
-| `modules` | SiteModule[] | 是 | 功能模块 |
-| `milestones` | SiteMilestone[] | 是 | 更新记录，建议日期降序 |
+| 字段           | 类型            | 必填 | 说明                   |
+| -------------- | --------------- | ---- | ---------------------- |
+| `name`       | string          | 是   | 站点名称               |
+| `slogan`     | string          | 是   | 标语                   |
+| `intro`      | string          | 是   | 站点介绍               |
+| `techStack`  | string[]        | 是   | 技术栈                 |
+| `modules`    | SiteModule[]    | 是   | 功能模块               |
+| `milestones` | SiteMilestone[] | 是   | 更新记录，建议日期降序 |
 
 成功响应：
 
@@ -766,7 +782,48 @@ GET /api/blog/site
         "icon": "📝",
         "name": "文章",
         "desc": "技术笔记与长文",
-        "path": "/Blog"
+        "path": "/Blog",
+        "visible": true
+      },
+      {
+        "id": "diary",
+        "icon": "📔",
+        "name": "日记",
+        "desc": "日常碎片与随想",
+        "path": "/Blog/Diary",
+        "visible": false
+      },
+      {
+        "id": "portfolio",
+        "icon": "🎨",
+        "name": "作品",
+        "desc": "网站、应用与开源项目",
+        "path": "/Blog/Portfolio",
+        "visible": true
+      },
+      {
+        "id": "tools",
+        "icon": "🧰",
+        "name": "工具",
+        "desc": "自研工具与常用链接",
+        "path": "/Blog/Tools",
+        "visible": true
+      },
+      {
+        "id": "bookmark",
+        "icon": "🔖",
+        "name": "书签",
+        "desc": "值得反复访问的资源",
+        "path": "/Blog/Bookmark",
+        "visible": true
+      },
+      {
+        "id": "about",
+        "icon": "👤",
+        "name": "关于",
+        "desc": "个人资料与站点记录",
+        "path": "/Blog/About",
+        "visible": true
       }
     ],
     "milestones": [
@@ -801,7 +858,7 @@ GET /api/blog/stats
 ```
 
 | 字段 | 类型 | 说明 |
-| --- | --- | --- |
+| ----------- | ------- | -------------- |
 | `posts` | integer | 已发布文章数量 |
 | `diaries` | integer | 已发布日记数量 |
 | `works` | integer | 已发布作品数量 |
@@ -873,12 +930,12 @@ Cache-Control: public, max-age=60, stale-while-revalidate=300
 
 分页适配关系：
 
-| 当前 mock 返回 | 正式 API 返回 |
-| --- | --- |
-| `res.list` | `res.data.list` 或由 API 模块解包后继续暴露为 `res.list` |
-| `res.total` | `res.data.pagination.total` |
-| `res.page` | `res.data.pagination.page` |
-| `res.pageSize` | `res.data.pagination.pageSize` |
+| 当前 mock 返回   | 正式 API 返回                                                |
+| ---------------- | ------------------------------------------------------------ |
+| `res.list`     | `res.data.list` 或由 API 模块解包后继续暴露为 `res.list` |
+| `res.total`    | `res.data.pagination.total`                                |
+| `res.page`     | `res.data.pagination.page`                                 |
+| `res.pageSize` | `res.data.pagination.pageSize`                             |
 
 推荐在 API 模块内部完成解包，让 Vue 页面保持当前调用方式不变。
 
@@ -914,6 +971,9 @@ Cache-Control: public, max-age=60, stale-while-revalidate=300
 
 - 技能 `level` 始终位于 0 至 100
 - `SiteModule.path` 指向有效 `/Blog` 路由
+- Site 返回六个固定模块，ID、路径和顺序符合 9.2 节定义
+- `visible=false` 的模块仍包含在 Site 响应中，以便后台重新开启
+- 旧数据缺少 `visible` 时迁移为 `true`
 - 统计数字只包含已发布内容
 
 ## 14. 后续可选扩展
@@ -943,14 +1003,14 @@ Cache-Control: public, max-age=60, stale-while-revalidate=300
 标识对应关系：
 
 | 资源 | 管理路径 ID | 公开 API ID |
-| --- | --- | --- |
-| 分类 | 数据库 `id` | `slug`，公开响应为 `id` |
-| 标签 | 数据库 `id` | 标签名称 |
-| 文章 | 数据库 `id` | `slug` |
-| 日记 | 数据库 `id` | `publicId` |
-| 作品 | 数据库 `id` | `slug` |
-| 工具 | 数据库 `id` | `slug` |
-| 书签 | 数据库 `id` | `publicId` |
+| ---- | ------------ | --------------------------- |
+| 分类 | 数据库`id` | `slug`，公开响应为 `id` |
+| 标签 | 数据库`id` | 标签名称 |
+| 文章 | 数据库`id` | `slug` |
+| 日记 | 数据库`id` | `publicId` |
+| 作品 | 数据库`id` | `slug` |
+| 工具 | 数据库`id` | `slug` |
+| 书签 | 数据库`id` | `publicId` |
 
 ### 15.2 认证与权限
 
@@ -962,37 +1022,22 @@ X-Token: <login-token>
 
 仅以下用户类型允许访问：
 
-| userType | 角色 |
-| --- | --- |
-| `2` | admin |
-| `100` | root |
+| userType | 角色  |
+| -------- | ----- |
+| `2`    | admin |
+| `100`  | root  |
 
 认证和授权顺序为 `CORS -> Auth -> RequireAdmin -> Handler`。`OPTIONS` 预检请求由 CORS 中间件直接返回 HTTP 204。
 
 认证相关响应：
 
-| 场景 | HTTP | 业务码 | 说明 |
-| --- | --- | --- | --- |
-| 缺少或无效 Token | 401 | `1` | 沿用用户模块现有认证响应 |
-| 认证上下文缺失 | 401 | `40100` | 未登录或登录已失效 |
-| 普通用户访问 | 403 | `40300` | 无管理权限 |
+| 场景             | HTTP | 业务码    | 说明                     |
+| ---------------- | ---- | --------- | ------------------------ |
+| 缺少或无效 Token | 401  | `1`     | 沿用用户模块现有认证响应 |
+| 认证上下文缺失   | 401  | `40100` | 未登录或登录已失效       |
+| 普通用户访问     | 403  | `40300` | 无管理权限               |
 
-开发模式启用 `debug.enableMockLogin` 时，认证中间件使用 Mock root 用户，不检查 `X-Token`。`mockUserId` 只改变内存 Mock 用户 ID，不查询数据库用户，角色固定为 root。release 模式禁止启用 Mock；开启或关闭均需重启服务。
-
-### 15.2.1 演示数据 Seed
-
-开发环境可在启动时幂等填充 Blog 演示数据：
-
-```toml
-[blogSeed]
-enabled = true
-allowRemote = false
-restoreDeleted = false
-```
-
-Seed 在全部表迁移成功后运行。默认仅允许本机数据库；连接远程数据库时必须显式设置 `allowRemote=true`。release 模式禁止执行，配置热更新也不会触发 Seed。
-
-数据集包含 20 篇文章和 20 篇日记，其中各 12 条当前公开，并补齐分类、标签、作品、工具、书签、Profile 和 Site。Seed 不覆盖已有记录；软删除记录默认跳过，`restoreDeleted=true` 时恢复。
+开发模式启用 `debug.enableMockLogin` 时，认证中间件使用 Mock root 用户，不检查 `X-Token`。该配置仅在服务重启后生效。
 
 ### 15.3 管理响应与错误码
 
@@ -1008,14 +1053,14 @@ Seed 在全部表迁移成功后运行。默认仅允许本机数据库；连接
 
 创建成功使用 HTTP 201；查询、更新、删除、恢复和单例保存成功使用 HTTP 200。
 
-| HTTP | 业务码 | 含义 |
-| --- | --- | --- |
-| 200 | `0` | 操作成功 |
-| 201 | `0` | 创建成功 |
-| 400 | `40001` | 请求参数格式错误 |
-| 404 | `40410` | 资源不存在 |
-| 409 | `40900` | 版本冲突或唯一标识重复 |
-| 500 | `50000` | 服务内部错误 |
+| HTTP | 业务码    | 含义                   |
+| ---- | --------- | ---------------------- |
+| 200  | `0`     | 操作成功               |
+| 201  | `0`     | 创建成功               |
+| 400  | `40001` | 请求参数格式错误       |
+| 404  | `40410` | 资源不存在             |
+| 409  | `40900` | 版本冲突或唯一标识重复 |
+| 500  | `50000` | 服务内部错误           |
 
 错误时 `data` 固定为 `null`：
 
@@ -1041,23 +1086,23 @@ Seed 在全部表迁移成功后运行。默认仅允许本机数据库；连接
 
 每种资源均注册以下 6 个端点，共 42 个：
 
-| 方法 | Endpoint | 说明 |
-| --- | --- | --- |
-| GET | `/api/blog-mgr/{resource}` | 分页列表 |
-| POST | `/api/blog-mgr/{resource}` | 创建资源 |
-| GET | `/api/blog-mgr/{resource}/{id}` | 资源详情，包括已软删除记录 |
-| PATCH | `/api/blog-mgr/{resource}/{id}` | 更新资源，当前为全量覆盖语义 |
-| DELETE | `/api/blog-mgr/{resource}/{id}` | 软删除资源 |
-| POST | `/api/blog-mgr/{resource}/{id}/restore` | 恢复资源 |
+| 方法   | Endpoint                                  | 说明                         |
+| ------ | ----------------------------------------- | ---------------------------- |
+| GET    | `/api/blog-mgr/{resource}`              | 分页列表                     |
+| POST   | `/api/blog-mgr/{resource}`              | 创建资源                     |
+| GET    | `/api/blog-mgr/{resource}/{id}`         | 资源详情，包括已软删除记录   |
+| PATCH  | `/api/blog-mgr/{resource}/{id}`         | 更新资源，当前为全量覆盖语义 |
+| DELETE | `/api/blog-mgr/{resource}/{id}`         | 软删除资源                   |
+| POST   | `/api/blog-mgr/{resource}/{id}/restore` | 恢复资源                     |
 
 Profile 和 Site 额外提供 4 个单例端点：
 
-| 方法 | Endpoint | 说明 |
-| --- | --- | --- |
-| GET | `/api/blog-mgr/profile` | 获取个人资料配置 |
-| PUT | `/api/blog-mgr/profile` | 创建或覆盖个人资料配置 |
-| GET | `/api/blog-mgr/site` | 获取站点配置 |
-| PUT | `/api/blog-mgr/site` | 创建或覆盖站点配置 |
+| 方法 | Endpoint                  | 说明                   |
+| ---- | ------------------------- | ---------------------- |
+| GET  | `/api/blog-mgr/profile` | 获取个人资料配置       |
+| PUT  | `/api/blog-mgr/profile` | 创建或覆盖个人资料配置 |
+| GET  | `/api/blog-mgr/site`    | 获取站点配置           |
+| PUT  | `/api/blog-mgr/site`    | 创建或覆盖站点配置     |
 
 管理端共计 46 个端点。
 
@@ -1069,16 +1114,16 @@ GET /api/blog-mgr/{resource}
 
 ### 17.1 查询参数
 
-| 参数 | 默认值 | 约束与说明 |
-| --- | --- | --- |
-| `page` | `1` | 大于等于 1 |
-| `pageSize` | `20` | 1 至 100 |
-| `keyword` | - | 去除首尾空格；分类、标签、工具匹配 `name`，其他资源匹配 `title` |
-| `status` | - | `draft`、`published` 或 `archived`；仅内容资源使用 |
-| `deleted` | `exclude` | `exclude`、`only` 或 `all` |
-| `scope` | - | `post`、`portfolio` 或 `bookmark`；仅分类使用 |
-| `categoryId` | - | 分类 slug；仅文章、作品、书签使用 |
-| `sort` | `desc` | `asc` 或 `desc`，按 `created_at` 排序 |
+| 参数           | 默认值      | 约束与说明                                                         |
+| -------------- | ----------- | ------------------------------------------------------------------ |
+| `page`       | `1`       | 大于等于 1                                                         |
+| `pageSize`   | `20`      | 1 至 100                                                           |
+| `keyword`    | -           | 去除首尾空格；分类、标签、工具匹配`name`，其他资源匹配 `title` |
+| `status`     | -           | `draft`、`published` 或 `archived`；仅内容资源使用           |
+| `deleted`    | `exclude` | `exclude`、`only` 或 `all`                                   |
+| `scope`      | -           | `post`、`portfolio` 或 `bookmark`；仅分类使用                |
+| `categoryId` | -           | 分类 slug；仅文章、作品、书签使用                                  |
+| `sort`       | `desc`    | `asc` 或 `desc`，按 `created_at` 排序                        |
 
 请求示例：
 
@@ -1113,7 +1158,7 @@ GET /api/blog-mgr/posts?page=1&pageSize=20&status=draft&deleted=exclude&sort=des
 请求字段：
 
 | 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
+| ------------- | ------- | ---- | ----------------------------------------------------- |
 | `scope` | string | 是 | `post`、`portfolio`、`bookmark`；创建后不可修改 |
 | `slug` | string | 是 | 长度 1 至 128；同一 scope 内唯一 |
 | `name` | string | 是 | 展示名称，去除首尾空格后不能为空 |
@@ -1151,20 +1196,20 @@ Content-Type: application/json
 
 ### 19.1 文章 Post
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `slug` | string | 公开文章 ID，长度 1 至 128 |
-| `title` | string | 必填 |
-| `summary` | string | 摘要 |
-| `categoryId` | string | 文章分类 slug，非空时必须属于 `post` scope |
-| `author` | string | 作者展示名 |
-| `content` | string | Markdown 正文 |
-| `publishStatus` | string | `draft`、`published`、`archived` |
-| `publishedOn` | string | `YYYY-MM-DD` |
-| `publishedAt` | string | 可选，RFC 3339 时间 |
-| `pinned` | boolean | 是否置顶 |
-| `version` | integer | 更新时必填且大于等于 1 |
-| `tagIds` | string[] | 标签数据库 ID；去重后整体替换 |
+| 字段              | 类型     | 说明                                        |
+| ----------------- | -------- | ------------------------------------------- |
+| `slug`          | string   | 公开文章 ID，长度 1 至 128                  |
+| `title`         | string   | 必填                                        |
+| `summary`       | string   | 摘要                                        |
+| `categoryId`    | string   | 文章分类 slug，非空时必须属于`post` scope |
+| `author`        | string   | 作者展示名                                  |
+| `content`       | string   | Markdown 正文                               |
+| `publishStatus` | string   | `draft`、`published`、`archived`      |
+| `publishedOn`   | string   | `YYYY-MM-DD`                              |
+| `publishedAt`   | string   | 可选，RFC 3339 时间                         |
+| `pinned`        | boolean  | 是否置顶                                    |
+| `version`       | integer  | 更新时必填且大于等于 1                      |
+| `tagIds`        | string[] | 标签数据库 ID；去重后整体替换               |
 
 创建示例：
 
@@ -1346,7 +1391,48 @@ Content-Type: application/json
       "icon": "📝",
       "name": "文章",
       "desc": "技术笔记与长文",
-      "path": "/Blog"
+      "path": "/Blog",
+      "visible": true
+    },
+    {
+      "id": "diary",
+      "icon": "📔",
+      "name": "日记",
+      "desc": "日常碎片与随想",
+      "path": "/Blog/Diary",
+      "visible": false
+    },
+    {
+      "id": "portfolio",
+      "icon": "🎨",
+      "name": "作品",
+      "desc": "网站、应用与开源项目",
+      "path": "/Blog/Portfolio",
+      "visible": true
+    },
+    {
+      "id": "tools",
+      "icon": "🧰",
+      "name": "工具",
+      "desc": "自研工具与常用链接",
+      "path": "/Blog/Tools",
+      "visible": true
+    },
+    {
+      "id": "bookmark",
+      "icon": "🔖",
+      "name": "书签",
+      "desc": "值得反复访问的资源",
+      "path": "/Blog/Bookmark",
+      "visible": true
+    },
+    {
+      "id": "about",
+      "icon": "👤",
+      "name": "关于",
+      "desc": "个人资料与站点记录",
+      "path": "/Blog/About",
+      "visible": true
     }
   ],
   "milestones": [
@@ -1355,9 +1441,19 @@ Content-Type: application/json
 }
 ```
 
-`name` 必填；模块 ID 不可重复，路径必须以 `/Blog` 开头；里程碑日期必须为 `YYYY-MM-DD` 且标题不能为空。
+`name` 必填；里程碑日期必须为 `YYYY-MM-DD` 且标题不能为空。
 
-Profile 和 Site 使用固定单例 key `default`。记录不存在时 GET 返回结构完整的空对象，数组为 `[]`；PUT 执行创建或覆盖，并恢复已软删除的单例记录。
+Site 模块保存约束：
+
+1. `modules` 必须包含 9.2 节定义的全部六个固定模块，每个 ID 恰好出现一次。
+2. 模块 ID 和路径必须与固定映射一致；后端不得接受未知 ID、重复 ID 或被修改的路径。
+3. `icon`、`name`、`desc` 和 `visible` 可由后台修改，其中 `name` 不能为空，`visible` 必须为布尔值。
+4. `visible=false` 的模块必须正常持久化，管理端 GET 和公开端 GET 均不得过滤这些模块。
+5. 允许全部模块为 `visible=false`。
+6. 为兼容已有数据，数据库记录缺少 `visible` 时应在迁移或读取时补为 `true`；已有配置缺少固定模块时应补齐默认模块，不得将缺失项解释为隐藏。
+7. `PUT /api/blog-mgr/site` 成功响应应返回标准化后的完整 Site 对象，供管理前端立即更新公开配置缓存。
+
+Profile 和 Site 使用固定单例 key `default`。记录不存在时，Profile GET 返回结构完整的空对象且数组为 `[]`；Site GET 返回结构完整的默认对象，其中 `modules` 包含六个固定模块且 `visible` 均为 `true`，其他数组可为 `[]`。PUT 执行创建或覆盖，并恢复已软删除的单例记录。
 
 ## 21. 内容生命周期
 
@@ -1416,6 +1512,7 @@ Profile 和 Site 使用固定单例 key `default`。记录不存在时 GET 返�
 7. 禁用或删除分类不会自动隐藏引用该分类的公开内容，只会使分类不再出现在分类列表。
 8. 标签精确筛选在 PostgreSQL 中通常区分大小写；关键词搜索才显式不区分大小写。
 9. 当前单元测试未连接真实 PostgreSQL，JSONB、事务回滚、分类 slug 级联和并发乐观锁仍需集成测试验证。
+10. 模块 `visible` 默认只控制前端入口与路由；若后端未在内容接口中校验该字段，关闭模块后其公开 API 仍可被直接调用。
 
 ## 23. 管理端验收清单
 
@@ -1429,3 +1526,7 @@ Profile 和 Site 使用固定单例 key `default`。记录不存在时 GET 返�
 - 标签整体替换无重复，任一步失败时主体和关系同时回滚。
 - 文章、日记、书签的管理响应包含可直接用于编辑回显的 `tagIds`。
 - Profile/Site GET 在空库返回空数组而不是 null，PUT 后公开接口可读取新配置。
+- Site 管理 GET/PUT 和公开 GET 均返回六个固定模块及显式 `visible` 布尔值。
+- 将任一模块设为 `visible=false` 后重新读取仍保持关闭，且响应中没有删除该模块。
+- 全部模块可同时关闭；重新开启任一模块后配置可正常恢复。
+- 旧 Site 数据缺少 `visible` 或缺少固定模块时，迁移结果默认开启并补齐，不影响升级前已有站点。

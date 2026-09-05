@@ -666,18 +666,12 @@ func (s *Service) GetSetting(ctx context.Context, name string) (interface{}, err
 	value := &blogmodel.Site{}
 	err = db.Unscoped().Where("site_key = ?", "default").First(value).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return blogresponse.Site{TechStack: []string{}, Modules: []blogresponse.SiteModule{}, Milestones: []blogresponse.SiteMilestone{}}, nil
+		return defaultSite(), nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	var tech []string
-	var modules []blogresponse.SiteModule
-	var milestones []blogresponse.SiteMilestone
-	if json.Unmarshal(value.TechStack, &tech) != nil || json.Unmarshal(value.Modules, &modules) != nil || json.Unmarshal(value.Milestones, &milestones) != nil {
-		return nil, ErrInvalid
-	}
-	return blogresponse.Site{Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: modules, Milestones: milestones}, nil
+	return siteFromModel(value)
 }
 
 func (s *Service) PutSetting(ctx context.Context, name string, payload interface{}) (interface{}, error) {
@@ -703,15 +697,28 @@ func (s *Service) PutSetting(ctx context.Context, name string, payload interface
 	if err := validateSite(value); err != nil {
 		return nil, err
 	}
+	modules, err := normalizeSiteModules(value.Modules, true)
+	if err != nil {
+		return nil, err
+	}
+	value.Modules = modules
+	if value.TechStack == nil {
+		value.TechStack = []string{}
+	}
+	if value.Milestones == nil {
+		value.Milestones = []blogresponse.SiteMilestone{}
+	}
 	tech, e1 := marshal(value.TechStack)
-	modules, e2 := marshal(value.Modules)
+	modulesJSON, e2 := marshal(value.Modules)
 	milestones, e3 := marshal(value.Milestones)
 	if e1 != nil || e2 != nil || e3 != nil {
 		return nil, ErrInvalid
 	}
-	item := &blogmodel.Site{SiteKey: "default", Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: modules, Milestones: milestones}
-	err = upsertSetting(db, &blogmodel.Site{}, "site_key", "default", item)
-	return value, err
+	item := &blogmodel.Site{SiteKey: "default", Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: modulesJSON, Milestones: milestones}
+	if err = upsertSetting(db, &blogmodel.Site{}, "site_key", "default", item); err != nil {
+		return nil, err
+	}
+	return value, nil
 }
 
 func validateProfile(value blogresponse.Profile) error {
@@ -739,19 +746,24 @@ func validateProfile(value blogresponse.Profile) error {
 	return nil
 }
 
+// siteFromModel 把站点记录转换为响应对象，并按固定模块约束补齐历史数据。
+func siteFromModel(value *blogmodel.Site) (blogresponse.Site, error) {
+	tech := []string{}
+	modules := []blogresponse.SiteModule{}
+	milestones := []blogresponse.SiteMilestone{}
+	if json.Unmarshal(value.TechStack, &tech) != nil || json.Unmarshal(value.Modules, &modules) != nil || json.Unmarshal(value.Milestones, &milestones) != nil {
+		return blogresponse.Site{}, ErrInvalid
+	}
+	normalized, err := normalizeSiteModules(modules, false)
+	if err != nil {
+		return blogresponse.Site{}, err
+	}
+	return blogresponse.Site{Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: normalized, Milestones: milestones}, nil
+}
+
 func validateSite(value blogresponse.Site) error {
 	if strings.TrimSpace(value.Name) == "" {
 		return ErrInvalid
-	}
-	seen := map[string]struct{}{}
-	for _, module := range value.Modules {
-		if strings.TrimSpace(module.ID) == "" || !strings.HasPrefix(module.Path, "/Blog") {
-			return ErrInvalid
-		}
-		if _, ok := seen[module.ID]; ok {
-			return ErrInvalid
-		}
-		seen[module.ID] = struct{}{}
 	}
 	for _, milestone := range value.Milestones {
 		if !request.ValidDate(milestone.Date) || strings.TrimSpace(milestone.Title) == "" {

@@ -165,7 +165,7 @@ func (s *Service) Site(ctx context.Context) (response.Site, error) {
 	var record model.Site
 	if err := db.Where("site_key = ?", "default").First(&record).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return response.Site{TechStack: []string{}, Modules: []response.SiteModule{}, Milestones: []response.SiteMilestone{}}, nil
+			return response.Site{TechStack: []string{}, Modules: response.DefaultSiteModules(), Milestones: []response.SiteMilestone{}}, nil
 		}
 		return response.Site{}, err
 	}
@@ -177,11 +177,16 @@ func (s *Service) Site(ctx context.Context) (response.Site, error) {
 	if err != nil {
 		return response.Site{}, err
 	}
+	// 站点模块为固定集合，历史数据缺失时补齐，visible=false 的模块依然返回。
+	normalized, err := response.NormalizeSiteModules(modules, false)
+	if err != nil {
+		return response.Site{}, err
+	}
 	milestones, err := decodeJSON[response.SiteMilestone](record.Milestones)
 	if err != nil {
 		return response.Site{}, err
 	}
-	return response.Site{Name: record.Name, Slogan: record.Slogan, Intro: record.Intro, TechStack: techStack, Modules: modules, Milestones: milestones}, nil
+	return response.Site{Name: record.Name, Slogan: record.Slogan, Intro: record.Intro, TechStack: techStack, Modules: normalized, Milestones: milestones}, nil
 }
 
 func (s *Service) Stats(ctx context.Context) (response.Stats, error) {

@@ -205,7 +205,7 @@ func seedSettings(tx *gorm.DB, options Options, result *Result) error {
 	if err != nil {
 		return err
 	}
-	modules, err := toJSON([]blogresponse.SiteModule{{ID: "blog", Icon: "📝", Name: "文章", Desc: "技术笔记与长文", Path: "/Blog"}})
+	modules, err := toJSON(blogresponse.DefaultSiteModules())
 	if err != nil {
 		return err
 	}
