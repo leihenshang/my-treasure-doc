@@ -146,6 +146,7 @@ func effectiveHotReloadConfig(current, candidate *config.Config) (*config.Config
 
 	effective := *current
 	effective.App.RegisterEnabled = candidate.App.RegisterEnabled
+	effective.Captcha = candidate.Captcha
 	restartRequired := make([]string, 0, 6)
 	currentApp := current.App
 	candidateApp := candidate.App

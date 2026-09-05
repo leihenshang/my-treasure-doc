@@ -38,6 +38,7 @@ func InitRouter(r *gin.Engine) {
 		userRoute := apiBase.Group("user").Use(middleware.Cors())
 		userRoute.POST("/reg", userApi.UserRegister)
 		userRoute.POST("/login", userApi.UserLogin)
+		userRoute.GET("/captcha", userApi.UserCaptcha)
 		userRoute.Use(middleware.Auth(), middleware.Cors())
 		userRoute.POST("/logout", userApi.UserLogout)
 		userRoute.POST("/update-profile", userApi.UserProfileUpdate)

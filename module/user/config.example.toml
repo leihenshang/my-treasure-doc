@@ -31,6 +31,10 @@ dbId = 0
 enableMockLogin = false
 mockUserId = "9999999999"
 
+[captcha]
+# 登录是否要求图形验证码；缺省为 true
+enabled = true
+
 [blogSeed]
 enabled = false
 allowRemote = false

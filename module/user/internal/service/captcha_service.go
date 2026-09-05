@@ -24,9 +24,12 @@ const (
 	CaptchaBgColorA        = 221
 )
 
+// ErrCaptchaInvalid 验证码为空、错误或已过期。
+var ErrCaptchaInvalid = errors.New("验证码错误或已失效")
+
 type CaptchaResp struct {
-	CaptchaId string
-	Captcha   string
+	CaptchaId string `json:"captchaId"`
+	Captcha   string `json:"captcha"`
 }
 
 func GenCaptcha(ctx *gin.Context) (CaptchaResp, error) {
@@ -51,9 +54,14 @@ func GenCaptcha(ctx *gin.Context) (CaptchaResp, error) {
 	return resp, nil
 }
 
+// verifyCaptcha 校验图形验证码。clear 为 true 时校验通过后立即失效，
+// 保证一个验证码只能用于一次登录尝试。
 func verifyCaptcha(id, verifyVal string, clear bool) error {
+	if id == "" || verifyVal == "" {
+		return ErrCaptchaInvalid
+	}
 	if !store.Verify(id, verifyVal, clear) {
-		return errors.New("captcha verification failed")
+		return ErrCaptchaInvalid
 	}
 	return nil
 }

@@ -189,6 +189,13 @@ func (user *UserService) UserLogin(r userReq.LoginRequest, clientIp string) (u *
 		return nil, errors.New("密码或账号(邮箱)不能为空")
 	}
 
+	// 先校验验证码，避免被自动化脚本用于撞库；验证码一次性消费。
+	if global.GetConf() != nil && global.GetConf().Captcha.Enabled {
+		if err = verifyCaptcha(r.CaptchaId, r.VerifyCode, true); err != nil {
+			return nil, err
+		}
+	}
+
 	err = global.Db.Where("LOWER(account) = LOWER(?) OR LOWER(email) = LOWER(?)", r.Account, r.Account).First(&u).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.New(fmt.Sprintf("账号 %s 没有找到", r.Account))

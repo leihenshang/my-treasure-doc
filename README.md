@@ -54,8 +54,9 @@ main.go
 
 | 方法 | 路径 | 说明 | 认证 |
 | ------ | ------ | ------ | ------ |
+| GET | `/api/user/captcha` | 获取图形验证码（Base64 PNG） | ❌ |
 | POST | `/api/user/reg` | 注册（自动创建默认空间） | ❌ |
-| POST | `/api/user/login` | 登录（返回 token，7 天有效） | ❌ |
+| POST | `/api/user/login` | 登录（返回 token，7 天有效；需图形验证码） | ❌ |
 | POST | `/api/user/logout` | 退出登录 | ✅ |
 | POST | `/api/user/update-profile` | 更新个人资料 | ✅ |
 | POST | `/api/user-manage/create` | 创建用户（管理） | ✅ |

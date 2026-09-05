@@ -47,6 +47,19 @@ func TestEffectiveHotReloadConfigBusinessOnly(t *testing.T) {
 	}
 }
 
+func TestEffectiveHotReloadConfigCaptcha(t *testing.T) {
+	current := &config.Config{Captcha: config.Captcha{Enabled: true}}
+	candidate := *current
+	candidate.Captcha.Enabled = false
+	effective, restartRequired := effectiveHotReloadConfig(current, &candidate)
+	if effective.Captcha.Enabled {
+		t.Fatal("captcha should be hot reloaded")
+	}
+	if len(restartRequired) != 0 {
+		t.Fatalf("restart sections = %#v, want none", restartRequired)
+	}
+}
+
 func TestValidateStartupConfig(t *testing.T) {
 	tests := []struct {
 		name    string

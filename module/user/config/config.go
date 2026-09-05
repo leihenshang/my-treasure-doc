@@ -17,6 +17,13 @@ type Config struct {
 	Log      Log
 	Debug    Debug
 	BlogSeed BlogSeed
+	Captcha  Captcha
+}
+
+// applyConfigDefaults 设置配置文件可省略项的默认值。
+// 验证码默认开启，避免新增配置项后因为漏配而失去登录保护。
+func applyConfigDefaults(v *viper.Viper) {
+	v.SetDefault("captcha.enabled", true)
 }
 
 var globalConfig *Config
@@ -59,6 +66,7 @@ func InitConf(path string) (err error) {
 		return fmt.Errorf("failed to load config: %w \n", err)
 	}
 
+	applyConfigDefaults(v)
 	cfg := &Config{}
 	if err := v.Unmarshal(cfg); err != nil {
 		return fmt.Errorf("failed to unmarshal config: %w \n", err)
@@ -84,6 +92,7 @@ func ReloadConf() (*Config, error) {
 		return nil, fmt.Errorf("failed to reload config: %w", err)
 	}
 
+	applyConfigDefaults(v)
 	cfg := &Config{}
 	if err := v.Unmarshal(cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal reloaded config: %w", err)

@@ -1,6 +1,8 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/gin-gonic/gin"
 
 	"fastduck/treasure-doc/module/user/data/request/user"
@@ -39,6 +41,18 @@ func (u *UserApi) UserRegister(c *gin.Context) {
 	}
 }
 
+// UserCaptcha 生成图形验证码，登录前匿名获取
+func (u *UserApi) UserCaptcha(c *gin.Context) {
+	captcha, err := service.GenCaptcha(c)
+	if err != nil {
+		global.Log.Errorf("failed to generate captcha:%v", err)
+		response.FailWithMessage(c, "验证码生成失败")
+		return
+	}
+
+	response.OkWithData(c, captcha)
+}
+
 // UserLogin 用户登录，账号字段支持填入账号和邮箱，因为都是唯一的
 func (u *UserApi) UserLogin(c *gin.Context) {
 	var login user.LoginRequest
@@ -49,6 +63,10 @@ func (u *UserApi) UserLogin(c *gin.Context) {
 	}
 
 	if u, ok := u.UserService.UserLogin(login, c.ClientIP()); ok != nil {
+		if errors.Is(ok, service.ErrCaptchaInvalid) {
+			response.FailWithMessage(c, ok.Error(), response.CaptchaInvalid)
+			return
+		}
 		response.FailWithMessage(c, ok.Error())
 	} else {
 		response.OkWithData(c, u)
