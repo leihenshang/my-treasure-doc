@@ -1,45 +1,20 @@
-# phpstorm project files
-.idea
+# Go build / debug artifacts
+__debug*
+*.exe
+*.test
+*.out
 
-# netbeans project files
-nbproject
-
-# zend studio for eclipse project files
-.buildpath
-.project
-.settings
-
-# windows thumbnail cache
-Thumbs.db
-
-# composer vendor dir
+# Go vendor
 /vendor
 
-# composer itself is not needed
-composer.phar
+# Runtime data directories
+/log/
+/files/
 
-# Mac DS_Store Files
+# IDE / editor
+.idea/
+.vscode/
+
+# OS files
 .DS_Store
-
-# phpunit itself is not needed
-phpunit.phar
-# local phpunit config
-/phpunit.xml
-
-tests/_output/*
-tests/_support/_generated
-
-#vagrant folder
-/.vagrant
-
-#node modules
-node_modules
-
-#屏蔽文件上传
-file
-
-/*.tar.gz
-
-.vscode
-
-__debug*
+Thumbs.db
