@@ -18,12 +18,19 @@ type Config struct {
 	Debug    Debug
 	BlogSeed BlogSeed
 	Captcha  Captcha
+	Backup   Backup
 }
 
 // applyConfigDefaults 设置配置文件可省略项的默认值。
 // 验证码默认开启，避免新增配置项后因为漏配而失去登录保护。
 func applyConfigDefaults(v *viper.Viper) {
 	v.SetDefault("captcha.enabled", true)
+	// SQLite 定时备份默认值：每日一次、压缩、保留 7 天；默认关闭，需显式 enable。
+	v.SetDefault("backup.enable", false)
+	v.SetDefault("backup.interval", 86400)
+	v.SetDefault("backup.dir", "backup")
+	v.SetDefault("backup.compress", true)
+	v.SetDefault("backup.keepDays", 7)
 }
 
 var globalConfig *Config

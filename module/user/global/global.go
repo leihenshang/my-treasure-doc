@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-redis/redis"
@@ -65,6 +66,18 @@ func InitModule(cfgPath string) (destructFunc func(), err error) {
 		return
 	}
 	fmt.Println("初始化PostgreSQL完成")
+
+	// 启动 SQLite 定时备份（仅 sqlite 驱动生效；postgres 不启动）。
+	if GetConf().Backup.Enable {
+		stop := StartSqliteBackupScheduler(
+			time.Duration(GetConf().Backup.Interval)*time.Second,
+			GetConf().Backup.Dir,
+			GetConf().Backup.Compress,
+			GetConf().Backup.KeepDays,
+		)
+		destructFunc = chainDestruct(destructFunc, stop)
+		fmt.Println("初始化SQLite定时备份完成")
+	}
 
 	if err = InitTrans("zh"); err != nil {
 		log.Fatalf("init trans failed, err:%v\n", err)
@@ -202,6 +215,18 @@ func validateStartupConfig(cfg *config.Config) error {
 		}
 	}
 	return nil
+}
+
+// chainDestruct 将 stop 追加到 destructFunc 之后，返回一个组合后的销毁函数。
+func chainDestruct(destructFunc func(), stop func()) func() {
+	return func() {
+		if destructFunc != nil {
+			destructFunc()
+		}
+		if stop != nil {
+			stop()
+		}
+	}
 }
 
 func destructModule() func() {

@@ -15,6 +15,14 @@ tablePrefix = "td_"
 # driver = "postgres"
 # dsn = "host=127.0.0.1 user=postgres password=postgres dbname=treasure_doc port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
+[backup]
+# SQLite 定时备份（仅 driver=sqlite 生效；postgres 不会启动）
+enable = false
+interval = 86400     # 备份周期（秒），86400 = 每天
+dir = "backup"       # 备份文件存放目录
+compress = true      # 是否 gzip 压缩（生成 .db.gz）
+keepDays = 7         # 旧备份保留天数，0 = 不清理
+
 [log]
 directory = "log"
 showInConsole = true

@@ -16,3 +16,17 @@ type Database struct {
 	// TablePrefix 表名前缀，沿用现有 td_ 约定。
 	TablePrefix string ``
 }
+
+// Backup 控制 SQLite 定时备份（仅 sqlite 驱动生效，postgres 不启用）。
+type Backup struct {
+	// Enable 是否启用定时备份。
+	Enable bool ``
+	// Interval 备份周期，单位秒（例如 86400 = 每天）。
+	Interval int ``
+	// Dir 备份文件存放目录，缺省 backup。
+	Dir string ``
+	// Compress 是否 gzip 压缩（生成 .db.gz），节省磁盘占用。
+	Compress bool ``
+	// KeepDays 保留天数，超过该天数的旧备份会被自动清理；0 表示不清理。
+	KeepDays int ``
+}
