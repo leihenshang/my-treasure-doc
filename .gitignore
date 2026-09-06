@@ -18,3 +18,4 @@ __debug*
 # OS files
 .DS_Store
 Thumbs.db
+module/user/treasure_doc.db
