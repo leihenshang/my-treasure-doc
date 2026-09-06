@@ -23,5 +23,6 @@
 
 ## 数据更新
 
-服务启动时通过 GORM `AutoMigrate` 初始化 PostgreSQL 表结构（仅 `td_user`、`td_user_token`
-及博客相关表）。该过程不会迁移已有 MySQL 数据；本项目当前也不提供 MySQL 到 PostgreSQL 的数据搬迁脚本。
+服务启动时通过 GORM `AutoMigrate` 初始化数据库表结构（仅 `td_user`、`td_user_token`
+及博客相关表）。当前默认使用 SQLite（单文件，零依赖），也可在 `[database]` 配置为 PostgreSQL；
+该过程不会迁移已有数据，本项目当前也不提供跨数据库的数据搬迁脚本。

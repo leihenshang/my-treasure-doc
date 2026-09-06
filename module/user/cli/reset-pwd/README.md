@@ -1,6 +1,6 @@
 # 重置用户密码
 
-配置文件必须使用 `[database]` PostgreSQL 配置，并能从当前环境访问数据库。
+配置文件必须使用 `[database]` 配置（SQLite 或 PostgreSQL 均可），并能从当前环境访问数据库。
 
 在仓库根目录运行：
 

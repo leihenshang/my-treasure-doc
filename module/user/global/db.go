@@ -14,6 +14,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
+
+	"github.com/glebarez/sqlite"
 )
 
 var TableMigrate = append([]schema.Tabler{
@@ -50,15 +52,6 @@ func openDatabaseWithConfig(cfg *config.Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("config is nil")
 	}
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
-		cfg.Database.Host,
-		cfg.Database.User,
-		cfg.Database.Password,
-		cfg.Database.DbName,
-		cfg.Database.Port,
-		cfg.Database.SSLMode,
-		cfg.Database.TimeZone)
-
 	// table prefix
 	tablePrefix := cfg.Database.TablePrefix
 
@@ -71,7 +64,7 @@ func openDatabaseWithConfig(cfg *config.Config) (*gorm.DB, error) {
 		},
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+	gormConfig := &gorm.Config{
 		Logger:                                   newLogger,
 		DisableForeignKeyConstraintWhenMigrating: true,
 		NamingStrategy: schema.NamingStrategy{
@@ -80,9 +73,29 @@ func openDatabaseWithConfig(cfg *config.Config) (*gorm.DB, error) {
 			NameReplacer:  nil,
 			NoLowerCase:   false,
 		},
-	})
+	}
+
+	var dialector gorm.Dialector
+	switch cfg.Database.Driver {
+	case config.DriverSQLite:
+		dialector = sqlite.Open(cfg.Database.Dsn)
+	case config.DriverPostgres:
+		dialector = postgres.Open(cfg.Database.Dsn)
+	default:
+		return nil, fmt.Errorf("unsupported database driver: %q", cfg.Database.Driver)
+	}
+
+	db, err := gorm.Open(dialector, gormConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize database: %w", err)
+		return nil, fmt.Errorf("failed to initialize database (driver=%s): %w", cfg.Database.Driver, err)
+	}
+
+	// SQLite 为单写者模型，限制连接池并在 DSN 已设置 busy_timeout/WAL，
+	// 避免高并发下出现 database is locked。
+	if cfg.Database.Driver == config.DriverSQLite {
+		if sqlDb, err := db.DB(); err == nil {
+			sqlDb.SetMaxOpenConns(1)
+		}
 	}
 
 	return db, nil

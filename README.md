@@ -13,7 +13,7 @@
 | **语言** | Go | 1.22+ |
 | **Web 框架** | Gin | v1.9.1 |
 | **ORM** | GORM | v1.24 |
-| **数据库** | PostgreSQL | 12+ |
+| **数据库** | SQLite（默认，零依赖）/ PostgreSQL（可选） | SQLite 单文件 / PG 12+ |
 | **缓存** | Redis | 可选 |
 | **配置管理** | Viper + TOML | v1.8.1 |
 | **日志** | Zap + Lumberjack | v1.17.0 |
@@ -30,7 +30,7 @@
 ```
 main.go
   │
-  ├─ global.InitModule()        ← 统一初始化 Config → Logger → Redis → PostgreSQL → Validator
+  ├─ global.InitModule()        ← 统一初始化 Config → Logger → Redis → 数据库（按 driver 选择 SQLite/PostgreSQL）→ Validator
   │                               (仅注册开关支持热更新，基础设施配置变更需重启)
   │
   ├─ router.InitRouter(r)       ← 路由注册 + 中间件
@@ -127,7 +127,7 @@ Blog 管理接口挂载在 `/api/blog-mgr`，仅 admin/root 可访问，提供�
 ### 环境要求 Requirements
 
 - **Go** 1.22+
-- **PostgreSQL** 12+
+- **SQLite**（默认，零依赖单文件，开箱即用）或 **PostgreSQL** 12+（可选）
 - **Redis** (可选，用于缓存/验证码)
 
 ### 配置文件 Configuration
@@ -144,14 +144,14 @@ port = 2021
 runMode = "dev"       # dev-开发模式 release-生产模式
 
 [database]
-host = "127.0.0.1"
-port = 5432
-user = "postgres"
-password = "postgres"
-dbName = "treasure_doc"
-sslMode = "disable"
-timeZone = "Asia/Shanghai"
+# driver：sqlite（默认，零依赖单文件）或 postgres
+driver = "sqlite"
+dsn = "file:./treasure_doc.db?_busy_timeout=5000&_journal_mode=WAL&_foreign_keys=on"
 tablePrefix = "td_"
+
+# PostgreSQL 示例：将 driver 改为 postgres 并填写下面 dsn
+# driver = "postgres"
+# dsn = "host=127.0.0.1 user=postgres password=postgres dbname=treasure_doc port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
 [redis]
 enable = false        # 不启用 Redis 可跳过
@@ -181,7 +181,7 @@ go run . -c /path/to/config.toml
 2. 注册 root 账号：`treasure-root / treasure-root`（首次运行）
 3. 服务监听 `:2021`
 
-> AutoMigrate 仅用于在空 PostgreSQL 数据库中初始化或调整表结构，不会迁移已有 MySQL 数据。
+> AutoMigrate 仅用于在空数据库中初始化或调整表结构，不会迁移已有数据；切换数据库驱动需重启服务。
 
 > ⚠️ **首次登录后请立即修改 root 密码。**
 
@@ -226,7 +226,7 @@ treasure-doc/
 │       ├── global/                  # 全局单例 & 初始/销毁
 │       │   ├── global.go            # InitModule / 业务配置热更新策略
 │       │   ├── constant.go
-│       │   ├── db.go                # PostgreSQL 初始化 + 优雅关闭
+│       │   ├── db.go                # 数据库初始化（按 driver 分支 SQLite/PostgreSQL）+ 优雅关闭
 │       │   ├── logger.go            # Zap 初始化
 │       │   ├── trans.go             # 校验器翻译
 │       │   └── gid/                 # Sonyflake ID 生成
@@ -357,7 +357,7 @@ go run ./module/user/cli/reset-pwd -u <账号> -p <新密码> -cfg <config.toml 
 | **密码加密** | `golang.org/x/crypto/bcrypt` |
 | **会话管理** | 每用户最多 3 个 token，超限自动剔除最早的会话 |
 | **空间隔离** | 注册时自动创建默认 Room，文档按 Room 隔离（多租户基础） |
-| **配置热更新** | 仅 `app.registerEnabled` 可热更新；PostgreSQL、Redis、日志、端口、运行模式和 Debug 变更需重启 |
+| **配置热更新** | 仅 `app.registerEnabled` 可热更新；数据库（driver/dsn）、Redis、日志、端口、运行模式和 Debug 变更需重启 |
 | **Mock 认证** | 仅 dev 模式可通过 `debug.enableMockLogin` 注入固定 root，修改后需重启 |
 | **Blog Seed** | 默认关闭；迁移后幂等填充公开演示数据，远程库需显式 `allowRemote=true` |
 

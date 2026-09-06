@@ -1,13 +1,12 @@
 package model
 
 import (
-	"database/sql/driver"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"fastduck/treasure-doc/module/user/global/gid"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -21,38 +20,20 @@ const (
 	CategoryBookmark  = "bookmark"
 )
 
-type JSON []byte
+// JSON 跨方言 JSON 字段类型：PostgreSQL 下映射为 jsonb，SQLite 下映射为 json/text。
+// 复用 GORM datatypes.JSON 的序列化能力，避免自定义类型在 SQLite（无 jsonb）下建出 NUMERIC 亲和列。
+type JSON = datatypes.JSON
 
 func NewJSON(value interface{}) JSON {
 	data, _ := json.Marshal(value)
 	return data
 }
 
-func (j JSON) Value() (driver.Value, error) {
-	if len(j) == 0 {
-		return []byte("[]"), nil
-	}
-	return []byte(j), nil
-}
-
-func (j *JSON) Scan(value interface{}) error {
-	if value == nil {
-		*j = JSON("[]")
-		return nil
-	}
-	bytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("cannot scan %T into JSON", value)
-	}
-	*j = append((*j)[:0], bytes...)
-	return nil
-}
-
 type BaseModel struct {
 	ID        string         `gorm:"column:id;type:varchar(100);primaryKey"`
-	CreatedAt time.Time      `gorm:"column:created_at;type:timestamptz;not null"`
-	UpdatedAt time.Time      `gorm:"column:updated_at;type:timestamptz;not null"`
-	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;type:timestamptz;index"`
+	CreatedAt time.Time      `gorm:"column:created_at;type:timestamp;not null"`
+	UpdatedAt time.Time      `gorm:"column:updated_at;type:timestamp;not null"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;type:timestamp;index"`
 }
 
 func (m *BaseModel) BeforeCreate(_ *gorm.DB) error {
@@ -91,7 +72,7 @@ type Post struct {
 	Content       string    `gorm:"column:content;type:text;not null"`
 	PublishStatus string    `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index:idx_blog_post_public,priority:1"`
 	PublishedOn   time.Time `gorm:"column:published_on;type:date;not null;index:idx_blog_post_public,priority:3"`
-	PublishedAt   time.Time `gorm:"column:published_at;type:timestamptz;not null;index"`
+	PublishedAt   time.Time `gorm:"column:published_at;type:timestamp;not null;index"`
 	Pinned        bool      `gorm:"column:pinned;not null;default:false;index:idx_blog_post_public,priority:2"`
 	Version       int       `gorm:"column:version;not null;default:1"`
 }
@@ -101,7 +82,7 @@ func (*Post) TableName() string { return "td_blog_post" }
 type PostTag struct {
 	PostID    string    `gorm:"column:post_id;type:varchar(100);primaryKey"`
 	TagID     string    `gorm:"column:tag_id;type:varchar(100);primaryKey;index"`
-	CreatedAt time.Time `gorm:"column:created_at;type:timestamptz;not null"`
+	CreatedAt time.Time `gorm:"column:created_at;type:timestamp;not null"`
 }
 
 func (*PostTag) TableName() string { return "td_blog_post_tag" }
@@ -116,7 +97,7 @@ type Diary struct {
 	Weather       string    `gorm:"column:weather;type:varchar(50);not null"`
 	PublishStatus string    `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index:idx_blog_diary_public,priority:1"`
 	PublishedOn   time.Time `gorm:"column:published_on;type:date;not null;index:idx_blog_diary_public,priority:3"`
-	PublishedAt   time.Time `gorm:"column:published_at;type:timestamptz;not null;index"`
+	PublishedAt   time.Time `gorm:"column:published_at;type:timestamp;not null;index"`
 	Pinned        bool      `gorm:"column:pinned;not null;default:false;index:idx_blog_diary_public,priority:2"`
 	Version       int       `gorm:"column:version;not null;default:1"`
 }
@@ -126,7 +107,7 @@ func (*Diary) TableName() string { return "td_blog_diary" }
 type DiaryTag struct {
 	DiaryID   string    `gorm:"column:diary_id;type:varchar(100);primaryKey"`
 	TagID     string    `gorm:"column:tag_id;type:varchar(100);primaryKey;index"`
-	CreatedAt time.Time `gorm:"column:created_at;type:timestamptz;not null"`
+	CreatedAt time.Time `gorm:"column:created_at;type:timestamp;not null"`
 }
 
 func (*DiaryTag) TableName() string { return "td_blog_diary_tag" }
@@ -138,12 +119,12 @@ type PortfolioItem struct {
 	Summary       string    `gorm:"column:summary;type:text;not null"`
 	CategoryID    string    `gorm:"column:category_id;type:varchar(128);not null;index"`
 	Cover         string    `gorm:"column:cover;type:varchar(500);not null"`
-	TechStack     JSON      `gorm:"column:tech_stack;type:jsonb;not null;default:'[]'"`
-	Links         JSON      `gorm:"column:links;type:jsonb;not null;default:'[]'"`
+	TechStack     JSON      `gorm:"column:tech_stack;not null;default:'[]'"`
+	Links         JSON      `gorm:"column:links;not null;default:'[]'"`
 	Content       string    `gorm:"column:content;type:text;not null"`
 	PublishStatus string    `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index"`
 	PublishedOn   time.Time `gorm:"column:published_on;type:date;not null;index"`
-	PublishedAt   time.Time `gorm:"column:published_at;type:timestamptz;not null;index"`
+	PublishedAt   time.Time `gorm:"column:published_at;type:timestamp;not null;index"`
 	Version       int       `gorm:"column:version;not null;default:1"`
 }
 
@@ -160,7 +141,7 @@ type Tool struct {
 	DevelopmentStatus string    `gorm:"column:development_status;type:varchar(30);not null;default:''"`
 	Content           string    `gorm:"column:content;type:text;not null;default:''"`
 	PublishStatus     string    `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index"`
-	PublishedAt       time.Time `gorm:"column:published_at;type:timestamptz;not null;index"`
+	PublishedAt       time.Time `gorm:"column:published_at;type:timestamp;not null;index"`
 	SortOrder         int       `gorm:"column:sort_order;not null;default:0;index"`
 	Version           int       `gorm:"column:version;not null;default:1"`
 }
@@ -176,7 +157,7 @@ type Bookmark struct {
 	CategoryID    string    `gorm:"column:category_id;type:varchar(128);not null;index"`
 	Icon          string    `gorm:"column:icon;type:varchar(500);not null"`
 	PublishStatus string    `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index"`
-	PublishedAt   time.Time `gorm:"column:published_at;type:timestamptz;not null;index"`
+	PublishedAt   time.Time `gorm:"column:published_at;type:timestamp;not null;index"`
 	SortOrder     int       `gorm:"column:sort_order;not null;default:0;index"`
 	Version       int       `gorm:"column:version;not null;default:1"`
 }
@@ -186,7 +167,7 @@ func (*Bookmark) TableName() string { return "td_blog_bookmark" }
 type BookmarkTag struct {
 	BookmarkID string    `gorm:"column:bookmark_id;type:varchar(100);primaryKey"`
 	TagID      string    `gorm:"column:tag_id;type:varchar(100);primaryKey;index"`
-	CreatedAt  time.Time `gorm:"column:created_at;type:timestamptz;not null"`
+	CreatedAt  time.Time `gorm:"column:created_at;type:timestamp;not null"`
 }
 
 func (*BookmarkTag) TableName() string { return "td_blog_bookmark_tag" }
@@ -200,8 +181,8 @@ type Profile struct {
 	Location   string `gorm:"column:location;type:varchar(100);not null"`
 	Motto      string `gorm:"column:motto;type:varchar(200);not null"`
 	Bio        string `gorm:"column:bio;type:text;not null"`
-	Links      JSON   `gorm:"column:links;type:jsonb;not null;default:'[]'"`
-	Skills     JSON   `gorm:"column:skills;type:jsonb;not null;default:'[]'"`
+	Links      JSON   `gorm:"column:links;not null;default:'[]'"`
+	Skills     JSON   `gorm:"column:skills;not null;default:'[]'"`
 }
 
 func (*Profile) TableName() string { return "td_blog_profile" }
@@ -212,9 +193,9 @@ type Site struct {
 	Name       string `gorm:"column:name;type:varchar(100);not null"`
 	Slogan     string `gorm:"column:slogan;type:varchar(200);not null"`
 	Intro      string `gorm:"column:intro;type:text;not null"`
-	TechStack  JSON   `gorm:"column:tech_stack;type:jsonb;not null;default:'[]'"`
-	Modules    JSON   `gorm:"column:modules;type:jsonb;not null;default:'[]'"`
-	Milestones JSON   `gorm:"column:milestones;type:jsonb;not null;default:'[]'"`
+	TechStack  JSON   `gorm:"column:tech_stack;not null;default:'[]'"`
+	Modules    JSON   `gorm:"column:modules;not null;default:'[]'"`
+	Milestones JSON   `gorm:"column:milestones;not null;default:'[]'"`
 }
 
 func (*Site) TableName() string { return "td_blog_site" }

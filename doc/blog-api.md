@@ -990,7 +990,7 @@ Cache-Control: public, max-age=60, stale-while-revalidate=300
 
 ## 15. Blog 管理 API
 
-管理 API 用于维护公开 Blog 使用的 PostgreSQL 数据。
+管理 API 用于维护公开 Blog 使用的数据（默认 SQLite，可选 PostgreSQL）。
 
 ### 15.1 Base URL
 
@@ -1380,7 +1380,7 @@ PATCH /api/blog-mgr/posts/123456789
 }
 ```
 
-`techStack` 和 `links` 以 JSONB 保存并保持数组顺序。非空 `categoryId` 必须属于 `portfolio` scope。
+`techStack` 和 `links` 以 JSON 字段保存并保持数组顺序（PostgreSQL 下为 jsonb，SQLite 下为 json/text）。非空 `categoryId` 必须属于 `portfolio` scope。
 
 ### 19.4 工具 Tool
 
@@ -1597,7 +1597,7 @@ Profile 和 Site 使用固定单例 key `default`。记录不存在时，Profile
 6. 非版本资源更新不存在与版本资源冲突的错误语义并不完全一致；调用方应同时处理 404 和 409。
 7. 禁用或删除分类不会自动隐藏引用该分类的公开内容，只会使分类不再出现在分类列表。
 8. 标签精确筛选在 PostgreSQL 中通常区分大小写；关键词搜索才显式不区分大小写。
-9. 当前单元测试未连接真实 PostgreSQL，JSONB、事务回滚、分类 slug 级联和并发乐观锁仍需集成测试验证。
+9. 当前单元测试未连接真实数据库，JSON 字段、事务回滚、分类 slug 级联和并发乐观锁仍需集成测试验证。
 10. 模块 `visible` 默认只控制前端入口与路由；若后端未在内容接口中校验该字段，关闭模块后其公开 API 仍可被直接调用。
 11. 登录验证码状态保存在服务进程内存中，默认 10 分钟过期。多实例部署需要会话保持或改为共享存储；服务重启后未使用的验证码全部失效。
 12. 登录接口未做失败次数限制，验证码只提高自动化尝试成本，不能替代账号锁定或 IP 限流。

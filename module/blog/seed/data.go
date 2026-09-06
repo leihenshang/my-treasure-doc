@@ -14,8 +14,8 @@ type Options struct {
 	AllowRemote    bool
 	RestoreDeleted bool
 	Release        bool
-	Host           string
-	Database       string
+	Driver         string
+	Dsn            string
 }
 
 type Result struct {
@@ -46,10 +46,32 @@ func Validate(options Options) error {
 	if options.Release {
 		return fmt.Errorf("blog seed is forbidden in release mode")
 	}
-	if !options.AllowRemote && !isLocalHost(options.Host) {
-		return fmt.Errorf("blog seed for remote database %s/%s requires allowRemote=true", options.Host, options.Database)
+	if !options.AllowRemote && !isLocalDatabase(options.Driver, options.Dsn) {
+		return fmt.Errorf("blog seed for remote database (driver=%s) requires allowRemote=true", options.Driver)
 	}
 	return nil
+}
+
+// isLocalDatabase 仅对本地数据库允许写入示例数据，避免误刷远程/生产库。
+// sqlite 为本地文件，始终视为本地；postgres 解析 dsn 中的 host 判断是否为回环地址。
+func isLocalDatabase(driver, dsn string) bool {
+	if driver == "sqlite" {
+		return true
+	}
+	if driver == "postgres" {
+		return isLocalHost(pgHostFromDsn(dsn))
+	}
+	// 未知驱动保守按远程处理，必须由 allowRemote 显式开启
+	return false
+}
+
+func pgHostFromDsn(dsn string) string {
+	for _, part := range strings.Fields(dsn) {
+		if strings.HasPrefix(part, "host=") {
+			return strings.TrimPrefix(part, "host=")
+		}
+	}
+	return "localhost"
 }
 
 func isLocalHost(host string) bool {

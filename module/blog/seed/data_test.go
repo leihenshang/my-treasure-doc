@@ -11,10 +11,13 @@ func TestValidate(t *testing.T) {
 		options Options
 		wantErr bool
 	}{
-		{"disabled", Options{}, false}, {"local", Options{Enabled: true, Host: "127.0.0.1"}, false},
-		{"remote blocked", Options{Enabled: true, Host: "db.example.com"}, true},
-		{"remote allowed", Options{Enabled: true, Host: "db.example.com", AllowRemote: true}, false},
-		{"release blocked", Options{Enabled: true, Host: "localhost", Release: true}, true},
+		{"disabled", Options{}, false},
+		{"sqlite local", Options{Enabled: true, Driver: "sqlite"}, false},
+		{"pg local", Options{Enabled: true, Driver: "postgres", Dsn: "host=127.0.0.1 user=postgres dbname=treasure_doc"}, false},
+		{"pg remote blocked", Options{Enabled: true, Driver: "postgres", Dsn: "host=db.example.com dbname=treasure_doc"}, true},
+		{"pg remote allowed", Options{Enabled: true, Driver: "postgres", Dsn: "host=db.example.com dbname=treasure_doc", AllowRemote: true}, false},
+		{"release blocked", Options{Enabled: true, Driver: "sqlite", Release: true}, true},
+		{"unknown driver blocked", Options{Enabled: true, Driver: "mysql", Dsn: "host=db.example.com"}, true},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

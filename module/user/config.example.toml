@@ -5,14 +5,15 @@ name = "my_treasure_doc"
 runMode = "release" # dev-开发模式 release-生产模式
 
 [database]
-host = "127.0.0.1"
-port = 5432
-user = "postgres"
-password = "postgres"
-dbName = "treasure_doc"
-sslMode = "disable"
-timeZone = "Asia/Shanghai"
+# driver 可选：sqlite（默认，零依赖单文件） / postgres
+driver = "sqlite"
+# sqlite 连接串：单文件 + WAL + 防锁超时
+dsn = "file:./treasure_doc.db?_busy_timeout=5000&_journal_mode=WAL&_foreign_keys=on"
 tablePrefix = "td_"
+
+# PostgreSQL 示例（将 driver 改为 postgres 并填写下面的 dsn）：
+# driver = "postgres"
+# dsn = "host=127.0.0.1 user=postgres password=postgres dbname=treasure_doc port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
 [log]
 directory = "log"

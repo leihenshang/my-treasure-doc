@@ -99,12 +99,12 @@ func seedBlogData() error {
 	result, err := blogseed.Seed(Db, blogseed.Options{
 		Enabled: cfg.BlogSeed.Enabled, AllowRemote: cfg.BlogSeed.AllowRemote,
 		RestoreDeleted: cfg.BlogSeed.RestoreDeleted, Release: cfg.App.IsRelease(),
-		Host: cfg.Database.Host, Database: cfg.Database.DbName,
+		Driver: cfg.Database.Driver, Dsn: cfg.Database.Dsn,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to seed blog data: %w", err)
 	}
-	message := fmt.Sprintf("blog seed completed for %s/%s: created=%d existing=%d restored=%d skipped=%d", cfg.Database.Host, cfg.Database.DbName, result.Created, result.Existing, result.Restored, result.Skipped)
+	message := fmt.Sprintf("blog seed completed for %s: created=%d existing=%d restored=%d skipped=%d", cfg.Database.Driver, result.Created, result.Existing, result.Restored, result.Skipped)
 	if Log != nil {
 		Log.Info(message)
 	} else {
@@ -182,6 +182,24 @@ func validateStartupConfig(cfg *config.Config) error {
 	}
 	if cfg.App.IsRelease() && cfg.BlogSeed.Enabled {
 		return fmt.Errorf("blog seed is forbidden in release mode")
+	}
+	// 数据库驱动校验：缺省视为 sqlite；非法驱动在启动期即失败，避免静默用空库。
+	if cfg.Database.Driver == "" {
+		cfg.Database.Driver = config.DriverSQLite
+	}
+	if cfg.Database.Driver != config.DriverSQLite && cfg.Database.Driver != config.DriverPostgres {
+		return fmt.Errorf("unsupported database driver: %q (want %s or %s)", cfg.Database.Driver, config.DriverSQLite, config.DriverPostgres)
+	}
+	switch cfg.Database.Driver {
+	case config.DriverSQLite:
+		// 未配置 dsn 时给出默认单文件库，保证零配置即可启动。
+		if cfg.Database.Dsn == "" {
+			cfg.Database.Dsn = "file:./treasure_doc.db?_busy_timeout=5000&_journal_mode=WAL&_foreign_keys=on"
+		}
+	case config.DriverPostgres:
+		if cfg.Database.Dsn == "" {
+			return fmt.Errorf("database dsn is required for driver %q", cfg.Database.Driver)
+		}
 	}
 	return nil
 }

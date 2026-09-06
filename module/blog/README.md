@@ -4,7 +4,7 @@
 
 ## 数据与迁移
 
-- 服务启动时，Blog 模型随 `global.TableMigrate` 通过 GORM `AutoMigrate` 创建或调整 PostgreSQL 表。
+- 服务启动时，Blog 模型随 `global.TableMigrate` 通过 GORM `AutoMigrate` 创建或调整表结构（默认 SQLite，可选 PostgreSQL）。
 - 内容状态为 `draft`、`published` 或 `archived`。公开查询仅返回 `published`、未软删除且 `published_at` 不晚于当前时间的数据。
 - 分类的 `scope` 可取 `post`、`portfolio`、`bookmark`。
 - 工具的 `kind` 可取 `own` 或 `link`。只有 `own` 类型可以通过详情接口访问。
@@ -42,7 +42,7 @@ Seed 使用单一事务并按 slug/publicId/default key 幂等查找。已有记
 - `td_blog_bookmark`、`td_blog_bookmark_tag`
 - `td_blog_profile`、`td_blog_site`
 
-标签和分类使用关系表，作品链接、技术栈、Profile 和 Site 的有序集合使用 PostgreSQL JSONB。
+标签和分类使用关系表，作品链接、技术栈、Profile 和 Site 的有序集合使用跨方言 JSON 字段（PostgreSQL 下为 jsonb，SQLite 下为 json/text）。
 
 ## 本地验证
 
@@ -52,7 +52,7 @@ go test ./...
 go build -o treasure_user.exe ./module/user
 ```
 
-实际启动仍需从 `module/user` 目录运行，并提供可用 PostgreSQL 配置：
+实际启动仍需从 `module/user` 目录运行，并提供可用的数据库配置（默认 SQLite，可选 PostgreSQL）：
 
 ```bash
 cd module/user
