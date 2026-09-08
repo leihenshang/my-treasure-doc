@@ -9,7 +9,7 @@ import (
 
 func TestEffectiveHotReloadConfig(t *testing.T) {
 	current := &config.Config{
-		App:      config.App{Port: 2021, RunMode: "release", RegisterEnabled: false},
+		App:      config.App{Port: 2026, RunMode: "release", RegisterEnabled: false},
 		Database: config.Database{Driver: "postgres", Dsn: "host=db-old dbname=treasure_doc"},
 		Redis:    config.Redis{Enable: true, Host: "redis-old"},
 		Log:      config.Log{Level: "info"},

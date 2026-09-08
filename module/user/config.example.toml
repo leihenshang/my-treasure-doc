@@ -1,14 +1,14 @@
 [app]
 host = "localhost"
-port = 2021
+port = 2026
 name = "my_treasure_doc"
-runMode = "release" # dev-开发模式 release-生产模式
+runMode = "release"      # dev-开发模式 release-生产模式
 
 [database]
 # driver 可选：sqlite（默认，零依赖单文件） / postgres
 driver = "sqlite"
 # sqlite 连接串：单文件 + WAL + 防锁超时
-dsn = "file:./treasure_doc.db?_busy_timeout=5000&_journal_mode=WAL&_foreign_keys=on"
+dsn = "file:./data/treasure_doc.db?_busy_timeout=5000&_journal_mode=WAL&_foreign_keys=on"
 tablePrefix = "td_"
 
 # PostgreSQL 示例（将 driver 改为 postgres 并填写下面的 dsn）：
@@ -18,10 +18,10 @@ tablePrefix = "td_"
 [backup]
 # SQLite 定时备份（仅 driver=sqlite 生效；postgres 不会启动）
 enable = false
-interval = 86400     # 备份周期（秒），86400 = 每天
-dir = "backup"       # 备份文件存放目录
-compress = true      # 是否 gzip 压缩（生成 .db.gz）
-keepDays = 7         # 旧备份保留天数，0 = 不清理
+interval = 86400 # 备份周期（秒），86400 = 每天
+dir = "backup"   # 备份文件存放目录
+compress = true  # 是否 gzip 压缩（生成 .db.gz）
+keepDays = 7     # 旧备份保留天数，0 = 不清理
 
 [log]
 directory = "log"

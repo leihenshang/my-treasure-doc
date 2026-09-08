@@ -207,7 +207,7 @@ func validateStartupConfig(cfg *config.Config) error {
 	case config.DriverSQLite:
 		// 未配置 dsn 时给出默认单文件库，保证零配置即可启动。
 		if cfg.Database.Dsn == "" {
-			cfg.Database.Dsn = "file:./treasure_doc.db?_busy_timeout=5000&_journal_mode=WAL&_foreign_keys=on"
+			cfg.Database.Dsn = "file:./data/treasure_doc.db?_busy_timeout=5000&_journal_mode=WAL&_foreign_keys=on"
 		}
 	case config.DriverPostgres:
 		if cfg.Database.Dsn == "" {

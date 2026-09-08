@@ -10,7 +10,7 @@ import (
 
 func TestUnmarshalCaptchaDefaultsToEnabled(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.toml")
-	if err := os.WriteFile(path, []byte("[app]\nport = 2021\n"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("[app]\nport = 2026\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -39,13 +39,13 @@ func TestUnmarshalCaptchaDefaultsToEnabled(t *testing.T) {
 }
 
 func TestPublishConfigCopiesSnapshot(t *testing.T) {
-	original := &Config{App: App{RegisterEnabled: false, Port: 2021}}
+	original := &Config{App: App{RegisterEnabled: false, Port: 2026}}
 	PublishConfig(original)
 	original.App.RegisterEnabled = true
 	original.App.Port = 3030
 
 	got := GetConfig()
-	if got.App.RegisterEnabled || got.App.Port != 2021 {
+	if got.App.RegisterEnabled || got.App.Port != 2026 {
 		t.Fatalf("published config changed through source pointer: %#v", got.App)
 	}
 }

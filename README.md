@@ -140,7 +140,7 @@ cp config.example.toml config.toml
 
 ```toml
 [app]
-port = 2021
+port = 2026
 runMode = "dev"       # dev-开发模式 release-生产模式
 
 [database]
@@ -179,7 +179,7 @@ go run . -c /path/to/config.toml
 
 1. 初始化数据库连接，自动建表（GORM AutoMigrate）
 2. 注册 root 账号：`treasure-root / treasure-root`（首次运行）
-3. 服务监听 `:2021`
+3. 服务监听 `:2026`
 
 > AutoMigrate 仅用于在空数据库中初始化或调整表结构，不会迁移已有数据；切换数据库驱动需重启服务。
 
@@ -313,7 +313,7 @@ docker build -t treasure-doc .
 # 后台运行
 docker run -d --name treasure-doc \
   --restart=always \
-  -p 2021:2021 \
+  -p 2026:2026 \
   -v /path/to/web:/app/web \
   -v /path/to/files:/app/files \
   -v /path/to/config.toml:/app/config.toml \
@@ -321,7 +321,7 @@ docker run -d --name treasure-doc \
 
 # 调试模式
 docker run --rm --name treasure-doc -it \
-  -p 2021:2021 \
+  -p 2026:2026 \
   -v /path/to/web:/app/web \
   -v /path/to/files:/app/files \
   -v /path/to/config.toml:/app/config.toml \

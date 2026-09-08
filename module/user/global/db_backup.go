@@ -13,7 +13,7 @@ import (
 )
 
 // parseSqliteFileFromDsn 从 sqlite 的 DSN 中提取数据库文件路径。
-// 形如 file:./treasure_doc.db?_busy_timeout=5000&_journal_mode=WAL
+// 形如 file:./data/treasure_doc.db?_busy_timeout=5000&_journal_mode=WAL
 func parseSqliteFileFromDsn(dsn string) (string, error) {
 	const prefix = "file:"
 	if !strings.HasPrefix(dsn, prefix) {

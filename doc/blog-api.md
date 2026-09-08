@@ -17,7 +17,7 @@
 /api/blog
 ```
 
-本地开发时由 Vite 将 `/api` 代理至 Go 服务。当前 `vite.config.ts` 的目标为 `http://localhost:2021`。
+本地开发时由 Vite 将 `/api` 代理至 Go 服务。当前 `vite.config.ts` 的目标为 `http://localhost:2026`。
 
 ### 1.2 通用约定
 

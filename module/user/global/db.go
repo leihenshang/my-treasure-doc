@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	blogmodel "fastduck/treasure-doc/module/blog/data/model"
@@ -83,6 +84,18 @@ func openDatabaseWithConfig(cfg *config.Config) (*gorm.DB, error) {
 		dialector = postgres.Open(cfg.Database.Dsn)
 	default:
 		return nil, fmt.Errorf("unsupported database driver: %q", cfg.Database.Driver)
+	}
+
+	// SQLite 需要数据库文件所在目录存在（driver 不会递归建目录）；
+	// 从 dsn 解析出文件路径并创建父目录，便于配合挂载卷把库放到 ./data 子目录。
+	if cfg.Database.Driver == config.DriverSQLite {
+		if dbFile, perr := parseSqliteFileFromDsn(cfg.Database.Dsn); perr == nil {
+			if dir := filepath.Dir(dbFile); dir != "" && dir != "." {
+				if mkErr := os.MkdirAll(dir, 0o755); mkErr != nil {
+					return nil, fmt.Errorf("failed to create sqlite db dir %q: %w", dir, mkErr)
+				}
+			}
+		}
 	}
 
 	db, err := gorm.Open(dialector, gormConfig)
