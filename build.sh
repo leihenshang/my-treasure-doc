@@ -1,3 +1,6 @@
-docker build -t treasure-doc .
-docker save -o treasure-doc.tar.gz treasure-doc
-sudo chmod 777 treasure-doc.tar.gz
+#!/bin/bash
+
+VERSION=v0.0.1
+
+docker build -t treasure-doc-${VERSION} .
+docker save -o treasure-doc-${VERSION}.tar.gz treasure-doc-${VERSION}

@@ -1,0 +1,29 @@
+# 版本控制与本地元数据
+.git
+.gitignore
+.dockerignore
+
+# 运行时状态：由挂载卷提供，勿打入镜像（且含实时数据库）
+/data
+/backup
+/files
+*.db
+*.db-wal
+*.db-shm
+/log
+*.log
+
+# 前端构建产物（若前端源码独立于 module/user/web）
+node_modules
+dist
+
+# 不参与 Go 构建的目录/文件
+README.md
+README*
+LICENSE
+AGENTS.md
+doc
+template
+list_sort
+configs
+build.sh

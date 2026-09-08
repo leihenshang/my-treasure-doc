@@ -19,3 +19,5 @@ __debug*
 .DS_Store
 Thumbs.db
 module/user/treasure_doc.db
+
+/*.tar.gz
