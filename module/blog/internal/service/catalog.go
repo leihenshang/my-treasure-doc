@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"fastduck/treasure-doc/module/blog/data/model"
 	"fastduck/treasure-doc/module/blog/data/request"
@@ -193,6 +195,10 @@ func (s *Service) Site(ctx context.Context) (response.Site, error) {
 		if err := json.Unmarshal(record.Home, &home); err != nil {
 			return response.Site{}, err
 		}
+	}
+	home.Subtitle = strings.TrimSpace(home.Subtitle)
+	if utf8.RuneCountInString(home.Subtitle) > response.MaxSiteHomeSubtitleLength {
+		home.Subtitle = response.DefaultSiteHome().Subtitle
 	}
 	if len(record.Footer) > 0 && string(record.Footer) != "{}" {
 		if err := json.Unmarshal(record.Footer, &footer); err != nil {

@@ -53,6 +53,39 @@ func TestTaggedManagementResponsesUseTagIDs(t *testing.T) {
 	}
 }
 
+func TestValidateSiteRejectsOverlongHomeSubtitle(t *testing.T) {
+	value := defaultSite()
+	value.Name = "Treasure Blog"
+	value.Home.Subtitle = strings.Repeat("副", blogresponse.MaxSiteHomeSubtitleLength+1)
+	if err := validateSite(value); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("expected overlong subtitle rejection, got %v", err)
+	}
+}
+
+func TestValidateSiteRejectsOverlongModuleSubtitle(t *testing.T) {
+	value := defaultSite()
+	value.Name = "Treasure Blog"
+	value.Modules[0].Desc = strings.Repeat("副", blogresponse.MaxSiteModuleSubtitleLength+1)
+	if err := validateSite(value); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("expected overlong module subtitle rejection, got %v", err)
+	}
+}
+
+func TestSiteFromModelResetsOverlongHomeSubtitle(t *testing.T) {
+	home, err := json.Marshal(blogresponse.SiteHome{Subtitle: strings.Repeat("副", blogresponse.MaxSiteHomeSubtitleLength+1)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	value := &blogmodel.Site{TechStack: blogmodel.JSON("[]"), Modules: blogmodel.JSON("[]"), Milestones: blogmodel.JSON("[]"), Home: blogmodel.JSON(home), Footer: blogmodel.JSON("{}")}
+	site, err := siteFromModel(value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if site.Home.Subtitle != blogresponse.DefaultSiteHome().Subtitle {
+		t.Fatalf("expected default subtitle, got %q", site.Home.Subtitle)
+	}
+}
+
 func TestNormalizeSiteModules(t *testing.T) {
 	modules, err := normalizeSiteModules([]blogresponse.SiteModule{
 		{ID: "diary", Icon: "D", Name: "日记", Desc: "记录", Path: "/Blog/Diary", Visible: false},

@@ -2,6 +2,8 @@ package response
 
 import (
 	"encoding/json"
+	"errors"
+	"strings"
 	"testing"
 )
 
@@ -29,6 +31,22 @@ func TestSiteModuleUnmarshalRejectsNonBooleanVisible(t *testing.T) {
 	var module SiteModule
 	if err := json.Unmarshal([]byte(`{"id":"blog","visible":"yes"}`), &module); err == nil {
 		t.Fatal("expected error for non-boolean visible")
+	}
+}
+
+func TestNormalizeSiteModulesRejectsOverlongNameForStrictPayload(t *testing.T) {
+	modules := DefaultSiteModules()
+	modules[0].Name = strings.Repeat("菜", MaxSiteModuleNameLength+1)
+	if _, err := NormalizeSiteModules(modules, true); !errors.Is(err, ErrInvalidSiteModule) {
+		t.Fatalf("expected overlong name rejection, got %v", err)
+	}
+}
+
+func TestNormalizeSiteModulesRejectsOverlongSubtitleForStrictPayload(t *testing.T) {
+	modules := DefaultSiteModules()
+	modules[0].Desc = strings.Repeat("副", MaxSiteModuleSubtitleLength+1)
+	if _, err := NormalizeSiteModules(modules, true); !errors.Is(err, ErrInvalidSiteModule) {
+		t.Fatalf("expected overlong subtitle rejection, got %v", err)
 	}
 }
 

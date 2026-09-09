@@ -4,6 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+	"unicode/utf8"
+)
+
+const (
+	MaxSiteModuleNameLength     = 50
+	MaxSiteModuleSubtitleLength = 50
+	MaxSiteHomeSubtitleLength   = 50
 )
 
 // ErrInvalidSiteModule 表示站点模块集合不满足固定模块约束。
@@ -76,11 +83,25 @@ func NormalizeSiteModules(modules []SiteModule, strict bool) ([]SiteModule, erro
 		if strict && module.Path != fixed.Path {
 			return nil, ErrInvalidSiteModule
 		}
-		if strings.TrimSpace(module.Name) == "" {
+		module.Name = strings.TrimSpace(module.Name)
+		if module.Name == "" {
 			if strict {
 				return nil, ErrInvalidSiteModule
 			}
 			module.Name = fixed.Name
+		}
+		if utf8.RuneCountInString(module.Name) > MaxSiteModuleNameLength {
+			if strict {
+				return nil, ErrInvalidSiteModule
+			}
+			module.Name = fixed.Name
+		}
+		module.Desc = strings.TrimSpace(module.Desc)
+		if utf8.RuneCountInString(module.Desc) > MaxSiteModuleSubtitleLength {
+			if strict {
+				return nil, ErrInvalidSiteModule
+			}
+			module.Desc = fixed.Desc
 		}
 		module.ID = fixed.ID
 		module.Path = fixed.Path

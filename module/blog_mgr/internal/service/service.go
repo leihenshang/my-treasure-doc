@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	blogmodel "fastduck/treasure-doc/module/blog/data/model"
 	blogresponse "fastduck/treasure-doc/module/blog/data/response"
@@ -765,6 +766,10 @@ func siteFromModel(value *blogmodel.Site) (blogresponse.Site, error) {
 	if len(value.Home) > 0 && string(value.Home) != "{}" && json.Unmarshal(value.Home, &home) != nil {
 		return blogresponse.Site{}, ErrInvalid
 	}
+	home.Subtitle = strings.TrimSpace(home.Subtitle)
+	if utf8.RuneCountInString(home.Subtitle) > blogresponse.MaxSiteHomeSubtitleLength {
+		home.Subtitle = blogresponse.DefaultSiteHome().Subtitle
+	}
 	if len(value.Footer) > 0 && string(value.Footer) != "{}" && json.Unmarshal(value.Footer, &footer) != nil {
 		return blogresponse.Site{}, ErrInvalid
 	}
@@ -780,7 +785,10 @@ func validateSite(value blogresponse.Site) error {
 			return ErrInvalid
 		}
 	}
-	if strings.TrimSpace(value.Home.Title) == "" || strings.TrimSpace(value.Home.AI.Title) == "" || strings.TrimSpace(value.Home.AI.Description) == "" {
+	if strings.TrimSpace(value.Home.Title) == "" || strings.TrimSpace(value.Home.AI.Title) == "" || strings.TrimSpace(value.Home.AI.Description) == "" || utf8.RuneCountInString(strings.TrimSpace(value.Home.Subtitle)) > blogresponse.MaxSiteHomeSubtitleLength {
+		return ErrInvalid
+	}
+	if _, err := normalizeSiteModules(value.Modules, true); err != nil {
 		return ErrInvalid
 	}
 	for _, url := range []string{value.Home.AI.LinkURL, value.Home.AI.ImageURL, value.Home.PortfolioImageURL, value.Home.BookmarkImageURL, value.Footer.LinkURL, value.Footer.ICPURL, value.Footer.PoliceURL} {

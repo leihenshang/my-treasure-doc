@@ -21,3 +21,4 @@ Thumbs.db
 module/user/treasure_doc.db
 
 /*.tar.gz
+module/user/data/treasure_doc.db
