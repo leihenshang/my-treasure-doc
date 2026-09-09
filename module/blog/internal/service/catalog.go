@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -165,7 +166,7 @@ func (s *Service) Site(ctx context.Context) (response.Site, error) {
 	var record model.Site
 	if err := db.Where("site_key = ?", "default").First(&record).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return response.Site{TechStack: []string{}, Modules: response.DefaultSiteModules(), Milestones: []response.SiteMilestone{}}, nil
+			return response.Site{TechStack: []string{}, Modules: response.DefaultSiteModules(), Milestones: []response.SiteMilestone{}, Home: response.DefaultSiteHome(), Footer: response.DefaultSiteFooter()}, nil
 		}
 		return response.Site{}, err
 	}
@@ -186,7 +187,19 @@ func (s *Service) Site(ctx context.Context) (response.Site, error) {
 	if err != nil {
 		return response.Site{}, err
 	}
-	return response.Site{Name: record.Name, Slogan: record.Slogan, Intro: record.Intro, TechStack: techStack, Modules: normalized, Milestones: milestones}, nil
+	home := response.DefaultSiteHome()
+	footer := response.DefaultSiteFooter()
+	if len(record.Home) > 0 && string(record.Home) != "{}" {
+		if err := json.Unmarshal(record.Home, &home); err != nil {
+			return response.Site{}, err
+		}
+	}
+	if len(record.Footer) > 0 && string(record.Footer) != "{}" {
+		if err := json.Unmarshal(record.Footer, &footer); err != nil {
+			return response.Site{}, err
+		}
+	}
+	return response.Site{Name: record.Name, Slogan: record.Slogan, Intro: record.Intro, TechStack: techStack, Modules: normalized, Milestones: milestones, Home: home, Footer: footer}, nil
 }
 
 func (s *Service) Stats(ctx context.Context) (response.Stats, error) {

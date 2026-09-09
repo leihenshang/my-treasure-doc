@@ -196,6 +196,8 @@ type Site struct {
 	TechStack  JSON   `gorm:"column:tech_stack;not null;default:'[]'"`
 	Modules    JSON   `gorm:"column:modules;not null;default:'[]'"`
 	Milestones JSON   `gorm:"column:milestones;not null;default:'[]'"`
+	Home       JSON   `gorm:"column:home;not null;default:'{}'"`
+	Footer     JSON   `gorm:"column:footer;not null;default:'{}'"`
 }
 
 func (*Site) TableName() string { return "td_blog_site" }

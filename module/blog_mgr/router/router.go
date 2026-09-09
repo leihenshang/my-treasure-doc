@@ -3,6 +3,7 @@ package router
 import (
 	"fastduck/treasure-doc/module/blog_mgr/api"
 	"fastduck/treasure-doc/module/blog_mgr/internal/service"
+	userapi "fastduck/treasure-doc/module/user/api"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,6 +28,7 @@ func RegisterService(group *gin.RouterGroup, manager api.Manager) {
 		route.GET("", setParam("setting", setting), handler.GetSetting)
 		route.PUT("", setParam("setting", setting), handler.PutSetting)
 	}
+	group.POST("/uploads/images", userapi.UploadBlogImage)
 }
 func setParam(key, value string) gin.HandlerFunc {
 	return func(c *gin.Context) { c.Params = append(c.Params, gin.Param{Key: key, Value: value}); c.Next() }

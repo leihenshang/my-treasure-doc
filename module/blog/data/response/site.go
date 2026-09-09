@@ -12,6 +12,7 @@ var ErrInvalidSiteModule = errors.New("invalid site module")
 // fixedSiteModules 是站点模块的固定集合。ID 与 Path 属于对外契约，
 // 管理端只允许修改 icon、name、desc 和 visible。
 var fixedSiteModules = []SiteModule{
+	{ID: "home", Icon: "⌘", Name: "主页", Desc: "AI 编程软件的产品介绍、核心能力与开始入口", Path: "/Blog/Home"},
 	{ID: "blog", Icon: "📝", Name: "文章", Desc: "技术笔记与长文", Path: "/Blog"},
 	{ID: "diary", Icon: "📔", Name: "日记", Desc: "日常碎片与随想", Path: "/Blog/Diary"},
 	{ID: "portfolio", Icon: "🎨", Name: "作品", Desc: "网站、应用与开源项目", Path: "/Blog/Portfolio"},
@@ -20,7 +21,25 @@ var fixedSiteModules = []SiteModule{
 	{ID: "about", Icon: "👤", Name: "关于", Desc: "个人资料与站点记录", Path: "/Blog/About"},
 }
 
-// DefaultSiteModules 返回六个固定模块的副本，默认全部可见。
+func DefaultSiteHome() SiteHome {
+	return SiteHome{
+		Title:    "创造力改变世界",
+		Subtitle: "用技术、设计与 AI，把想法变成真实的作品。",
+		AI: SiteHomeAI{
+			Eyebrow:     "AI CREATIVE LAB",
+			Title:       "让 AI 成为创造力的放大器",
+			Description: "探索 AI 如何帮助思考、表达、设计与构建，让每一个灵感更快抵达现实。",
+			LinkText:    "探索 AI 创作",
+			LinkURL:     "/Blog/Tools",
+		},
+	}
+}
+
+func DefaultSiteFooter() SiteFooter {
+	return SiteFooter{Text: "© 2026 Treasure Doc · 创造力改变世界"}
+}
+
+// DefaultSiteModules 返回固定模块的副本，默认全部可见。
 func DefaultSiteModules() []SiteModule {
 	result := make([]SiteModule, 0, len(fixedSiteModules))
 	for _, module := range fixedSiteModules {
@@ -30,7 +49,7 @@ func DefaultSiteModules() []SiteModule {
 	return result
 }
 
-// NormalizeSiteModules 按固定顺序返回完整的六个模块。
+// NormalizeSiteModules 按固定顺序返回完整的模块集合。
 //
 // strict 用于管理端写入：缺少固定模块、出现未知 ID、重复 ID、路径被修改或名称为空
 // 都返回 ErrInvalidSiteModule。

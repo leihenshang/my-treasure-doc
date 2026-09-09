@@ -4,7 +4,7 @@ import (
 	blogresponse "fastduck/treasure-doc/module/blog/data/response"
 )
 
-// defaultSiteModules 返回六个固定站点模块的默认配置。
+// defaultSiteModules 返回固定站点模块的默认配置。
 func defaultSiteModules() []blogresponse.SiteModule {
 	return blogresponse.DefaultSiteModules()
 }
@@ -21,5 +21,5 @@ func normalizeSiteModules(modules []blogresponse.SiteModule, strict bool) ([]blo
 
 // defaultSite 返回尚未保存站点配置时使用的默认对象，数组字段为空数组而不是 null。
 func defaultSite() blogresponse.Site {
-	return blogresponse.Site{TechStack: []string{}, Modules: defaultSiteModules(), Milestones: []blogresponse.SiteMilestone{}}
+	return blogresponse.Site{TechStack: []string{}, Modules: defaultSiteModules(), Milestones: []blogresponse.SiteMilestone{}, Home: blogresponse.DefaultSiteHome(), Footer: blogresponse.DefaultSiteFooter()}
 }

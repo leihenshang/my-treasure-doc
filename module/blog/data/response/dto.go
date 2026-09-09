@@ -124,6 +124,33 @@ type SiteMilestone struct {
 	Desc  string `json:"desc"`
 }
 
+type SiteHomeAI struct {
+	Eyebrow     string `json:"eyebrow"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	LinkText    string `json:"linkText"`
+	LinkURL     string `json:"linkUrl"`
+	ImageURL    string `json:"imageUrl"`
+}
+
+type SiteHome struct {
+	Title             string     `json:"title"`
+	Subtitle          string     `json:"subtitle"`
+	AI                SiteHomeAI `json:"ai"`
+	PortfolioImageURL string     `json:"portfolioImageUrl"`
+	BookmarkImageURL  string     `json:"bookmarkImageUrl"`
+}
+
+type SiteFooter struct {
+	Text         string `json:"text"`
+	LinkText     string `json:"linkText"`
+	LinkURL      string `json:"linkUrl"`
+	ICPNumber    string `json:"icpNumber"`
+	ICPURL       string `json:"icpUrl"`
+	PoliceNumber string `json:"policeNumber"`
+	PoliceURL    string `json:"policeUrl"`
+}
+
 type Site struct {
 	Name       string          `json:"name"`
 	Slogan     string          `json:"slogan"`
@@ -131,6 +158,8 @@ type Site struct {
 	TechStack  []string        `json:"techStack"`
 	Modules    []SiteModule    `json:"modules"`
 	Milestones []SiteMilestone `json:"milestones"`
+	Home       SiteHome        `json:"home"`
+	Footer     SiteFooter      `json:"footer"`
 }
 
 type Stats struct {

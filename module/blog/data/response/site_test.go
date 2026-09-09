@@ -40,10 +40,10 @@ func TestNormalizeSiteModulesKeepsOrderAndDropsUnknown(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(modules) != 6 || modules[0].ID != "blog" || modules[5].ID != "about" {
+	if len(modules) != 7 || modules[0].ID != "home" || modules[6].ID != "about" {
 		t.Fatalf("unexpected module set: %#v", modules)
 	}
-	if modules[5].Visible {
+	if modules[6].Visible {
 		t.Fatal("about should stay hidden")
 	}
 	if !modules[0].Visible {

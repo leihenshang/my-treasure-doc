@@ -61,16 +61,16 @@ func TestNormalizeSiteModules(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(modules) != 6 {
-		t.Fatalf("expected six modules, got %d", len(modules))
+	if len(modules) != 7 {
+		t.Fatalf("expected seven modules, got %d", len(modules))
 	}
-	if modules[0].ID != "blog" || modules[1].ID != "diary" {
+	if modules[0].ID != "home" || modules[1].ID != "blog" || modules[2].ID != "diary" {
 		t.Fatalf("modules are not in fixed order: %#v", modules)
 	}
-	if modules[1].Visible {
+	if modules[2].Visible {
 		t.Fatal("explicit visible=false was not preserved")
 	}
-	if !modules[2].Visible {
+	if !modules[3].Visible {
 		t.Fatal("missing module should default to visible=true")
 	}
 }

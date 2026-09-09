@@ -735,6 +735,7 @@ GET /api/blog/site
 
 | ID | 模块 | 固定路径 |
 | ------------- | ---- | ------------------- |
+| `home` | 主页 | `/Blog/Home` |
 | `blog` | 文章 | `/Blog` |
 | `diary` | 日记 | `/Blog/Diary` |
 | `portfolio` | 作品 | `/Blog/Portfolio` |
@@ -742,7 +743,7 @@ GET /api/blog/site
 | `bookmark` | 书签 | `/Blog/Bookmark` |
 | `about` | 关于 | `/Blog/About` |
 
-`GET /api/blog/site` 应返回全部六个模块，包括 `visible: false` 的模块，并保持上表顺序。前端使用该字段控制导航、关于页模块卡片和直接 URL 路由访问。允许六个模块全部为 `false`，此时前端展示站点维护页。
+`GET /api/blog/site` 应返回全部七个模块，包括 `visible: false` 的模块，并保持上表顺序。前端使用该字段控制导航、关于页模块卡片和直接 URL 路由访问。允许七个模块全部为 `false`，此时前端展示站点维护页。
 
 `visible` 是前台展示配置，不是安全权限边界。如果关闭模块还需要禁止公开 API 获取数据，后端必须在对应公开内容接口中额外校验模块状态并返回明确错误；不能只依赖前端路由守卫。
 
@@ -764,6 +765,10 @@ GET /api/blog/site
 | `techStack`  | string[]        | 是   | 技术栈                 |
 | `modules`    | SiteModule[]    | 是   | 功能模块               |
 | `milestones` | SiteMilestone[] | 是   | 更新记录，建议日期降序 |
+| `home` | SiteHome | 是 | 主页宣传配置；`title`、`ai.title`、`ai.description` 必填 |
+| `footer` | SiteFooter | 是 | 页尾与备案配置 |
+
+`home.ai.imageUrl`、`home.portfolioImageUrl`、`home.bookmarkImageUrl` 与所有页尾链接可为空；非空时仅允许 `/files/...`、`/Blog/...`、HTTPS 或 `mailto:` 地址。
 
 成功响应：
 
@@ -777,6 +782,14 @@ GET /api/blog/site
     "intro": "个人站点介绍。",
     "techStack": ["Vue 3", "TypeScript", "Vite", "Go"],
     "modules": [
+      {
+        "id": "home",
+        "icon": "⌘",
+        "name": "主页",
+        "desc": "AI 编程软件的产品介绍、核心能力与开始入口",
+        "path": "/Blog/Home",
+        "visible": true
+      },
       {
         "id": "blog",
         "icon": "📝",
@@ -971,7 +984,7 @@ Cache-Control: public, max-age=60, stale-while-revalidate=300
 
 - 技能 `level` 始终位于 0 至 100
 - `SiteModule.path` 指向有效 `/Blog` 路由
-- Site 返回六个固定模块，ID、路径和顺序符合 9.2 节定义
+- Site 返回七个固定模块，ID、路径和顺序符合 9.2 节定义
 - `visible=false` 的模块仍包含在 Site 响应中，以便后台重新开启
 - 旧数据缺少 `visible` 时迁移为 `true`
 - 统计数字只包含已发布内容
@@ -1190,7 +1203,15 @@ Profile 和 Site 额外提供 4 个单例端点：
 | GET  | `/api/blog-mgr/site`    | 获取站点配置           |
 | PUT  | `/api/blog-mgr/site`    | 创建或覆盖站点配置     |
 
-管理端共计 46 个端点。
+图片上传额外提供 1 个管理员端点：
+
+| 方法 | Endpoint | Content-Type | 说明 |
+| ---- | -------- | ------------ | ---- |
+| POST | `/api/blog-mgr/uploads/images` | `multipart/form-data` | 上传主页宣传图片 |
+
+请求字段为 `file`；仅支持 JPG、PNG、GIF、WebP，文件大小不得超过 8MB。成功时 `data.path` 返回可直接写入站点配置的公开路径，例如 `/files/blog/xxxxxxxx.png`。
+
+管理端共计 47 个端点。
 
 ## 17. 管理列表
 
@@ -1473,6 +1494,14 @@ Content-Type: application/json
   "techStack": ["Vue 3", "TypeScript", "Go"],
   "modules": [
     {
+      "id": "home",
+      "icon": "⌘",
+      "name": "主页",
+      "desc": "AI 编程软件的产品介绍、核心能力与开始入口",
+      "path": "/Blog/Home",
+      "visible": true
+    },
+    {
       "id": "blog",
       "icon": "📝",
       "name": "文章",
@@ -1523,15 +1552,38 @@ Content-Type: application/json
   ],
   "milestones": [
     {"date": "2026-09-04", "title": "管理 API 上线", "desc": "支持内容维护。"}
-  ]
+  ],
+  "home": {
+    "title": "创造力改变世界",
+    "subtitle": "用技术、设计与 AI，把想法变成真实的作品。",
+    "ai": {
+      "eyebrow": "AI CREATIVE LAB",
+      "title": "让 AI 成为创造力的放大器",
+      "description": "探索 AI 如何帮助思考、表达、设计与构建。",
+      "linkText": "探索 AI 创作",
+      "linkUrl": "/Blog/Tools",
+      "imageUrl": "/files/blog/ai-banner.jpg"
+    },
+    "portfolioImageUrl": "/files/blog/portfolio-banner.jpg",
+    "bookmarkImageUrl": "/files/blog/bookmark-banner.jpg"
+  },
+  "footer": {
+    "text": "© 2026 Treasure Doc · 创造力改变世界",
+    "linkText": "首页",
+    "linkUrl": "/Blog/Home",
+    "icpNumber": "京ICP备12345678号",
+    "icpUrl": "https://beian.miit.gov.cn/",
+    "policeNumber": "京公网安备12345678901234号",
+    "policeUrl": "https://www.beian.gov.cn/"
+  }
 }
 ```
 
-`name` 必填；里程碑日期必须为 `YYYY-MM-DD` 且标题不能为空。
+`name` 必填；里程碑日期必须为 `YYYY-MM-DD` 且标题不能为空；`home.title`、`home.ai.title` 和 `home.ai.description` 必填。图片与链接字段非空时仅允许 `/files/...`、`/Blog/...`、HTTPS 或 `mailto:`。
 
 Site 模块保存约束：
 
-1. `modules` 必须包含 9.2 节定义的全部六个固定模块，每个 ID 恰好出现一次。
+1. `modules` 必须包含 9.2 节定义的全部七个固定模块，每个 ID 恰好出现一次。
 2. 模块 ID 和路径必须与固定映射一致；后端不得接受未知 ID、重复 ID 或被修改的路径。
 3. `icon`、`name`、`desc` 和 `visible` 可由后台修改，其中 `name` 不能为空，`visible` 必须为布尔值。
 4. `visible=false` 的模块必须正常持久化，管理端 GET 和公开端 GET 均不得过滤这些模块。
@@ -1539,7 +1591,7 @@ Site 模块保存约束：
 6. 为兼容已有数据，数据库记录缺少 `visible` 时应在迁移或读取时补为 `true`；已有配置缺少固定模块时应补齐默认模块，不得将缺失项解释为隐藏。
 7. `PUT /api/blog-mgr/site` 成功响应应返回标准化后的完整 Site 对象，供管理前端立即更新公开配置缓存。
 
-Profile 和 Site 使用固定单例 key `default`。记录不存在时，Profile GET 返回结构完整的空对象且数组为 `[]`；Site GET 返回结构完整的默认对象，其中 `modules` 包含六个固定模块且 `visible` 均为 `true`，其他数组可为 `[]`。PUT 执行创建或覆盖，并恢复已软删除的单例记录。
+Profile 和 Site 使用固定单例 key `default`。记录不存在时，Profile GET 返回结构完整的空对象且数组为 `[]`；Site GET 返回结构完整的默认对象，其中 `modules` 包含七个固定模块且 `visible` 均为 `true`，并返回默认 `home` 与 `footer` 配置，其他数组可为 `[]`。PUT 执行创建或覆盖，并恢复已软删除的单例记录。
 
 ## 21. 内容生命周期
 
@@ -1618,7 +1670,7 @@ Profile 和 Site 使用固定单例 key `default`。记录不存在时，Profile
 - 标签整体替换无重复，任一步失败时主体和关系同时回滚。
 - 文章、日记、书签的管理响应包含可直接用于编辑回显的 `tagIds`。
 - Profile/Site GET 在空库返回空数组而不是 null，PUT 后公开接口可读取新配置。
-- Site 管理 GET/PUT 和公开 GET 均返回六个固定模块及显式 `visible` 布尔值。
+- Site 管理 GET/PUT 和公开 GET 均返回七个固定模块及显式 `visible` 布尔值。
 - 将任一模块设为 `visible=false` 后重新读取仍保持关闭，且响应中没有删除该模块。
 - 全部模块可同时关闭；重新开启任一模块后配置可正常恢复。
 - 旧 Site 数据缺少 `visible` 或缺少固定模块时，迁移结果默认开启并补齐，不影响升级前已有站点。

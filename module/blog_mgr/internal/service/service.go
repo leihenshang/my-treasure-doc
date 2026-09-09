@@ -711,10 +711,12 @@ func (s *Service) PutSetting(ctx context.Context, name string, payload interface
 	tech, e1 := marshal(value.TechStack)
 	modulesJSON, e2 := marshal(value.Modules)
 	milestones, e3 := marshal(value.Milestones)
-	if e1 != nil || e2 != nil || e3 != nil {
+	home, e4 := marshal(value.Home)
+	footer, e5 := marshal(value.Footer)
+	if e1 != nil || e2 != nil || e3 != nil || e4 != nil || e5 != nil {
 		return nil, ErrInvalid
 	}
-	item := &blogmodel.Site{SiteKey: "default", Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: modulesJSON, Milestones: milestones}
+	item := &blogmodel.Site{SiteKey: "default", Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: modulesJSON, Milestones: milestones, Home: home, Footer: footer}
 	if err = upsertSetting(db, &blogmodel.Site{}, "site_key", "default", item); err != nil {
 		return nil, err
 	}
@@ -758,7 +760,15 @@ func siteFromModel(value *blogmodel.Site) (blogresponse.Site, error) {
 	if err != nil {
 		return blogresponse.Site{}, err
 	}
-	return blogresponse.Site{Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: normalized, Milestones: milestones}, nil
+	home := blogresponse.DefaultSiteHome()
+	footer := blogresponse.DefaultSiteFooter()
+	if len(value.Home) > 0 && string(value.Home) != "{}" && json.Unmarshal(value.Home, &home) != nil {
+		return blogresponse.Site{}, ErrInvalid
+	}
+	if len(value.Footer) > 0 && string(value.Footer) != "{}" && json.Unmarshal(value.Footer, &footer) != nil {
+		return blogresponse.Site{}, ErrInvalid
+	}
+	return blogresponse.Site{Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: normalized, Milestones: milestones, Home: home, Footer: footer}, nil
 }
 
 func validateSite(value blogresponse.Site) error {
@@ -770,7 +780,19 @@ func validateSite(value blogresponse.Site) error {
 			return ErrInvalid
 		}
 	}
+	if strings.TrimSpace(value.Home.Title) == "" || strings.TrimSpace(value.Home.AI.Title) == "" || strings.TrimSpace(value.Home.AI.Description) == "" {
+		return ErrInvalid
+	}
+	for _, url := range []string{value.Home.AI.LinkURL, value.Home.AI.ImageURL, value.Home.PortfolioImageURL, value.Home.BookmarkImageURL, value.Footer.LinkURL, value.Footer.ICPURL, value.Footer.PoliceURL} {
+		if url != "" && !validSiteURL(url) {
+			return ErrInvalid
+		}
+	}
 	return nil
+}
+
+func validSiteURL(value string) bool {
+	return strings.HasPrefix(value, "/files/") || value == "/Blog" || strings.HasPrefix(value, "/Blog/") || request.ValidURL(value, true)
 }
 
 func upsertSetting(db *gorm.DB, existing interface{}, keyColumn, keyValue string, values interface{}) error {
