@@ -32,7 +32,7 @@ func (u *UserApi) UserCaptcha(c *gin.Context) {
 	response.OkWithData(c, captcha)
 }
 
-// UserLogin 用户登录，账号字段支持填入账号和邮箱，因为都是唯一的
+// UserLogin 用户登录，账号字段支持填入账号或邮箱（均唯一）
 func (u *UserApi) UserLogin(c *gin.Context) {
 	var login user.LoginRequest
 	err := c.ShouldBindJSON(&login)
@@ -52,7 +52,7 @@ func (u *UserApi) UserLogin(c *gin.Context) {
 	}
 }
 
-// UserLogout 用户退出登陆
+// UserLogout 用户退出登录
 func (u *UserApi) UserLogout(c *gin.Context) {
 	loginUser, err := auth.GetUserInfoByCtx(c)
 	if err != nil {

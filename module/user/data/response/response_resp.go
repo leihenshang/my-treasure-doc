@@ -3,50 +3,31 @@ package response
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	commonresponse "fastduck/treasure-doc/module/common/response"
 
-	"fastduck/treasure-doc/module/user/data/request"
+	"github.com/gin-gonic/gin"
 )
 
-type ListResponse struct {
-	Pagination request.Pagination `json:"pagination"`
-	List       interface{}        `json:"list"`
-}
+// Response 与统一响应体结构一致，保留别名便于按包引用。
+type Response = commonresponse.Envelope
 
-type Response struct {
-	Code ErrorCode   `json:"code"`
-	Msg  string      `json:"msg"`
-	Data interface{} `json:"data"`
-}
+// ErrorCode 为业务码，取值见 code_error_resp.go。
+type ErrorCode = int
 
+// Result 始终返回 HTTP 200，业务结果由 code 表达。
 func Result(c *gin.Context, code ErrorCode, data interface{}, msg string) {
-	c.JSON(http.StatusOK, Response{
-		code,
-		msg,
-		data,
-	})
+	commonresponse.JSON(c, http.StatusOK, code, msg, data)
 }
 
 func Ok(c *gin.Context) {
 	Result(c, SUCCESS, map[string]interface{}{}, "操作成功")
 }
 
-func OkWithMessage(c *gin.Context, message string) {
-	Result(c, SUCCESS, map[string]interface{}{}, message)
-}
-
 func OkWithData(c *gin.Context, data interface{}) {
 	Result(c, SUCCESS, data, "操作成功")
 }
 
-func OkWithDetailed(c *gin.Context, data interface{}, message string) {
-	Result(c, SUCCESS, data, message)
-}
-
-func Fail(c *gin.Context) {
-	Result(c, ERROR, map[string]interface{}{}, "操作失败")
-}
-
+// FailWithMessage 失败响应；不传 code 时使用通用失败码。
 func FailWithMessage(c *gin.Context, message string, code ...ErrorCode) {
 	if len(code) == 0 {
 		Result(c, ERROR, map[string]interface{}{}, message)
@@ -54,9 +35,3 @@ func FailWithMessage(c *gin.Context, message string, code ...ErrorCode) {
 	}
 	Result(c, code[0], map[string]interface{}{}, message)
 }
-
-func FailWithDetailed(c *gin.Context, data interface{}, message string) {
-	Result(c, ERROR, data, message)
-}
-
-type ErrorCode int

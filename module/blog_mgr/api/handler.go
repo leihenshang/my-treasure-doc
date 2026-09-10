@@ -13,6 +13,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 管理端业务码，与前端约定保持一致。
+const (
+	codeInvalidRequest  = 40001
+	codeReferenceAbsent = 40002
+	codeNotFound        = 40410
+	codeConflict        = 40900
+	codeInternal        = 50000
+)
+
+// Manager 是管理端业务入口，由 internal/service 实现，测试可注入替身。
 type Manager interface {
 	List(context.Context, string, request.List) (service.Page, error)
 	Get(context.Context, string, string) (interface{}, error)
@@ -25,173 +35,207 @@ type Manager interface {
 	PutSetting(context.Context, string, interface{}) (interface{}, error)
 }
 
+// 资源标识与请求体类型集中定义，供路由注册与请求解析共用。
+var (
+	resourceNames = []string{"categories", "tags", "posts", "diaries", "portfolio-items", "tools", "bookmarks"}
+
+	resourceBinders = map[string]binder{
+		"categories":      jsonBinder[request.Category]{},
+		"tags":            jsonBinder[request.Tag]{},
+		"posts":           jsonBinder[request.Post]{},
+		"diaries":         jsonBinder[request.Diary]{},
+		"portfolio-items": jsonBinder[request.Portfolio]{},
+		"tools":           jsonBinder[request.Tool]{},
+		"bookmarks":       jsonBinder[request.Bookmark]{},
+	}
+)
+
+// ResourceNames 返回管理端支持的资源标识，顺序固定。
+func ResourceNames() []string { return resourceNames }
+
+// binder 把请求体解析为某个资源的入参值。
+type binder interface {
+	bind(*gin.Context) (interface{}, bool)
+}
+
+type jsonBinder[T any] struct{}
+
+func (jsonBinder[T]) bind(c *gin.Context) (interface{}, bool) {
+	var payload T
+	if c.ShouldBindJSON(&payload) != nil {
+		return nil, false
+	}
+	return payload, true
+}
+
 type Handler struct{ service Manager }
 
 func New(manager Manager) *Handler { return &Handler{service: manager} }
 
-func (h *Handler) List(c *gin.Context) {
-	var query request.List
-	if c.ShouldBindQuery(&query) != nil || query.Normalize() != nil {
-		badRequest(c)
-		return
+func (h *Handler) List(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var query request.List
+		if c.ShouldBindQuery(&query) != nil || query.Normalize() != nil {
+			badRequest(c)
+			return
+		}
+		data, err := h.service.List(c.Request.Context(), resource, query)
+		h.write(c, data, err, false)
 	}
-	data, err := h.service.List(c.Request.Context(), c.Param("resource"), query)
-	h.write(c, data, err, false)
-}
-func (h *Handler) Detail(c *gin.Context) {
-	if !request.ValidID(c.Param("id")) {
-		badRequest(c)
-		return
-	}
-	data, err := h.service.Get(c.Request.Context(), c.Param("resource"), c.Param("id"))
-	h.write(c, data, err, false)
-}
-func (h *Handler) Create(c *gin.Context) {
-	payload, ok := bindResource(c, c.Param("resource"))
-	if !ok {
-		return
-	}
-	data, err := h.service.Create(c.Request.Context(), c.Param("resource"), payload)
-	h.write(c, data, err, true)
-}
-func (h *Handler) Update(c *gin.Context) {
-	if !request.ValidID(c.Param("id")) {
-		badRequest(c)
-		return
-	}
-	payload, ok := bindResource(c, c.Param("resource"))
-	if !ok {
-		return
-	}
-	data, err := h.service.Update(c.Request.Context(), c.Param("resource"), c.Param("id"), payload)
-	h.write(c, data, err, false)
 }
 
-// UpdateFields 列表快捷设置：仅提交需要修改的字段，例如 {"pinned": true}
-func (h *Handler) UpdateFields(c *gin.Context) {
-	if !request.ValidID(c.Param("id")) {
-		badRequest(c)
-		return
+func (h *Handler) Detail(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, ok := pathID(c)
+		if !ok {
+			return
+		}
+		data, err := h.service.Get(c.Request.Context(), resource, id)
+		h.write(c, data, err, false)
 	}
-	var payload map[string]interface{}
-	if c.ShouldBindJSON(&payload) != nil || len(payload) == 0 {
-		badRequest(c)
-		return
-	}
-	data, err := h.service.UpdateFields(c.Request.Context(), c.Param("resource"), c.Param("id"), payload)
-	h.write(c, data, err, false)
 }
-func (h *Handler) Delete(c *gin.Context) {
-	if !request.ValidID(c.Param("id")) {
-		badRequest(c)
-		return
+
+func (h *Handler) Create(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		payload, ok := bindResource(c, resource)
+		if !ok {
+			return
+		}
+		data, err := h.service.Create(c.Request.Context(), resource, payload)
+		h.write(c, data, err, true)
 	}
-	err := h.service.Delete(c.Request.Context(), c.Param("resource"), c.Param("id"))
-	h.write(c, map[string]bool{"deleted": true}, err, false)
 }
-func (h *Handler) Restore(c *gin.Context) {
-	if !request.ValidID(c.Param("id")) {
-		badRequest(c)
-		return
+
+func (h *Handler) Update(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, ok := pathID(c)
+		if !ok {
+			return
+		}
+		payload, ok := bindResource(c, resource)
+		if !ok {
+			return
+		}
+		data, err := h.service.Update(c.Request.Context(), resource, id, payload)
+		h.write(c, data, err, false)
 	}
-	err := h.service.Restore(c.Request.Context(), c.Param("resource"), c.Param("id"))
-	h.write(c, map[string]bool{"restored": true}, err, false)
 }
-func (h *Handler) GetSetting(c *gin.Context) {
-	data, err := h.service.GetSetting(c.Request.Context(), c.Param("setting"))
-	h.write(c, data, err, false)
+
+// UpdateFields 列表快捷设置，仅提交需要修改的字段，例如 {"pinned": true}。
+func (h *Handler) UpdateFields(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, ok := pathID(c)
+		if !ok {
+			return
+		}
+		var payload map[string]interface{}
+		if c.ShouldBindJSON(&payload) != nil || len(payload) == 0 {
+			badRequest(c)
+			return
+		}
+		data, err := h.service.UpdateFields(c.Request.Context(), resource, id, payload)
+		h.write(c, data, err, false)
+	}
 }
-func (h *Handler) PutSetting(c *gin.Context) {
-	var payload interface{}
-	if c.Param("setting") == "profile" {
-		payload = &blogresponse.Profile{}
-	} else {
-		payload = &blogresponse.Site{}
+
+func (h *Handler) Delete(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, ok := pathID(c)
+		if !ok {
+			return
+		}
+		err := h.service.Delete(c.Request.Context(), resource, id)
+		h.write(c, map[string]bool{"deleted": true}, err, false)
 	}
-	if c.ShouldBindJSON(payload) != nil {
+}
+
+func (h *Handler) Restore(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, ok := pathID(c)
+		if !ok {
+			return
+		}
+		err := h.service.Restore(c.Request.Context(), resource, id)
+		h.write(c, map[string]bool{"restored": true}, err, false)
+	}
+}
+
+func (h *Handler) GetSetting(setting string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		data, err := h.service.GetSetting(c.Request.Context(), setting)
+		h.write(c, data, err, false)
+	}
+}
+
+func (h *Handler) PutSetting(setting string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		payload, ok := bindSetting(c, setting)
+		if !ok {
+			return
+		}
+		data, err := h.service.PutSetting(c.Request.Context(), setting, payload)
+		h.write(c, data, err, false)
+	}
+}
+
+// pathID 读取并校验路径上的资源 ID。
+func pathID(c *gin.Context) (string, bool) {
+	id := c.Param("id")
+	if !request.ValidID(id) {
 		badRequest(c)
-		return
+		return "", false
 	}
-	switch value := payload.(type) {
-	case *blogresponse.Profile:
-		payload = *value
-	case *blogresponse.Site:
-		payload = *value
-	}
-	data, err := h.service.PutSetting(c.Request.Context(), c.Param("setting"), payload)
-	h.write(c, data, err, false)
+	return id, true
 }
 
 func bindResource(c *gin.Context, resource string) (interface{}, bool) {
-	var payload interface{}
-	switch resource {
-	case "categories":
-		payload = &request.Category{}
-	case "tags":
-		payload = &request.Tag{}
-	case "posts":
-		payload = &request.Post{}
-	case "diaries":
-		payload = &request.Diary{}
-	case "portfolio-items":
-		payload = &request.Portfolio{}
-	case "tools":
-		payload = &request.Tool{}
-	case "bookmarks":
-		payload = &request.Bookmark{}
-	default:
+	b, ok := resourceBinders[resource]
+	if !ok {
 		badRequest(c)
 		return nil, false
 	}
-	if c.ShouldBindJSON(payload) != nil {
+	payload, ok := b.bind(c)
+	if !ok {
 		badRequest(c)
 		return nil, false
 	}
-	switch value := payload.(type) {
-	case *request.Category:
-		return *value, true
-	case *request.Tag:
-		return *value, true
-	case *request.Post:
-		return *value, true
-	case *request.Diary:
-		return *value, true
-	case *request.Portfolio:
-		return *value, true
-	case *request.Tool:
-		return *value, true
-	case *request.Bookmark:
-		return *value, true
-	}
-	return nil, false
+	return payload, true
 }
+
+func bindSetting(c *gin.Context, setting string) (interface{}, bool) {
+	if setting == "profile" {
+		var payload blogresponse.Profile
+		if c.ShouldBindJSON(&payload) != nil {
+			return nil, false
+		}
+		return payload, true
+	}
+	var payload blogresponse.Site
+	if c.ShouldBindJSON(&payload) != nil {
+		return nil, false
+	}
+	return payload, true
+}
+
 func (h *Handler) write(c *gin.Context, data interface{}, err error, created bool) {
-	if errors.Is(err, service.ErrReferenceNotFound) {
-		response.Error(c, http.StatusBadRequest, 40002, "关联的分类或标签不存在，请先创建")
-		return
-	}
-	if errors.Is(err, service.ErrInvalid) {
+	switch {
+	case errors.Is(err, service.ErrReferenceNotFound):
+		response.Error(c, http.StatusBadRequest, codeReferenceAbsent, "关联的分类或标签不存在，请先创建")
+	case errors.Is(err, service.ErrInvalid):
 		badRequest(c)
-		return
-	}
-	if errors.Is(err, service.ErrNotFound) {
-		response.Error(c, http.StatusNotFound, 40410, "资源不存在")
-		return
-	}
-	if errors.Is(err, service.ErrConflict) {
-		response.Error(c, http.StatusConflict, 40900, "数据已变更或标识重复")
-		return
-	}
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, 50000, "服务内部错误")
-		return
-	}
-	if created {
+	case errors.Is(err, service.ErrNotFound):
+		response.Error(c, http.StatusNotFound, codeNotFound, "资源不存在")
+	case errors.Is(err, service.ErrConflict):
+		response.Error(c, http.StatusConflict, codeConflict, "数据已变更或标识重复")
+	case err != nil:
+		response.Error(c, http.StatusInternalServerError, codeInternal, "服务内部错误")
+	case created:
 		response.Created(c, data)
-	} else {
+	default:
 		response.OK(c, data)
 	}
 }
+
 func badRequest(c *gin.Context) {
-	response.Error(c, http.StatusBadRequest, 40001, "请求参数格式错误")
+	response.Error(c, http.StatusBadRequest, codeInvalidRequest, "请求参数格式错误")
 }

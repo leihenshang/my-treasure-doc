@@ -11,27 +11,26 @@ import (
 func Register(group *gin.RouterGroup) {
 	RegisterService(group, service.New())
 }
+
 func RegisterService(group *gin.RouterGroup, manager api.Manager) {
 	handler := api.New(manager)
-	resources := []string{"categories", "tags", "posts", "diaries", "portfolio-items", "tools", "bookmarks"}
-	for _, resource := range resources {
+
+	for _, resource := range api.ResourceNames() {
 		route := group.Group("/" + resource)
-		route.GET("", setParam("resource", resource), handler.List)
-		route.POST("", setParam("resource", resource), handler.Create)
-		route.GET("/:id", setParam("resource", resource), handler.Detail)
-		route.PATCH("/:id", setParam("resource", resource), handler.Update)
-		route.PATCH("/:id/fields", setParam("resource", resource), handler.UpdateFields)
-		route.DELETE("/:id", setParam("resource", resource), handler.Delete)
-		route.POST("/:id/restore", setParam("resource", resource), handler.Restore)
+		route.GET("", handler.List(resource))
+		route.POST("", handler.Create(resource))
+		route.GET("/:id", handler.Detail(resource))
+		route.PATCH("/:id", handler.Update(resource))
+		route.PATCH("/:id/fields", handler.UpdateFields(resource))
+		route.DELETE("/:id", handler.Delete(resource))
+		route.POST("/:id/restore", handler.Restore(resource))
 	}
+
 	for _, setting := range []string{"profile", "site"} {
-		route := group.Group("/" + setting)
-		route.GET("", setParam("setting", setting), handler.GetSetting)
-		route.PUT("", setParam("setting", setting), handler.PutSetting)
+		group.GET("/"+setting, handler.GetSetting(setting))
+		group.PUT("/"+setting, handler.PutSetting(setting))
 	}
+
 	group.POST("/uploads/images", userapi.UploadBlogImage)
 	group.POST("/uploads/medias", userapi.UploadBlogMedias)
-}
-func setParam(key, value string) gin.HandlerFunc {
-	return func(c *gin.Context) { c.Params = append(c.Params, gin.Param{Key: key, Value: value}); c.Next() }
 }

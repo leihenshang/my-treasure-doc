@@ -37,7 +37,6 @@ var imageMediaExtensions = map[string]string{
 	"image/bmp":  ".bmp",
 }
 
-// 允许的视频类型
 var videoMediaExtensions = map[string]string{
 	"video/mp4":        ".mp4",
 	"video/webm":       ".webm",
@@ -48,7 +47,6 @@ var videoMediaExtensions = map[string]string{
 	"video/mpeg":       ".mpeg",
 }
 
-// Markdown 编辑器可上传的媒体类型 = 图片 + 视频
 var blogMediaExtensions = mergeMediaExtensions(imageMediaExtensions, videoMediaExtensions)
 
 // 内容无法被嗅探（application/octet-stream）时按文件名后缀兜底，

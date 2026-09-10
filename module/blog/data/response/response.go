@@ -3,11 +3,14 @@ package response
 import (
 	"net/http"
 
+	commonresponse "fastduck/treasure-doc/module/common/response"
+
 	"github.com/gin-gonic/gin"
 )
 
+// 公开只读接口的业务码
 const (
-	CodeSuccess          = 0
+	CodeSuccess          = commonresponse.CodeSuccess
 	CodeInvalidQuery     = 40001
 	CodeUnsupportedSort  = 40002
 	CodePostNotFound     = 40401
@@ -17,11 +20,7 @@ const (
 	CodeInternal         = 50000
 )
 
-type Envelope struct {
-	Code int         `json:"code"`
-	Msg  string      `json:"msg"`
-	Data interface{} `json:"data"`
-}
+type Envelope = commonresponse.Envelope
 
 type Pagination struct {
 	Page     int    `json:"page"`
@@ -36,9 +35,9 @@ type Page struct {
 }
 
 func OK(c *gin.Context, data interface{}) {
-	c.JSON(http.StatusOK, Envelope{Code: CodeSuccess, Msg: "", Data: data})
+	commonresponse.JSON(c, http.StatusOK, CodeSuccess, "", data)
 }
 
 func Error(c *gin.Context, status, code int, message string) {
-	c.JSON(status, Envelope{Code: code, Msg: message, Data: nil})
+	commonresponse.Error(c, status, code, message)
 }
