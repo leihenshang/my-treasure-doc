@@ -47,12 +47,15 @@ func main() {
 	//把gin致命错误写入日志
 	r.Use(ginzap.Ginzap(global.Zap, time.RFC3339, true)).Use(ginzap.RecoveryWithZap(global.Zap, true))
 	router.InitRouter(r)
+	// 媒体上传允许较大的图片/视频文件，读写超时必须覆盖整个请求体的接收与处理过程，
+	// 否则 50MB 级别的上传会在传输途中被服务端断开；请求头仍保持较短超时，避免慢速连接长期占用。
 	s := &http.Server{
-		Addr:           fmt.Sprintf(":%d", global.GetConf().App.Port),
-		Handler:        r,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
+		Addr:              fmt.Sprintf(":%d", global.GetConf().App.Port),
+		Handler:           r,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       5 * time.Minute,
+		WriteTimeout:      5 * time.Minute,
+		MaxHeaderBytes:    1 << 20,
 	}
 	global.Log.Info("service is started!", "address", s.Addr)
 	global.Log.Error(s.ListenAndServe().Error())

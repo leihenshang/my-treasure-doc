@@ -1203,15 +1203,54 @@ Profile 和 Site 额外提供 4 个单例端点：
 | GET  | `/api/blog-mgr/site`    | 获取站点配置           |
 | PUT  | `/api/blog-mgr/site`    | 创建或覆盖站点配置     |
 
-图片上传额外提供 1 个管理员端点：
+图片与媒体上传额外提供 2 个管理员端点：
 
 | 方法 | Endpoint | Content-Type | 说明 |
 | ---- | -------- | ------------ | ---- |
-| POST | `/api/blog-mgr/uploads/images` | `multipart/form-data` | 上传主页宣传图片 |
+| POST | `/api/blog-mgr/uploads/images` | `multipart/form-data` | 上传单张图片（封面、主页宣传图） |
+| POST | `/api/blog-mgr/uploads/medias` | `multipart/form-data` | 上传 Markdown 编辑器内的图片/视频，支持一次多个文件 |
 
-请求字段为 `file`；仅支持 JPG、PNG、GIF、WebP，文件大小不得超过 8MB。成功时 `data.path` 返回可直接写入站点配置的公开路径，例如 `/files/blog/xxxxxxxx.png`。
+公共约定：
 
-管理端共计 47 个端点。
+- 服务端通过文件内容嗅探类型，不使用文件名后缀；仅当内容完全无法识别（`application/octet-stream`）时才按后缀兜底，且兜底结果仍须命中白名单。
+- 文件以内容 `sha256` 加后缀命名并保存到 `files/blog/`，因此**相同内容重复上传会复用已有文件，不会重复保存**。
+- `data.path` 为公开访问路径，可直接写入内容或站点配置，例如 `/files/blog/<sha256>.png`。
+
+`uploads/images`（单图，`file` 字段）：
+
+- 仅支持 JPG、PNG、GIF、WebP、BMP，单张不超过 8MB。
+- 成功响应：`{"code":0,"msg":"操作成功","data":{"path":"/files/blog/<sha256>.png"}}`。
+
+`uploads/medias`（编辑器媒体，`files` 字段，可重复提交）：
+
+- 支持 JPG、PNG、GIF、WebP、BMP 图片，以及 MP4、WebM、MOV、AVI、MKV、MPEG 视频。
+- 单个文件不超过 50MB，一次请求最多 10 个文件；任一个文件校验失败则整个请求失败，`msg` 中会带上出错的文件名。
+- 成功响应的 `data.list` 顺序与提交顺序一致：
+
+```json
+{
+  "code": 0,
+  "msg": "操作成功",
+  "data": {
+    "list": [
+      { "path": "/files/blog/<sha256>.png", "name": "demo.png", "size": 20480, "existed": false }
+    ]
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+| ------------ | ------- | ------------------------------------------ |
+| `path` | string | 公开访问路径 |
+| `name` | string | 上传时的原始文件名 |
+| `size` | integer | 文件字节数 |
+| `existed` | boolean | 为 `true` 表示服务端已有相同内容，本次未重复保存 |
+
+Cherry Markdown 编辑器通过 `callback.fileUpload`（单文件）与 `callback.fileUploadMulti`（多文件、拖拽、粘贴）调用 `uploads/medias`，上传成功后把 `data.list[].path` 回填到编辑区；失败时接口返回的 `msg` 可直接展示给用户。
+
+> 由于允许 50MB 级文件，服务端将 `ReadTimeout`/`WriteTimeout` 放宽到 5 分钟；前端上传请求单独关闭了 60 秒的默认超时。修改这些超时后需要重启服务。
+
+管理端共计 48 个端点。
 
 ## 17. 管理列表
 

@@ -30,6 +30,7 @@ func RegisterService(group *gin.RouterGroup, manager api.Manager) {
 		route.PUT("", setParam("setting", setting), handler.PutSetting)
 	}
 	group.POST("/uploads/images", userapi.UploadBlogImage)
+	group.POST("/uploads/medias", userapi.UploadBlogMedias)
 }
 func setParam(key, value string) gin.HandlerFunc {
 	return func(c *gin.Context) { c.Params = append(c.Params, gin.Param{Key: key, Value: value}); c.Next() }
