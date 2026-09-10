@@ -21,5 +21,5 @@ func normalizeSiteModules(modules []blogresponse.SiteModule, strict bool) ([]blo
 
 // defaultSite 返回尚未保存站点配置时使用的默认对象，数组字段为空数组而不是 null。
 func defaultSite() blogresponse.Site {
-	return blogresponse.Site{TechStack: []string{}, Modules: defaultSiteModules(), Milestones: []blogresponse.SiteMilestone{}, Home: blogresponse.DefaultSiteHome(), Footer: blogresponse.DefaultSiteFooter()}
+	return blogresponse.Site{TechStack: []string{}, Modules: defaultSiteModules(), Milestones: []blogresponse.SiteMilestone{}, Home: blogresponse.DefaultSiteHome(), Footer: blogresponse.DefaultSiteFooter(), Banner: blogresponse.DefaultSiteBanner()}
 }

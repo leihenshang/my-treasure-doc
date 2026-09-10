@@ -168,7 +168,7 @@ func (s *Service) Site(ctx context.Context) (response.Site, error) {
 	var record model.Site
 	if err := db.Where("site_key = ?", "default").First(&record).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return response.Site{TechStack: []string{}, Modules: response.DefaultSiteModules(), Milestones: []response.SiteMilestone{}, Home: response.DefaultSiteHome(), Footer: response.DefaultSiteFooter()}, nil
+			return response.Site{TechStack: []string{}, Modules: response.DefaultSiteModules(), Milestones: []response.SiteMilestone{}, Home: response.DefaultSiteHome(), Footer: response.DefaultSiteFooter(), Banner: response.DefaultSiteBanner()}, nil
 		}
 		return response.Site{}, err
 	}
@@ -191,6 +191,7 @@ func (s *Service) Site(ctx context.Context) (response.Site, error) {
 	}
 	home := response.DefaultSiteHome()
 	footer := response.DefaultSiteFooter()
+	banner := response.DefaultSiteBanner()
 	if len(record.Home) > 0 && string(record.Home) != "{}" {
 		if err := json.Unmarshal(record.Home, &home); err != nil {
 			return response.Site{}, err
@@ -205,7 +206,12 @@ func (s *Service) Site(ctx context.Context) (response.Site, error) {
 			return response.Site{}, err
 		}
 	}
-	return response.Site{Name: record.Name, Slogan: record.Slogan, Intro: record.Intro, TechStack: techStack, Modules: normalized, Milestones: milestones, Home: home, Footer: footer}, nil
+	if len(record.Banner) > 0 && string(record.Banner) != "{}" {
+		if err := json.Unmarshal(record.Banner, &banner); err != nil {
+			return response.Site{}, err
+		}
+	}
+	return response.Site{Name: record.Name, Slogan: record.Slogan, Intro: record.Intro, TechStack: techStack, Modules: normalized, Milestones: milestones, Home: home, Footer: footer, Banner: banner, MaintenanceMode: record.MaintenanceMode}, nil
 }
 
 func (s *Service) Stats(ctx context.Context) (response.Stats, error) {

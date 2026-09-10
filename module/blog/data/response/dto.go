@@ -153,6 +153,13 @@ type SiteFooter struct {
 	PoliceURL    string `json:"policeUrl"`
 }
 
+type SiteBanner struct {
+	Enabled         bool   `json:"enabled"`
+	Text            string `json:"text"`
+	BackgroundColor string `json:"backgroundColor"`
+	TextColor       string `json:"textColor"`
+}
+
 type Site struct {
 	Name       string          `json:"name"`
 	Slogan     string          `json:"slogan"`
@@ -160,8 +167,10 @@ type Site struct {
 	TechStack  []string        `json:"techStack"`
 	Modules    []SiteModule    `json:"modules"`
 	Milestones []SiteMilestone `json:"milestones"`
-	Home       SiteHome        `json:"home"`
-	Footer     SiteFooter      `json:"footer"`
+	Home            SiteHome        `json:"home"`
+	Footer          SiteFooter      `json:"footer"`
+	Banner          SiteBanner      `json:"banner"`
+	MaintenanceMode bool            `json:"maintenanceMode"`
 }
 
 type Stats struct {

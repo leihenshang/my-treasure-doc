@@ -714,14 +714,27 @@ func (s *Service) PutSetting(ctx context.Context, name string, payload interface
 	milestones, e3 := marshal(value.Milestones)
 	home, e4 := marshal(value.Home)
 	footer, e5 := marshal(value.Footer)
-	if e1 != nil || e2 != nil || e3 != nil || e4 != nil || e5 != nil {
+	banner, e6 := marshal(value.Banner)
+	if e1 != nil || e2 != nil || e3 != nil || e4 != nil || e5 != nil || e6 != nil {
 		return nil, ErrInvalid
 	}
-	item := &blogmodel.Site{SiteKey: "default", Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: modulesJSON, Milestones: milestones, Home: home, Footer: footer}
+	item := &blogmodel.Site{SiteKey: "default", Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: modulesJSON, Milestones: milestones, Home: home, Footer: footer, Banner: banner, MaintenanceMode: value.MaintenanceMode}
 	if err = upsertSetting(db, &blogmodel.Site{}, "site_key", "default", item); err != nil {
 		return nil, err
 	}
 	return value, nil
+}
+
+func validHexColor(value string) bool {
+	if len(value) != 7 || value[0] != '#' {
+		return false
+	}
+	for _, char := range value[1:] {
+		if !((char >= '0' && char <= '9') || (char >= 'a' && char <= 'f') || (char >= 'A' && char <= 'F')) {
+			return false
+		}
+	}
+	return true
 }
 
 func validateProfile(value blogresponse.Profile) error {
@@ -773,11 +786,18 @@ func siteFromModel(value *blogmodel.Site) (blogresponse.Site, error) {
 	if len(value.Footer) > 0 && string(value.Footer) != "{}" && json.Unmarshal(value.Footer, &footer) != nil {
 		return blogresponse.Site{}, ErrInvalid
 	}
-	return blogresponse.Site{Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: normalized, Milestones: milestones, Home: home, Footer: footer}, nil
+	banner := blogresponse.DefaultSiteBanner()
+	if len(value.Banner) > 0 && string(value.Banner) != "{}" && json.Unmarshal(value.Banner, &banner) != nil {
+		return blogresponse.Site{}, ErrInvalid
+	}
+	return blogresponse.Site{Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: normalized, Milestones: milestones, Home: home, Footer: footer, Banner: banner, MaintenanceMode: value.MaintenanceMode}, nil
 }
 
 func validateSite(value blogresponse.Site) error {
 	if strings.TrimSpace(value.Name) == "" {
+		return ErrInvalid
+	}
+	if utf8.RuneCountInString(strings.TrimSpace(value.Banner.Text)) > 100 || !validHexColor(value.Banner.BackgroundColor) || !validHexColor(value.Banner.TextColor) {
 		return ErrInvalid
 	}
 	for _, milestone := range value.Milestones {

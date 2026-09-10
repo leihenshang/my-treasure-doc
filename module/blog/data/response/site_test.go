@@ -70,11 +70,15 @@ func TestNormalizeSiteModulesDefaultsLegacyTitle(t *testing.T) {
 	}
 }
 
-func TestNormalizeSiteModulesRejectsEmptyTitleForStrictPayload(t *testing.T) {
+func TestNormalizeSiteModulesAllowsEmptyTitleForStrictPayload(t *testing.T) {
 	modules := DefaultSiteModules()
 	modules[0].Title = ""
-	if _, err := NormalizeSiteModules(modules, true); !errors.Is(err, ErrInvalidSiteModule) {
-		t.Fatalf("expected empty title rejection, got %v", err)
+	normalized, err := NormalizeSiteModules(modules, true)
+	if err != nil {
+		t.Fatalf("expected empty title to be allowed, got %v", err)
+	}
+	if normalized[0].Title != "" {
+		t.Fatalf("expected empty title to remain empty, got %q", normalized[0].Title)
 	}
 }
 

@@ -48,6 +48,10 @@ func DefaultSiteFooter() SiteFooter {
 	return SiteFooter{Text: "© 2026 Treasure Doc · 创造力改变世界"}
 }
 
+func DefaultSiteBanner() SiteBanner {
+	return SiteBanner{BackgroundColor: "#1769ff", TextColor: "#ffffff"}
+}
+
 // DefaultSiteModules 返回固定模块的副本，默认全部可见。
 func DefaultSiteModules() []SiteModule {
 	result := make([]SiteModule, 0, len(fixedSiteModules))
@@ -60,8 +64,8 @@ func DefaultSiteModules() []SiteModule {
 
 // NormalizeSiteModules 按固定顺序返回完整的模块集合。
 //
-// strict 用于管理端写入：缺少固定模块、出现未知 ID、重复 ID、路径被修改或名称为空
-// 都返回 ErrInvalidSiteModule。
+// strict 用于管理端写入：缺少固定模块、出现未知 ID、重复 ID、路径被修改、名称为空
+// 或标题超长都返回 ErrInvalidSiteModule；标题可以为空。
 //
 // 非 strict 用于读取历史数据：未知 ID 被丢弃，缺失的模块按默认配置补齐，
 // 因此旧数据不会因为缺少模块而被解释为隐藏。
@@ -99,12 +103,6 @@ func NormalizeSiteModules(modules []SiteModule, strict bool) ([]SiteModule, erro
 			module.Name = fixed.Name
 		}
 		module.Title = strings.TrimSpace(module.Title)
-		if module.Title == "" {
-			if strict {
-				return nil, ErrInvalidSiteModule
-			}
-			module.Title = fixed.Title
-		}
 		if utf8.RuneCountInString(module.Title) > MaxSiteModuleTitleLength {
 			if strict {
 				return nil, ErrInvalidSiteModule
