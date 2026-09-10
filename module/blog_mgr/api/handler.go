@@ -18,6 +18,7 @@ type Manager interface {
 	Get(context.Context, string, string) (interface{}, error)
 	Create(context.Context, string, interface{}) (interface{}, error)
 	Update(context.Context, string, string, interface{}) (interface{}, error)
+	UpdateFields(context.Context, string, string, map[string]interface{}) (interface{}, error)
 	Delete(context.Context, string, string) error
 	Restore(context.Context, string, string) error
 	GetSetting(context.Context, string) (interface{}, error)
@@ -63,6 +64,21 @@ func (h *Handler) Update(c *gin.Context) {
 		return
 	}
 	data, err := h.service.Update(c.Request.Context(), c.Param("resource"), c.Param("id"), payload)
+	h.write(c, data, err, false)
+}
+
+// UpdateFields 列表快捷设置：仅提交需要修改的字段，例如 {"pinned": true}
+func (h *Handler) UpdateFields(c *gin.Context) {
+	if !request.ValidID(c.Param("id")) {
+		badRequest(c)
+		return
+	}
+	var payload map[string]interface{}
+	if c.ShouldBindJSON(&payload) != nil || len(payload) == 0 {
+		badRequest(c)
+		return
+	}
+	data, err := h.service.UpdateFields(c.Request.Context(), c.Param("resource"), c.Param("id"), payload)
 	h.write(c, data, err, false)
 }
 func (h *Handler) Delete(c *gin.Context) {

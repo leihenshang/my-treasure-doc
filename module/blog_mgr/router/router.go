@@ -20,6 +20,7 @@ func RegisterService(group *gin.RouterGroup, manager api.Manager) {
 		route.POST("", setParam("resource", resource), handler.Create)
 		route.GET("/:id", setParam("resource", resource), handler.Detail)
 		route.PATCH("/:id", setParam("resource", resource), handler.Update)
+		route.PATCH("/:id/fields", setParam("resource", resource), handler.UpdateFields)
 		route.DELETE("/:id", setParam("resource", resource), handler.Delete)
 		route.POST("/:id/restore", setParam("resource", resource), handler.Restore)
 	}

@@ -260,6 +260,65 @@ func (s *Service) Update(ctx context.Context, resource, id string, payload inter
 	return result, err
 }
 
+// UpdateFields 只更新白名单内的单个字段（列表快捷设置：置顶、发布状态）。
+// 与完整更新不同，它不要求客户端传 version，更新成功后 version 自增。
+func (s *Service) UpdateFields(ctx context.Context, resource, id string, fields map[string]interface{}) (interface{}, error) {
+	if !requiresVersion(resource) || !request.ValidID(id) {
+		return nil, ErrInvalid
+	}
+	updates := map[string]interface{}{}
+	if value, ok := fields["pinned"]; ok {
+		if resource != "posts" && resource != "diaries" {
+			return nil, ErrInvalid
+		}
+		pinned, ok := value.(bool)
+		if !ok {
+			return nil, ErrInvalid
+		}
+		updates["pinned"] = pinned
+	}
+	if value, ok := fields["publishStatus"]; ok {
+		status, ok := value.(string)
+		if !ok || !request.ValidStatus(status) {
+			return nil, ErrInvalid
+		}
+		updates["publish_status"] = status
+	}
+	if len(updates) == 0 || len(updates) != len(fields) {
+		return nil, ErrInvalid
+	}
+	updates["version"] = gorm.Expr("version + 1")
+	db, err := s.database(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, _, _, err := modelFor(resource)
+	if err != nil {
+		return nil, err
+	}
+	var result interface{}
+	err = db.Transaction(func(tx *gorm.DB) error {
+		// 回收站中的记录不允许快捷设置
+		if err := tx.Where("id = ?", id).First(item).Error; err != nil {
+			return err
+		}
+		res := tx.Model(item).Where("id = ?", id).Updates(updates)
+		if res.Error != nil {
+			return mapDBError(res.Error)
+		}
+		if res.RowsAffected == 0 {
+			return ErrNotFound
+		}
+		loaded, err := s.getWithDB(tx, resource, id)
+		if err != nil {
+			return err
+		}
+		result, err = enrichItemWithTags(tx, resource, loaded)
+		return err
+	})
+	return result, err
+}
+
 type tagRelation struct {
 	OwnerID string `gorm:"column:owner_id"`
 	TagID   string `gorm:"column:tag_id"`
