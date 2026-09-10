@@ -778,7 +778,8 @@ func (s *Service) PutSetting(ctx context.Context, name string, payload interface
 		return nil, ErrInvalid
 	}
 	item := &blogmodel.Site{SiteKey: "default", Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: modulesJSON, Milestones: milestones, Home: home, Footer: footer, Banner: banner, MaintenanceMode: value.MaintenanceMode}
-	if err = upsertSetting(db, &blogmodel.Site{}, "site_key", "default", item); err != nil {
+	// 必须显式指定列：GORM 用结构体更新会跳过零值字段，导致关闭维护模式（false）写不进库
+	if err = upsertSettingColumns(db, &blogmodel.Site{}, "site_key", "default", item, siteUpdateColumns); err != nil {
 		return nil, err
 	}
 	return value, nil
@@ -880,6 +881,27 @@ func validateSite(value blogresponse.Site) error {
 
 func validSiteURL(value string) bool {
 	return strings.HasPrefix(value, "/files/") || value == "/Blog" || strings.HasPrefix(value, "/Blog/") || request.ValidURL(value, true)
+}
+
+// siteUpdateColumns 站点配置允许写入的列，包含开关类字段（零值也需要写入）
+var siteUpdateColumns = []string{"name", "slogan", "intro", "tech_stack", "modules", "milestones", "home", "footer", "banner", "maintenance_mode"}
+
+// upsertSettingColumns 与 upsertSetting 相同，但只更新指定列且允许写入零值。
+func upsertSettingColumns(db *gorm.DB, existing interface{}, keyColumn, keyValue string, values interface{}, columns []string) error {
+	return db.Transaction(func(tx *gorm.DB) error {
+		result := tx.Unscoped().Where(keyColumn+" = ?", keyValue).First(existing)
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return tx.Create(values).Error
+		}
+		if result.Error != nil {
+			return result.Error
+		}
+		if err := tx.Unscoped().Model(existing).Select(columns).Updates(values).Error; err != nil {
+			return err
+		}
+		// 已软删除的设置记录重新启用
+		return tx.Unscoped().Model(existing).Update("deleted_at", nil).Error
+	})
 }
 
 func upsertSetting(db *gorm.DB, existing interface{}, keyColumn, keyValue string, values interface{}) error {

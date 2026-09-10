@@ -28,6 +28,9 @@ func (fakeManager) Create(context.Context, string, interface{}) (interface{}, er
 func (fakeManager) Update(context.Context, string, string, interface{}) (interface{}, error) {
 	return map[string]string{"id": "1"}, nil
 }
+func (fakeManager) UpdateFields(context.Context, string, string, map[string]interface{}) (interface{}, error) {
+	return map[string]string{"id": "1"}, nil
+}
 func (fakeManager) Delete(context.Context, string, string) error  { return nil }
 func (fakeManager) Restore(context.Context, string, string) error { return nil }
 func (fakeManager) GetSetting(context.Context, string) (interface{}, error) {
