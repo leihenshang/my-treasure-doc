@@ -113,8 +113,10 @@ type SiteModule struct {
 	ID      string `json:"id"`
 	Icon    string `json:"icon"`
 	Name    string `json:"name"`
+	Title   string `json:"title"`
 	Desc    string `json:"desc"`
 	Path    string `json:"path"`
+	Marker  string `json:"marker"`
 	Visible bool   `json:"visible"`
 }
 

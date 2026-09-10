@@ -9,7 +9,9 @@ import (
 
 const (
 	MaxSiteModuleNameLength     = 50
+	MaxSiteModuleTitleLength    = 50
 	MaxSiteModuleSubtitleLength = 50
+	MaxSiteModuleMarkerLength   = 50
 	MaxSiteHomeSubtitleLength   = 50
 )
 
@@ -17,15 +19,15 @@ const (
 var ErrInvalidSiteModule = errors.New("invalid site module")
 
 // fixedSiteModules 是站点模块的固定集合。ID 与 Path 属于对外契约，
-// 管理端只允许修改 icon、name、desc 和 visible。
+// 管理端可修改 icon、name、title、desc、marker 和 visible。
 var fixedSiteModules = []SiteModule{
-	{ID: "home", Icon: "⌘", Name: "主页", Desc: "AI 编程软件的产品介绍、核心能力与开始入口", Path: "/Blog/Home"},
-	{ID: "blog", Icon: "📝", Name: "文章", Desc: "技术笔记与长文", Path: "/Blog"},
-	{ID: "diary", Icon: "📔", Name: "日记", Desc: "日常碎片与随想", Path: "/Blog/Diary"},
-	{ID: "portfolio", Icon: "🎨", Name: "作品", Desc: "网站、应用与开源项目", Path: "/Blog/Portfolio"},
-	{ID: "tools", Icon: "🧰", Name: "工具", Desc: "自研工具与常用链接", Path: "/Blog/Tools"},
-	{ID: "bookmark", Icon: "🔖", Name: "书签", Desc: "值得反复访问的资源", Path: "/Blog/Bookmark"},
-	{ID: "about", Icon: "👤", Name: "关于", Desc: "个人资料与站点记录", Path: "/Blog/About"},
+	{ID: "home", Icon: "⌘", Name: "主页", Title: "创造力改变世界", Desc: "AI 编程软件的产品介绍、核心能力与开始入口", Path: "/Blog/Home", Marker: "HOME"},
+	{ID: "blog", Icon: "📝", Name: "文章", Title: "我的文章", Desc: "技术笔记与长文", Path: "/Blog", Marker: "BLOG"},
+	{ID: "diary", Icon: "📔", Name: "日记", Title: "日记", Desc: "日常碎片与随想", Path: "/Blog/Diary", Marker: "DIARY"},
+	{ID: "portfolio", Icon: "🎨", Name: "作品", Title: "作品集", Desc: "网站、应用与开源项目", Path: "/Blog/Portfolio", Marker: "PORTFOLIO"},
+	{ID: "tools", Icon: "🧰", Name: "工具", Title: "利器", Desc: "自研工具与常用链接", Path: "/Blog/Tools", Marker: "TOOLS"},
+	{ID: "bookmark", Icon: "🔖", Name: "书签", Title: "收藏集", Desc: "值得反复访问的资源", Path: "/Blog/Bookmark", Marker: "BOOKMARK"},
+	{ID: "about", Icon: "👤", Name: "关于", Title: "关于我", Desc: "个人资料与站点记录", Path: "/Blog/About", Marker: "ABOUT"},
 }
 
 func DefaultSiteHome() SiteHome {
@@ -96,12 +98,38 @@ func NormalizeSiteModules(modules []SiteModule, strict bool) ([]SiteModule, erro
 			}
 			module.Name = fixed.Name
 		}
+		module.Title = strings.TrimSpace(module.Title)
+		if module.Title == "" {
+			if strict {
+				return nil, ErrInvalidSiteModule
+			}
+			module.Title = fixed.Title
+		}
+		if utf8.RuneCountInString(module.Title) > MaxSiteModuleTitleLength {
+			if strict {
+				return nil, ErrInvalidSiteModule
+			}
+			module.Title = fixed.Title
+		}
 		module.Desc = strings.TrimSpace(module.Desc)
 		if utf8.RuneCountInString(module.Desc) > MaxSiteModuleSubtitleLength {
 			if strict {
 				return nil, ErrInvalidSiteModule
 			}
 			module.Desc = fixed.Desc
+		}
+		module.Marker = strings.TrimSpace(module.Marker)
+		if module.Marker == "" {
+			if strict {
+				return nil, ErrInvalidSiteModule
+			}
+			module.Marker = fixed.Marker
+		}
+		if utf8.RuneCountInString(module.Marker) > MaxSiteModuleMarkerLength {
+			if strict {
+				return nil, ErrInvalidSiteModule
+			}
+			module.Marker = fixed.Marker
 		}
 		module.ID = fixed.ID
 		module.Path = fixed.Path

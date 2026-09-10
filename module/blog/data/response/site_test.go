@@ -50,6 +50,42 @@ func TestNormalizeSiteModulesRejectsOverlongSubtitleForStrictPayload(t *testing.
 	}
 }
 
+func TestNormalizeSiteModulesDefaultsLegacyMarker(t *testing.T) {
+	modules, err := NormalizeSiteModules([]SiteModule{{ID: "blog", Name: "文章", Path: "/Blog"}}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if modules[1].Marker != "BLOG" {
+		t.Fatalf("expected default marker BLOG, got %q", modules[1].Marker)
+	}
+}
+
+func TestNormalizeSiteModulesDefaultsLegacyTitle(t *testing.T) {
+	modules, err := NormalizeSiteModules([]SiteModule{{ID: "diary", Name: "日记", Path: "/Blog/Diary"}}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if modules[2].Title != "日记" {
+		t.Fatalf("expected default title 日记, got %q", modules[2].Title)
+	}
+}
+
+func TestNormalizeSiteModulesRejectsEmptyTitleForStrictPayload(t *testing.T) {
+	modules := DefaultSiteModules()
+	modules[0].Title = ""
+	if _, err := NormalizeSiteModules(modules, true); !errors.Is(err, ErrInvalidSiteModule) {
+		t.Fatalf("expected empty title rejection, got %v", err)
+	}
+}
+
+func TestNormalizeSiteModulesRejectsEmptyMarkerForStrictPayload(t *testing.T) {
+	modules := DefaultSiteModules()
+	modules[0].Marker = ""
+	if _, err := NormalizeSiteModules(modules, true); !errors.Is(err, ErrInvalidSiteModule) {
+		t.Fatalf("expected empty marker rejection, got %v", err)
+	}
+}
+
 func TestNormalizeSiteModulesKeepsOrderAndDropsUnknown(t *testing.T) {
 	modules, err := NormalizeSiteModules([]SiteModule{
 		{ID: "about", Name: "关于", Path: "/Blog/About", Visible: false},
