@@ -135,12 +135,23 @@ type SiteHomeAI struct {
 	ImageURL    string `json:"imageUrl"`
 }
 
+// SiteHomeTerminal 描述主页右侧终端卡片（无 AI 模块配图时展示）。
+type SiteHomeTerminal struct {
+	// Title 是终端窗口标题，例如 creative-workspace
+	Title string `json:"title"`
+	// Command 是命令行内容，例如 imagine "一个值得被创造的世界"
+	Command string `json:"command"`
+	// Lines 是命令行下方的输出行（每条自动加 ✓ 前缀）
+	Lines []string `json:"lines"`
+}
+
 type SiteHome struct {
-	Title             string     `json:"title"`
-	Subtitle          string     `json:"subtitle"`
-	AI                SiteHomeAI `json:"ai"`
-	PortfolioImageURL string     `json:"portfolioImageUrl"`
-	BookmarkImageURL  string     `json:"bookmarkImageUrl"`
+	Title             string           `json:"title"`
+	Subtitle          string           `json:"subtitle"`
+	AI                SiteHomeAI       `json:"ai"`
+	Terminal          SiteHomeTerminal `json:"terminal"`
+	PortfolioImageURL string           `json:"portfolioImageUrl"`
+	BookmarkImageURL  string           `json:"bookmarkImageUrl"`
 }
 
 type SiteFooter struct {

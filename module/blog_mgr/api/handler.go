@@ -166,6 +166,10 @@ func bindResource(c *gin.Context, resource string) (interface{}, bool) {
 	return nil, false
 }
 func (h *Handler) write(c *gin.Context, data interface{}, err error, created bool) {
+	if errors.Is(err, service.ErrReferenceNotFound) {
+		response.Error(c, http.StatusBadRequest, 40002, "关联的分类或标签不存在，请先创建")
+		return
+	}
 	if errors.Is(err, service.ErrInvalid) {
 		badRequest(c)
 		return

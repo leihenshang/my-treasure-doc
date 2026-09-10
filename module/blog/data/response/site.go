@@ -8,11 +8,15 @@ import (
 )
 
 const (
-	MaxSiteModuleNameLength     = 50
-	MaxSiteModuleTitleLength    = 50
-	MaxSiteModuleSubtitleLength = 50
-	MaxSiteModuleMarkerLength   = 50
-	MaxSiteHomeSubtitleLength   = 50
+	MaxSiteModuleNameLength          = 50
+	MaxSiteModuleTitleLength         = 50
+	MaxSiteModuleSubtitleLength      = 50
+	MaxSiteModuleMarkerLength        = 50
+	MaxSiteHomeSubtitleLength        = 50
+	MaxSiteHomeTerminalTitleLength   = 50
+	MaxSiteHomeTerminalCommandLength = 100
+	MaxSiteHomeTerminalLineLength    = 100
+	MaxSiteHomeTerminalLines         = 8
 )
 
 // ErrInvalidSiteModule 表示站点模块集合不满足固定模块约束。
@@ -40,6 +44,15 @@ func DefaultSiteHome() SiteHome {
 			Description: "探索 AI 如何帮助思考、表达、设计与构建，让每一个灵感更快抵达现实。",
 			LinkText:    "探索 AI 创作",
 			LinkURL:     "/Blog/Tools",
+		},
+		Terminal: SiteHomeTerminal{
+			Title:   "creative-workspace",
+			Command: `imagine "一个值得被创造的世界"`,
+			Lines: []string{
+				"将灵感组织为清晰的路径",
+				"用 AI 扩展表达与构建能力",
+				"让作品抵达更多人的生活",
+			},
 		},
 	}
 }

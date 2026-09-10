@@ -21,6 +21,9 @@ var (
 	ErrNotFound = errors.New("resource not found")
 	ErrConflict = errors.New("resource conflict")
 	ErrInvalid  = errors.New("invalid resource")
+	// ErrReferenceNotFound 表示 payload 引用了不存在的分类或标签，
+	// 与「字段格式非法」区分开，便于前端提示用户先创建对应分类/标签。
+	ErrReferenceNotFound = errors.New("referenced category or tag not found")
 )
 
 type Service struct{}
@@ -572,7 +575,7 @@ func validateReferences(tx *gorm.DB, resource string, item interface{}, tagIDs [
 			return err
 		}
 		if count != 1 {
-			return ErrInvalid
+			return ErrReferenceNotFound
 		}
 	}
 	if len(tagIDs) > 0 {
@@ -581,7 +584,7 @@ func validateReferences(tx *gorm.DB, resource string, item interface{}, tagIDs [
 			return err
 		}
 		if count != int64(len(tagIDs)) {
-			return ErrInvalid
+			return ErrReferenceNotFound
 		}
 	}
 	_ = resource
@@ -868,6 +871,9 @@ func validateSite(value blogresponse.Site) error {
 	if strings.TrimSpace(value.Home.Title) == "" || strings.TrimSpace(value.Home.AI.Title) == "" || strings.TrimSpace(value.Home.AI.Description) == "" || utf8.RuneCountInString(strings.TrimSpace(value.Home.Subtitle)) > blogresponse.MaxSiteHomeSubtitleLength {
 		return ErrInvalid
 	}
+	if err := validateHomeTerminal(value.Home.Terminal); err != nil {
+		return ErrInvalid
+	}
 	if _, err := normalizeSiteModules(value.Modules, true); err != nil {
 		return ErrInvalid
 	}
@@ -881,6 +887,27 @@ func validateSite(value blogresponse.Site) error {
 
 func validSiteURL(value string) bool {
 	return strings.HasPrefix(value, "/files/") || value == "/Blog" || strings.HasPrefix(value, "/Blog/") || request.ValidURL(value, true)
+}
+
+// validateHomeTerminal 校验主页终端卡片：命令必填，标题可选，输出行非空且数量受限。
+func validateHomeTerminal(terminal blogresponse.SiteHomeTerminal) error {
+	command := strings.TrimSpace(terminal.Command)
+	if command == "" || utf8.RuneCountInString(command) > blogresponse.MaxSiteHomeTerminalCommandLength {
+		return ErrInvalid
+	}
+	if utf8.RuneCountInString(strings.TrimSpace(terminal.Title)) > blogresponse.MaxSiteHomeTerminalTitleLength {
+		return ErrInvalid
+	}
+	if len(terminal.Lines) > blogresponse.MaxSiteHomeTerminalLines {
+		return ErrInvalid
+	}
+	for _, line := range terminal.Lines {
+		line = strings.TrimSpace(line)
+		if line == "" || utf8.RuneCountInString(line) > blogresponse.MaxSiteHomeTerminalLineLength {
+			return ErrInvalid
+		}
+	}
+	return nil
 }
 
 // siteUpdateColumns 站点配置允许写入的列，包含开关类字段（零值也需要写入）
