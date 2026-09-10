@@ -58,6 +58,26 @@ func (fakeService) Site(context.Context) (response.Site, error) {
 	return response.Site{TechStack: []string{}, Modules: []response.SiteModule{}, Milestones: []response.SiteMilestone{}}, nil
 }
 func (fakeService) Stats(context.Context) (response.Stats, error) { return response.Stats{}, nil }
+func (fakeService) Archive(context.Context) ([]response.ArchiveGroup, error) {
+	return []response.ArchiveGroup{}, nil
+}
+func (fakeService) Sitemap(context.Context) ([]response.SitemapEntry, error) {
+	return []response.SitemapEntry{{Loc: "/"}}, nil
+}
+func (fakeService) Feed(context.Context, int) ([]response.Post, error) { return []response.Post{}, nil }
+
+func TestSiteFilesRoutes(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	RegisterSiteFilesService(engine, fakeService{})
+	for _, path := range []string{"/robots.txt", "/sitemap.xml", "/rss.xml"} {
+		recorder := httptest.NewRecorder()
+		engine.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, path, nil))
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("GET %s status = %d: %s", path, recorder.Code, recorder.Body.String())
+		}
+	}
+}
 
 func newEngine() *gin.Engine {
 	gin.SetMode(gin.TestMode)

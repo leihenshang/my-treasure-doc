@@ -26,6 +26,8 @@ func RegisterService(group *gin.RouterGroup, manager api.Manager) {
 		route.POST("/:id/restore", handler.Restore(resource))
 	}
 
+	group.GET("/stats", handler.Stats())
+
 	for _, setting := range []string{"profile", "site"} {
 		group.GET("/"+setting, handler.GetSetting(setting))
 		group.PUT("/"+setting, handler.PutSetting(setting))
@@ -33,4 +35,14 @@ func RegisterService(group *gin.RouterGroup, manager api.Manager) {
 
 	group.POST("/uploads/images", userapi.UploadBlogImage)
 	group.POST("/uploads/medias", userapi.UploadBlogMedias)
+
+	backupAPI := userapi.NewBackupApi()
+	group.GET("/backups", backupAPI.ListBackups)
+	group.POST("/backups", backupAPI.CreateBackup)
+	group.GET("/backups/:name", backupAPI.DownloadBackup)
+
+	mediaAPI := userapi.NewMediaApi()
+	group.GET("/medias", mediaAPI.List)
+	group.GET("/medias/:name/references", mediaAPI.References)
+	group.DELETE("/medias/:name", mediaAPI.Delete)
 }

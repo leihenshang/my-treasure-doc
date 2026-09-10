@@ -29,6 +29,9 @@ type PublicService interface {
 	Profile(context.Context) (response.Profile, error)
 	Site(context.Context) (response.Site, error)
 	Stats(context.Context) (response.Stats, error)
+	Archive(context.Context) ([]response.ArchiveGroup, error)
+	Sitemap(context.Context) ([]response.SitemapEntry, error)
+	Feed(context.Context, int) ([]response.Post, error)
 }
 
 type Handler struct {
@@ -66,6 +69,11 @@ func (h *Handler) BlogPost(c *gin.Context) {
 	h.detail(c, service.ErrPostNotFound, response.CodePostNotFound, "文章不存在或已被删除", func(id string) (interface{}, error) {
 		return h.service.GetPost(c.Request.Context(), id)
 	})
+}
+
+func (h *Handler) BlogArchive(c *gin.Context) {
+	data, err := h.service.Archive(c.Request.Context())
+	h.write(c, data, err)
 }
 
 func (h *Handler) DiaryTags(c *gin.Context) {

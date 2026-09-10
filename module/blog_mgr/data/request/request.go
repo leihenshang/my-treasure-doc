@@ -106,6 +106,12 @@ type Portfolio struct {
 	Cover         string                       `json:"cover"`
 	TechStack     []string                     `json:"techStack"`
 	Links         []blogresponse.PortfolioLink `json:"links"`
+	Gallery       []string                     `json:"gallery"`
+	Metrics       []string                     `json:"metrics"`
+	DemoURL       string                       `json:"demoUrl"`
+	RepoURL       string                       `json:"repoUrl"`
+	Status        string                       `json:"status"`
+	Role          string                       `json:"role"`
 	Content       string                       `json:"content"`
 	PublishStatus string                       `json:"publishStatus"`
 	PublishedOn   string                       `json:"publishedOn"`

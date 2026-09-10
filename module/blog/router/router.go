@@ -11,6 +11,18 @@ func Register(apiGroup *gin.RouterGroup) {
 	RegisterService(apiGroup, service.New())
 }
 
+func RegisterSiteFiles(r *gin.Engine) {
+	RegisterSiteFilesService(r, service.New())
+}
+
+// RegisterSiteFilesService 在站点根路径注册 robots.txt / sitemap.xml / rss.xml。
+func RegisterSiteFilesService(r *gin.Engine, publicService api.PublicService) {
+	handler := api.NewHandler(publicService)
+	r.GET("/robots.txt", handler.Robots)
+	r.GET("/sitemap.xml", handler.Sitemap)
+	r.GET("/rss.xml", handler.RSS)
+}
+
 func RegisterService(apiGroup *gin.RouterGroup, publicService api.PublicService) {
 	handler := api.NewHandler(publicService)
 	blog := apiGroup.Group("blog")
@@ -18,6 +30,7 @@ func RegisterService(apiGroup *gin.RouterGroup, publicService api.PublicService)
 	blog.GET("/tags", handler.BlogTags)
 	blog.GET("/posts", handler.BlogPosts)
 	blog.GET("/posts/:id", handler.BlogPost)
+	blog.GET("/archive", handler.BlogArchive)
 
 	blog.GET("/diary/tags", handler.DiaryTags)
 	blog.GET("/diaries", handler.Diaries)

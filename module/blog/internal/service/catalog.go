@@ -59,11 +59,30 @@ func (s *Service) GetPortfolio(ctx context.Context, id string) (response.Portfol
 	if err != nil {
 		return response.PortfolioItem{}, err
 	}
-	return response.PortfolioItem{PortfolioSummary: portfolioSummary(record, techStack), Links: links, Content: record.Content}, nil
+	gallery, err := decodeJSON[string](record.Gallery)
+	if err != nil {
+		return response.PortfolioItem{}, err
+	}
+	metrics, err := decodeJSON[string](record.Metrics)
+	if err != nil {
+		return response.PortfolioItem{}, err
+	}
+	bumpViews(db, "td_blog_portfolio_item", record.ID)
+	record.ViewCount++
+	return response.PortfolioItem{
+		PortfolioSummary: portfolioSummary(record, techStack),
+		Links:            links,
+		Gallery:          gallery,
+		DemoURL:          record.DemoURL,
+		RepoURL:          record.RepoURL,
+		Role:             record.Role,
+		Metrics:          metrics,
+		Content:          record.Content,
+	}, nil
 }
 
 func portfolioSummary(record model.PortfolioItem, techStack []string) response.PortfolioSummary {
-	return response.PortfolioSummary{ID: record.Slug, Title: record.Title, Summary: record.Summary, Category: record.CategoryID, Cover: record.Cover, TechStack: techStack, Date: record.PublishedOn.Format("2006-01-02")}
+	return response.PortfolioSummary{ID: record.Slug, Title: record.Title, Summary: record.Summary, Category: record.CategoryID, Cover: record.Cover, TechStack: techStack, Status: record.Status, Date: record.PublishedOn.Format("2006-01-02"), Views: record.ViewCount}
 }
 
 func (s *Service) ListTools(ctx context.Context) ([]response.Tool, error) {

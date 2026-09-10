@@ -40,6 +40,11 @@ func published(db *gorm.DB) *gorm.DB {
 	return db.Where("publish_status = ? AND published_at <= ?", model.StatusPublished, time.Now())
 }
 
+// bumpViews 记录一次浏览；计数失败不影响详情返回。
+func bumpViews(db *gorm.DB, table, id string) {
+	_ = db.Table(table).Where("id = ?", id).UpdateColumn("view_count", gorm.Expr("view_count + 1")).Error
+}
+
 func orderByDate(sort string) string {
 	if sort == "asc" {
 		return "published_on ASC, id ASC"
@@ -155,11 +160,99 @@ func (s *Service) GetPost(ctx context.Context, id string) (response.Post, error)
 	if err != nil {
 		return response.Post{}, err
 	}
-	return response.Post{PostSummary: postSummary(post, tags), Content: post.Content}, nil
+	bumpViews(db, "td_blog_post", post.ID)
+	post.ViewCount++
+
+	prev, next := s.neighborPosts(ctx, db, post)
+	return response.Post{PostSummary: postSummary(post, tags), Content: post.Content, Prev: prev, Next: next, Related: s.relatedPosts(ctx, db, post)}, nil
+}
+
+// neighborPosts 返回相邻文章：prev 更早、next 更新，排序与列表页一致（published_on DESC, id ASC）。
+func (s *Service) neighborPosts(_ context.Context, db *gorm.DB, post model.Post) (*response.PostSummary, *response.PostSummary) {
+	var older model.Post
+	var prev *response.PostSummary
+	if err := published(db.Model(&model.Post{})).
+		Where("published_on < ? OR (published_on = ? AND id > ?)", post.PublishedOn, post.PublishedOn, post.ID).
+		Order("published_on DESC, id ASC").First(&older).Error; err == nil {
+		summary := postSummary(older, []string{})
+		prev = &summary
+	}
+	return prev, s.newerPostSummary(db, post)
+}
+
+func (s *Service) newerPostSummary(db *gorm.DB, post model.Post) *response.PostSummary {
+	var newer model.Post
+	if err := published(db.Model(&model.Post{})).
+		Where("published_on > ? OR (published_on = ? AND id < ?)", post.PublishedOn, post.PublishedOn, post.ID).
+		Order("published_on ASC, id DESC").First(&newer).Error; err != nil {
+		return nil
+	}
+	summary := postSummary(newer, []string{})
+	return &summary
+}
+
+// relatedPosts 取同分类或同标签的其他文章，供详情页推荐。
+func (s *Service) relatedPosts(ctx context.Context, db *gorm.DB, post model.Post) []response.PostSummary {
+	const limit = 3
+
+	var tagIDs []string
+	if err := db.Table("td_blog_post_tag").Where("post_id = ?", post.ID).Pluck("tag_id", &tagIDs).Error; err != nil {
+		return []response.PostSummary{}
+	}
+
+	condition := db.Where("1 = 0")
+	if post.CategoryID != "" {
+		condition = condition.Or("category_id = ?", post.CategoryID)
+	}
+	if len(tagIDs) > 0 {
+		condition = condition.Or("id IN (?)", db.Table("td_blog_post_tag").Select("post_id").Where("tag_id IN ?", tagIDs))
+	}
+
+	var posts []model.Post
+	if err := published(db.Model(&model.Post{})).Where("id <> ?", post.ID).Where(condition).
+		Order("pinned DESC").Order("published_on DESC, id ASC").Limit(limit).Find(&posts).Error; err != nil {
+		return []response.PostSummary{}
+	}
+
+	items := make([]response.PostSummary, 0, len(posts))
+	for _, item := range posts {
+		tags, err := s.tagsFor(ctx, "td_blog_post_tag", "post_id", item.ID)
+		if err != nil {
+			return []response.PostSummary{}
+		}
+		items = append(items, postSummary(item, tags))
+	}
+	return items
+}
+
+// Archive 按月份聚合已发布文章，供归档页展示。
+func (s *Service) Archive(ctx context.Context) ([]response.ArchiveGroup, error) {
+	db, err := s.database(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var posts []model.Post
+	if err := published(db.Model(&model.Post{})).Order("published_on DESC, id ASC").Find(&posts).Error; err != nil {
+		return nil, err
+	}
+
+	groups := make([]response.ArchiveGroup, 0)
+	position := make(map[string]int)
+	for _, post := range posts {
+		month := post.PublishedOn.Format("2006-01")
+		index, ok := position[month]
+		if !ok {
+			groups = append(groups, response.ArchiveGroup{Month: month, Posts: []response.PostSummary{}})
+			index = len(groups) - 1
+			position[month] = index
+		}
+		groups[index].Posts = append(groups[index].Posts, postSummary(post, []string{}))
+	}
+	return groups, nil
 }
 
 func postSummary(post model.Post, tags []string) response.PostSummary {
-	return response.PostSummary{ID: post.Slug, Title: post.Title, Summary: post.Summary, Category: post.CategoryID, Tags: tags, Author: post.Author, Date: post.PublishedOn.Format("2006-01-02"), Pinned: post.Pinned}
+	return response.PostSummary{ID: post.Slug, Title: post.Title, Summary: post.Summary, Category: post.CategoryID, Tags: tags, Author: post.Author, Date: post.PublishedOn.Format("2006-01-02"), Pinned: post.Pinned, Views: post.ViewCount}
 }
 
 func (s *Service) ListDiaries(ctx context.Context, query request.DiaryQuery) (response.Page, error) {
@@ -210,11 +303,13 @@ func (s *Service) GetDiary(ctx context.Context, id string) (response.Diary, erro
 	if err != nil {
 		return response.Diary{}, err
 	}
+	bumpViews(db, "td_blog_diary", diary.ID)
+	diary.ViewCount++
 	return response.Diary{DiarySummary: diarySummary(diary, tags), Content: diary.Content}, nil
 }
 
 func diarySummary(diary model.Diary, tags []string) response.DiarySummary {
-	return response.DiarySummary{ID: diary.PublicID, Title: diary.Title, Summary: diary.Summary, Tags: tags, Date: diary.PublishedOn.Format("2006-01-02"), Mood: diary.Mood, Weather: diary.Weather, Pinned: diary.Pinned}
+	return response.DiarySummary{ID: diary.PublicID, Title: diary.Title, Summary: diary.Summary, Tags: tags, Date: diary.PublishedOn.Format("2006-01-02"), Mood: diary.Mood, Weather: diary.Weather, Pinned: diary.Pinned, Views: diary.ViewCount}
 }
 
 func (s *Service) tagsFor(ctx context.Context, relationTable, ownerColumn, ownerID string) ([]string, error) {

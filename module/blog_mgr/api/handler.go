@@ -33,6 +33,7 @@ type Manager interface {
 	Restore(context.Context, string, string) error
 	GetSetting(context.Context, string) (interface{}, error)
 	PutSetting(context.Context, string, interface{}) (interface{}, error)
+	Stats(context.Context) (response.Stats, error)
 }
 
 // 资源标识与请求体类型集中定义，供路由注册与请求解析共用。
@@ -174,6 +175,14 @@ func (h *Handler) PutSetting(setting string) gin.HandlerFunc {
 			return
 		}
 		data, err := h.service.PutSetting(c.Request.Context(), setting, payload)
+		h.write(c, data, err, false)
+	}
+}
+
+// Stats 返回后台仪表盘的总览数据。
+func (h *Handler) Stats() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		data, err := h.service.Stats(c.Request.Context())
 		h.write(c, data, err, false)
 	}
 }

@@ -74,6 +74,7 @@ type Post struct {
 	PublishedOn   time.Time `gorm:"column:published_on;type:date;not null;index:idx_blog_post_public,priority:3"`
 	PublishedAt   time.Time `gorm:"column:published_at;type:timestamp;not null;index"`
 	Pinned        bool      `gorm:"column:pinned;not null;default:false;index:idx_blog_post_public,priority:2"`
+	ViewCount     int64     `gorm:"column:view_count;not null;default:0"`
 	Version       int       `gorm:"column:version;not null;default:1"`
 }
 
@@ -99,6 +100,7 @@ type Diary struct {
 	PublishedOn   time.Time `gorm:"column:published_on;type:date;not null;index:idx_blog_diary_public,priority:3"`
 	PublishedAt   time.Time `gorm:"column:published_at;type:timestamp;not null;index"`
 	Pinned        bool      `gorm:"column:pinned;not null;default:false;index:idx_blog_diary_public,priority:2"`
+	ViewCount     int64     `gorm:"column:view_count;not null;default:0"`
 	Version       int       `gorm:"column:version;not null;default:1"`
 }
 
@@ -121,10 +123,17 @@ type PortfolioItem struct {
 	Cover         string    `gorm:"column:cover;type:varchar(500);not null"`
 	TechStack     JSON      `gorm:"column:tech_stack;not null;default:'[]'"`
 	Links         JSON      `gorm:"column:links;not null;default:'[]'"`
+	Gallery       JSON      `gorm:"column:gallery;not null;default:'[]'"`
+	Metrics       JSON      `gorm:"column:metrics;not null;default:'[]'"`
+	DemoURL       string    `gorm:"column:demo_url;type:varchar(1000);not null;default:''"`
+	RepoURL       string    `gorm:"column:repo_url;type:varchar(1000);not null;default:''"`
+	Status        string    `gorm:"column:status;type:varchar(50);not null;default:''"`
+	Role          string    `gorm:"column:role;type:varchar(100);not null;default:''"`
 	Content       string    `gorm:"column:content;type:text;not null"`
 	PublishStatus string    `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index"`
 	PublishedOn   time.Time `gorm:"column:published_on;type:date;not null;index"`
 	PublishedAt   time.Time `gorm:"column:published_at;type:timestamp;not null;index"`
+	ViewCount     int64     `gorm:"column:view_count;not null;default:0"`
 	Version       int       `gorm:"column:version;not null;default:1"`
 }
 

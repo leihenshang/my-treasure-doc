@@ -9,6 +9,7 @@ import (
 
 	blogresponse "fastduck/treasure-doc/module/blog/data/response"
 	"fastduck/treasure-doc/module/blog_mgr/data/request"
+	mgrresponse "fastduck/treasure-doc/module/blog_mgr/data/response"
 	"fastduck/treasure-doc/module/blog_mgr/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -38,6 +39,9 @@ func (fakeManager) GetSetting(context.Context, string) (interface{}, error) {
 }
 func (fakeManager) PutSetting(context.Context, string, interface{}) (interface{}, error) {
 	return map[string]string{}, nil
+}
+func (fakeManager) Stats(context.Context) (mgrresponse.Stats, error) {
+	return mgrresponse.Stats{}, nil
 }
 
 func TestManagementRoutes(t *testing.T) {

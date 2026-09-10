@@ -116,6 +116,10 @@ func NormalizeSiteModules(modules []SiteModule, strict bool) ([]SiteModule, erro
 			module.Name = fixed.Name
 		}
 		module.Title = strings.TrimSpace(module.Title)
+		// 严格模式下标题允许留空；读取历史数据时留空则回退到默认标题
+		if module.Title == "" && !strict {
+			module.Title = fixed.Title
+		}
 		if utf8.RuneCountInString(module.Title) > MaxSiteModuleTitleLength {
 			if strict {
 				return nil, ErrInvalidSiteModule

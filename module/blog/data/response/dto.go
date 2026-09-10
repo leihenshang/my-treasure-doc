@@ -19,11 +19,23 @@ type PostSummary struct {
 	Author   string   `json:"author"`
 	Date     string   `json:"date"`
 	Pinned   bool     `json:"pinned"`
+	Views    int64    `json:"views"`
 }
 
 type Post struct {
 	PostSummary
 	Content string `json:"content"`
+	// Prev/Next 为按发布时间相邻的文章（Prev 更早、Next 更新）
+	Prev *PostSummary `json:"prev,omitempty"`
+	Next *PostSummary `json:"next,omitempty"`
+	// Related 为同分类或同标签的推荐文章
+	Related []PostSummary `json:"related"`
+}
+
+// ArchiveGroup 是归档页按月份聚合的文章。
+type ArchiveGroup struct {
+	Month string        `json:"month"`
+	Posts []PostSummary `json:"posts"`
 }
 
 type DiarySummary struct {
@@ -35,6 +47,7 @@ type DiarySummary struct {
 	Mood    string   `json:"mood"`
 	Weather string   `json:"weather"`
 	Pinned  bool     `json:"pinned"`
+	Views   int64    `json:"views"`
 }
 
 type Diary struct {
@@ -54,13 +67,22 @@ type PortfolioSummary struct {
 	Category  string   `json:"category"`
 	Cover     string   `json:"cover"`
 	TechStack []string `json:"techStack"`
+	Status    string   `json:"status"`
 	Date      string   `json:"date"`
+	Views     int64    `json:"views"`
 }
 
 type PortfolioItem struct {
 	PortfolioSummary
 	Links   []PortfolioLink `json:"links"`
-	Content string          `json:"content"`
+	// Gallery 为项目截图/效果图，DemoURL 与 RepoURL 为在线演示与仓库地址
+	Gallery []string `json:"gallery"`
+	DemoURL string   `json:"demoUrl"`
+	RepoURL string   `json:"repoUrl"`
+	// Role 为本人角色，Metrics 为成果指标（如「10k+ 用户」）
+	Role    string   `json:"role"`
+	Metrics []string `json:"metrics"`
+	Content string   `json:"content"`
 }
 
 type Tool struct {

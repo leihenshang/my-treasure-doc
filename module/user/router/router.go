@@ -21,6 +21,17 @@ import (
 const webBaseHref = `<base href="/">`
 
 func InitRouter(r *gin.Engine) {
+	// 全局中间件：静态缓存、安全响应头、gzip 压缩，以及针对登录/上传的限流
+	r.Use(
+		middleware.StaticCache(),
+		middleware.SecureHeaders(),
+		middleware.Gzip(),
+		middleware.RateLimit([]middleware.RateRule{
+			{Prefix: "/api/user/login", Rate: 0.1, Burst: 5},
+			{Prefix: "/api/blog-mgr/uploads/", Rate: 0.5, Burst: 20},
+		}),
+	)
+
 	registerFrontend(r)
 	registerAPI(r)
 }
@@ -56,6 +67,7 @@ func registerAPI(r *gin.Engine) {
 	apiBase := r.Group("api")
 
 	blogrouter.Register(apiBase)
+	blogrouter.RegisterSiteFiles(r)
 
 	blogMgr := apiBase.Group("blog-mgr")
 	blogMgr.Use(middleware.Cors(), middleware.Auth(), middleware.RequireAdmin())
@@ -79,6 +91,8 @@ func serveSpaIndex(c *gin.Context) {
 		return
 	}
 	html := strings.Replace(string(data), "<head>", "<head>"+webBaseHref, 1)
+	// 入口页不缓存，保证前端发版后用户能立即拿到新资源引用
+	c.Header("Cache-Control", "no-cache")
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
 }
 

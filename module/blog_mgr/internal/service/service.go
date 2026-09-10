@@ -632,13 +632,20 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		if !request.ValidID(value.Slug) || value.Title == "" || !request.ValidStatus(value.PublishStatus) {
 			return nil, nil, "", ErrInvalid
 		}
+		for _, mediaURL := range append([]string{value.DemoURL, value.RepoURL}, value.Gallery...) {
+			if !validMediaURL(mediaURL) {
+				return nil, nil, "", ErrInvalid
+			}
+		}
 		on, at, err := publishedTimes(value.PublishStatus, value.PublishedOn, value.PublishedAt)
 		tech, e1 := marshal(value.TechStack)
 		links, e2 := marshal(value.Links)
-		if err != nil || e1 != nil || e2 != nil {
+		gallery, e3 := marshal(value.Gallery)
+		metrics, e4 := marshal(value.Metrics)
+		if err != nil || e1 != nil || e2 != nil || e3 != nil || e4 != nil {
 			return nil, nil, "", ErrInvalid
 		}
-		return &blogmodel.PortfolioItem{Slug: value.Slug, Title: value.Title, Summary: value.Summary, CategoryID: value.CategoryID, Cover: value.Cover, TechStack: tech, Links: links, Content: value.Content, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Version: max(value.Version, 1)}, nil, "", nil
+		return &blogmodel.PortfolioItem{Slug: value.Slug, Title: value.Title, Summary: value.Summary, CategoryID: value.CategoryID, Cover: value.Cover, TechStack: tech, Links: links, Gallery: gallery, Metrics: metrics, DemoURL: value.DemoURL, RepoURL: value.RepoURL, Status: value.Status, Role: value.Role, Content: value.Content, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Version: max(value.Version, 1)}, nil, "", nil
 	case request.Tool:
 		if request.ValidateTool(value) != nil {
 			return nil, nil, "", ErrInvalid
@@ -676,7 +683,7 @@ func updateMap(item interface{}) map[string]interface{} {
 	case *blogmodel.Diary:
 		return map[string]interface{}{"public_id": value.PublicID, "title": value.Title, "summary": value.Summary, "content": value.Content, "mood": value.Mood, "weather": value.Weather, "publish_status": value.PublishStatus, "published_on": value.PublishedOn, "published_at": value.PublishedAt, "pinned": value.Pinned}
 	case *blogmodel.PortfolioItem:
-		return map[string]interface{}{"slug": value.Slug, "title": value.Title, "summary": value.Summary, "category_id": value.CategoryID, "cover": value.Cover, "tech_stack": value.TechStack, "links": value.Links, "content": value.Content, "publish_status": value.PublishStatus, "published_on": value.PublishedOn, "published_at": value.PublishedAt}
+		return map[string]interface{}{"slug": value.Slug, "title": value.Title, "summary": value.Summary, "category_id": value.CategoryID, "cover": value.Cover, "tech_stack": value.TechStack, "links": value.Links, "gallery": value.Gallery, "metrics": value.Metrics, "demo_url": value.DemoURL, "repo_url": value.RepoURL, "status": value.Status, "role": value.Role, "content": value.Content, "publish_status": value.PublishStatus, "published_on": value.PublishedOn, "published_at": value.PublishedAt}
 	case *blogmodel.Tool:
 		return map[string]interface{}{"slug": value.Slug, "kind": value.Kind, "name": value.Name, "description": value.Description, "url": value.URL, "cover": value.Cover, "development_status": value.DevelopmentStatus, "content": value.Content, "publish_status": value.PublishStatus, "published_at": value.PublishedAt, "sort_order": value.SortOrder}
 	case *blogmodel.Bookmark:
@@ -887,6 +894,11 @@ func validateSite(value blogresponse.Site) error {
 
 func validSiteURL(value string) bool {
 	return strings.HasPrefix(value, "/files/") || value == "/Blog" || strings.HasPrefix(value, "/Blog/") || request.ValidURL(value, true)
+}
+
+// validMediaURL 允许留空、已上传的 /files 路径，或 https 绝对地址。
+func validMediaURL(value string) bool {
+	return value == "" || strings.HasPrefix(value, "/files/") || request.ValidURL(value, false)
 }
 
 // validateHomeTerminal 校验主页终端卡片：命令必填，标题可选，输出行非空且数量受限。
