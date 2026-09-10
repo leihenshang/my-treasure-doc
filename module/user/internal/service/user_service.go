@@ -35,10 +35,13 @@ func NewUserService() *UserService {
 	return userService
 }
 
+// DefaultAdminAccount 默认管理员账号，账号、邮箱与初始密码保持一致
+const DefaultAdminAccount = "treasuredocmgr"
+
 var rootUser = &model.User{
-	Account:  "treasure-root",
-	Email:    "treasure-root",
-	Password: "treasure-root",
+	Account:  DefaultAdminAccount,
+	Email:    DefaultAdminAccount,
+	Password: DefaultAdminAccount,
 }
 
 // RegisterRootUser 确保博客管理员默认账号存在，仅用于服务启动时初始化。
@@ -119,6 +122,88 @@ func checkPasswordRule(password string, repeatPassword string) (string, error) {
 	}
 
 	return password, nil
+}
+
+// ChangePassword 当前登录用户修改自己的密码：校验原密码后写入新密码，
+// 并保留当前 token、清除该用户其它登录态。
+func (user *UserService) ChangePassword(userId, currentToken, oldPassword, password, repeatPassword string) error {
+	var u *model.User
+	if err := global.Db.Where("id = ?", userId).First(&u).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("用户不存在")
+		}
+		global.Log.Errorf("failed to get user by id:%v", err)
+		return errors.New("获取用户信息失败")
+	}
+
+	if !utils.PasswordCompare(u.Password, oldPassword) {
+		return errors.New("原密码不正确")
+	}
+
+	newPwd, err := checkPasswordRule(password, repeatPassword)
+	if err != nil {
+		return err
+	}
+	encryptedPwd, err := utils.PasswordEncrypt(newPwd)
+	if err != nil {
+		return errors.New("加密密码失败")
+	}
+
+	tx := global.Db.Begin()
+	if err := tx.Model(&model.User{}).Where("id = ?", userId).Update("password", encryptedPwd).Error; err != nil {
+		global.Log.Errorf("failed to update password:%v", err)
+		tx.Rollback()
+		return errors.New("修改密码失败")
+	}
+	// 其它设备上的登录态一律失效，当前请求使用的 token 保留
+	if err := tx.Where("user_id = ? AND token <> ?", userId, currentToken).Delete(&model.UserToken{}).Error; err != nil {
+		global.Log.Errorf("failed to delete other tokens:%v", err)
+		tx.Rollback()
+		return errors.New("清除其它登录态失败")
+	}
+	tx.Commit()
+	return nil
+}
+
+// ResetDefaultAdminPassword 命令行重置默认管理员密码，密码规则与其它入口一致
+func (user *UserService) ResetDefaultAdminPassword(password string) error {
+	return user.ResetPassword(DefaultAdminAccount, password, password)
+}
+
+// ResetPassword 管理员重置指定账号的密码，重置后该账号所有登录态失效。
+func (user *UserService) ResetPassword(account, password, repeatPassword string) error {
+	newPwd, err := checkPasswordRule(password, repeatPassword)
+	if err != nil {
+		return err
+	}
+
+	var u *model.User
+	if err := global.Db.Where("LOWER(account) = LOWER(?)", account).First(&u).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("账号 %s 没有找到", account)
+		}
+		global.Log.Errorf("failed to get user by account:%v", err)
+		return errors.New("获取用户信息失败")
+	}
+
+	encryptedPwd, err := utils.PasswordEncrypt(newPwd)
+	if err != nil {
+		return errors.New("加密密码失败")
+	}
+
+	tx := global.Db.Begin()
+	if err := tx.Model(&model.User{}).Where("id = ?", u.Id).Update("password", encryptedPwd).Error; err != nil {
+		global.Log.Errorf("failed to reset password:%v", err)
+		tx.Rollback()
+		return errors.New("重置密码失败")
+	}
+	if err := tx.Where("user_id = ?", u.Id).Delete(&model.UserToken{}).Error; err != nil {
+		global.Log.Errorf("failed to delete user tokens:%v", err)
+		tx.Rollback()
+		return errors.New("清除登录态失败")
+	}
+	tx.Commit()
+	return nil
 }
 
 // UserLogin 用户登录

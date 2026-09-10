@@ -92,5 +92,6 @@ func InitRouter(r *gin.Engine) {
 		userRoute.POST("/login", userApi.UserLogin)
 		userRoute.Use(middleware.Auth())
 		userRoute.POST("/logout", userApi.UserLogout)
+		userRoute.POST("/change-pwd", userApi.UserChangePwd)
 	}
 }

@@ -18,7 +18,7 @@
 
 ## 默认管理员
 
-服务启动时自动确保超级管理员账号 `treasure-root` 存在（见 `internal/service/user_service.go` 的
+服务启动时自动确保超级管理员账号 `treasuredocmgr` 存在（初始密码同账号，见 `internal/service/user_service.go` 的
 `RegisterRootUser`）。该账号的密码在启动日志中输出，请尽快修改。
 
 ## 数据更新

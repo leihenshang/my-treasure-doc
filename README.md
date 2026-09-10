@@ -64,7 +64,9 @@ main.go
 | GET | `/api/user-manage/list` | 用户列表（管理） | ✅ |
 | POST | `/api/user-manage/update` | 更新用户（管理） | ✅ |
 | POST | `/api/user-manage/delete` | 删除用户（管理） | ✅ |
-| POST | `/api/user-manage/reset-pwd` | 重置密码（管理） | ✅ |
+| POST | `/api/user/change-pwd` | 修改当前用户密码（需原密码） | ✅ |
+
+> 重置他人密码不提供 HTTP 接口，只能通过服务端二进制的 `resetpwd` 子命令执行。
 
 ### 文档模块
 
@@ -178,7 +180,7 @@ go run . -c /path/to/config.toml
 启动后自动完成：
 
 1. 初始化数据库连接，自动建表（GORM AutoMigrate）
-2. 注册 root 账号：`treasure-root / treasure-root`（首次运行）
+2. 注册默认管理员账号：`treasuredocmgr / treasuredocmgr`（首次运行，请尽快修改密码）
 3. 服务监听 `:2026`
 
 > AutoMigrate 仅用于在空数据库中初始化或调整表结构，不会迁移已有数据；切换数据库驱动需重启服务。
@@ -343,8 +345,10 @@ go run . -gen
 
 ### CLI 密码重置
 
+重置默认管理员账号（`treasuredocmgr`）的密码，新密码需为 8-16 位：
+
 ```bash
-go run ./module/user/cli/reset-pwd -u <账号> -p <新密码> -cfg <config.toml 绝对路径>
+go run ./module/user -c config.toml resetpwd <新密码>
 ```
 
 ---

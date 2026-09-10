@@ -7,8 +7,8 @@ import (
 	"time"
 
 	blogmodel "fastduck/treasure-doc/module/blog/data/model"
-	usermodel "fastduck/treasure-doc/module/user/data/model"
 	"fastduck/treasure-doc/module/user/config"
+	usermodel "fastduck/treasure-doc/module/user/data/model"
 
 	"gorm.io/gorm"
 )

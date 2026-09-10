@@ -1,9 +1,11 @@
-# 重置用户密码
+# 重置默认管理员密码
 
 配置文件必须使用 `[database]` 配置（SQLite 或 PostgreSQL 均可），并能从当前环境访问数据库。
 
-在仓库根目录运行：
+在仓库根目录运行（重置的是默认管理员账号 `treasuredocmgr`，新密码需为 8-16 位）：
 
 ```bash
-go run ./module/user/cli/reset-pwd -u <账号> -p <新密码> -cfg <config.toml 绝对路径>
+go run ./module/user -c module/user/config.toml resetpwd <新密码>
 ```
+
+注意：`-c` 必须写在子命令 `resetpwd` 之前，因为它是全局 flag。
