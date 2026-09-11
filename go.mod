@@ -1,6 +1,6 @@
 module fastduck/treasure-doc
 
-go 1.22
+go 1.26.8
 
 require (
 	github.com/fsnotify/fsnotify v1.4.9
