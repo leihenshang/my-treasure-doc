@@ -11,6 +11,10 @@ __debug*
 /log/
 /files/
 
+# 前端构建产物由运行时挂载提供，不提交进仓库（仅保留挂载点占位）
+/module/user/web/*
+!/module/user/web/.gitkeep
+
 # IDE / editor
 .idea/
 .vscode/
