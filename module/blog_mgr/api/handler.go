@@ -15,11 +15,13 @@ import (
 
 // 管理端业务码，与前端约定保持一致。
 const (
-	codeInvalidRequest  = 40001
-	codeReferenceAbsent = 40002
-	codeNotFound        = 40410
-	codeConflict        = 40900
-	codeInternal        = 50000
+	codeInvalidRequest     = 40001
+	codeReferenceAbsent    = 40002
+	codeToolURLRequired    = 40003
+	codeToolStatusRequired = 40004
+	codeNotFound           = 40410
+	codeConflict           = 40900
+	codeInternal           = 50000
 )
 
 // Manager 是管理端业务入口，由 internal/service 实现，测试可注入替身。
@@ -30,6 +32,7 @@ type Manager interface {
 	Update(context.Context, string, string, interface{}) (interface{}, error)
 	UpdateFields(context.Context, string, string, map[string]interface{}) (interface{}, error)
 	Delete(context.Context, string, string) error
+	DeleteMany(context.Context, string, []string) (int64, error)
 	Restore(context.Context, string, string) error
 	GetSetting(context.Context, string) (interface{}, error)
 	PutSetting(context.Context, string, interface{}) (interface{}, error)
@@ -150,6 +153,19 @@ func (h *Handler) Delete(resource string) gin.HandlerFunc {
 	}
 }
 
+// DeleteMany 批量软删除，请求体 {"ids": ["..."]}；返回 {"deleted": 实际删除条数}。
+func (h *Handler) DeleteMany(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var payload request.BatchIDs
+		if c.ShouldBindJSON(&payload) != nil || payload.Normalize() != nil {
+			badRequest(c)
+			return
+		}
+		deleted, err := h.service.DeleteMany(c.Request.Context(), resource, payload.IDs)
+		h.write(c, gin.H{"deleted": deleted}, err, false)
+	}
+}
+
 func (h *Handler) Restore(resource string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, ok := pathID(c)
@@ -230,6 +246,10 @@ func (h *Handler) write(c *gin.Context, data interface{}, err error, created boo
 	switch {
 	case errors.Is(err, service.ErrReferenceNotFound):
 		response.Error(c, http.StatusBadRequest, codeReferenceAbsent, "关联的分类或标签不存在，请先创建")
+	case errors.Is(err, service.ErrToolURLRequired):
+		response.Error(c, http.StatusBadRequest, codeToolURLRequired, "外链工具必须填写 HTTPS 地址")
+	case errors.Is(err, service.ErrToolStatusRequired):
+		response.Error(c, http.StatusBadRequest, codeToolStatusRequired, "自研工具必须填写开发状态")
 	case errors.Is(err, service.ErrInvalid):
 		badRequest(c)
 	case errors.Is(err, service.ErrNotFound):

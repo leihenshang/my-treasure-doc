@@ -30,6 +30,7 @@ mockUserId = "9999999999"
 ```text
 GET    /api/blog-mgr/{resource}
 POST   /api/blog-mgr/{resource}
+POST   /api/blog-mgr/{resource}/batch-delete
 GET    /api/blog-mgr/{resource}/{id}
 PATCH  /api/blog-mgr/{resource}/{id}
 DELETE /api/blog-mgr/{resource}/{id}
@@ -37,6 +38,8 @@ POST   /api/blog-mgr/{resource}/{id}/restore
 ```
 
 管理路径中的 `id` 是数据库 ID，不是文章 slug 或日记 publicId。删除使用软删除，不提供物理删除。
+
+批量删除请求体为 `{"ids": ["..."]}`，单次最多 200 条，重复或已删除的 ID 会被忽略；响应 `data.deleted` 为实际删除条数。删除分类时若仍被内容引用，整个请求返回 409 且不删除任何记录。媒体库对应 `POST /api/blog-mgr/medias/batch-delete`，请求体为 `{"names": ["..."]}`，是物理删除。
 
 文章、日记和书签的管理列表、详情、创建和更新响应均包含 `tagIds`。公开 `/api/blog/tags` 和 `/api/blog/diary/tags` 返回包含 `id`、`name` 的标签对象数组，可直接用于管理端选择器。
 
@@ -76,8 +79,8 @@ PUT /api/blog-mgr/site
 
 ## 校验规则
 
-- 公开 URL 仅允许 `https://`；Profile 联系方式额外允许 `mailto:`。
-- 工具 `kind` 仅允许 `own` 或 `link`。外链工具必须提供 HTTPS URL。
+- 公开 URL 仅允许 `https://`；Profile 联系方式（`links[].url`）不限制格式，可填手机号、QQ 号等任意文本，仅限制 500 字符。
+- 工具 `kind` 仅允许 `own` 或 `link`。外链工具（`link`）必须提供 HTTPS URL，缺失返回 `40003`；自研工具（`own`）必须提供 `developmentStatus`，缺失返回 `40004`。（`40001` 仅表示其它字段格式错误）
 - 分类 scope 仅允许 `post`、`portfolio`、`bookmark`，创建后不可修改。
 - Profile 技能 level 必须在 0 至 100。
 - Site 模块必须是 `blog`、`diary`、`portfolio`、`tools`、`bookmark`、`about` 六个固定模块，各出现一次，且路径与固定映射一致；只有 `icon`、`name`、`desc`、`visible` 可修改。PUT 会返回标准化后的完整 Site 对象。

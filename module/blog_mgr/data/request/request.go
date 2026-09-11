@@ -12,6 +12,12 @@ import (
 
 var ErrInvalid = errors.New("invalid request")
 
+// 工具校验的细分原因：让管理端能直接提示「缺哪个字段」，而不是笼统的参数格式错误。
+var (
+	ErrToolURLRequired    = errors.New("link tool requires https url")
+	ErrToolStatusRequired = errors.New("own tool requires development status")
+)
+
 type List struct {
 	Page       int    `form:"page"`
 	PageSize   int    `form:"pageSize"`
@@ -160,6 +166,36 @@ func ValidID(value string) bool {
 }
 func ValidDate(value string) bool { _, err := time.Parse("2006-01-02", value); return err == nil }
 
+// MaxBatchIDs 限制单次批量操作的 ID 数量，避免生成超长 IN 语句。
+const MaxBatchIDs = 200
+
+// BatchIDs 批量操作请求体，例如批量删除：{"ids": ["1", "2"]}。
+type BatchIDs struct {
+	IDs []string `json:"ids"`
+}
+
+// Normalize 去重并校验 ID；空集合或超过上限时返回 ErrInvalid。
+func (b *BatchIDs) Normalize() error {
+	ids := make([]string, 0, len(b.IDs))
+	seen := make(map[string]struct{}, len(b.IDs))
+	for _, id := range b.IDs {
+		id = strings.TrimSpace(id)
+		if !ValidID(id) {
+			return ErrInvalid
+		}
+		if _, exists := seen[id]; exists {
+			continue
+		}
+		seen[id] = struct{}{}
+		ids = append(ids, id)
+	}
+	if len(ids) == 0 || len(ids) > MaxBatchIDs {
+		return ErrInvalid
+	}
+	b.IDs = ids
+	return nil
+}
+
 func ValidURL(value string, allowMail bool) bool {
 	parsed, err := url.ParseRequestURI(value)
 	if err != nil {
@@ -191,12 +227,15 @@ func ValidateTool(value Tool) error {
 	}
 	if value.Kind == "link" {
 		if !ValidURL(value.URL, false) {
-			return ErrInvalid
+			return ErrToolURLRequired
 		}
 		return nil
 	}
-	if value.Kind != "own" || strings.TrimSpace(value.DevelopmentStatus) == "" {
+	if value.Kind != "own" {
 		return ErrInvalid
+	}
+	if strings.TrimSpace(value.DevelopmentStatus) == "" {
+		return ErrToolStatusRequired
 	}
 	return nil
 }

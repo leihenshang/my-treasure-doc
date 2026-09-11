@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -98,14 +99,78 @@ func blogMediaDir() string {
 	return filepath.Join(config.FilesPath, "blog")
 }
 
+// maxMediaBatchNames 限制单次批量删除的文件数。
+const maxMediaBatchNames = 200
+
+// mediaBatchRequest 媒体库批量删除请求体，例如 {"names": ["a.png", "b.mp4"]}。
+type mediaBatchRequest struct {
+	Names []string `json:"names"`
+}
+
+// DeleteMany 批量删除媒体文件；不存在的文件会被跳过，返回实际删除数量。
+func (m *MediaApi) DeleteMany(c *gin.Context) {
+	var payload mediaBatchRequest
+	if c.ShouldBindJSON(&payload) != nil {
+		response.FailWithMessage(c, "请求参数格式错误")
+		return
+	}
+	names, ok := normalizeMediaNames(payload.Names)
+	if !ok {
+		response.FailWithMessage(c, "文件名不合法")
+		return
+	}
+	dir := blogMediaDir()
+	var deleted int64
+	for _, name := range names {
+		path := filepath.Join(dir, name)
+		info, err := os.Stat(path)
+		if err != nil || info.IsDir() {
+			// 已被删除或不是普通文件，跳过即可，保证批量删除幂等
+			continue
+		}
+		if err := os.Remove(path); err != nil {
+			response.FailWithMessage(c, fmt.Sprintf("删除 %s 失败", name))
+			return
+		}
+		deleted++
+	}
+	response.OkWithData(c, gin.H{"deleted": deleted})
+}
+
 // safeMediaName 校验路径参数是上传目录下的普通文件名，避免越权访问。
 func safeMediaName(c *gin.Context) (string, bool) {
 	name := c.Param("name")
-	if name != filepath.Base(name) || name == "." || name == ".." {
+	if !validMediaName(name) {
 		response.FailWithMessage(c, "文件名不合法")
 		return "", false
 	}
 	return name, true
+}
+
+// validMediaName 判断是否为上传目录下的普通文件名（不含路径分隔符，长度受限）。
+func validMediaName(name string) bool {
+	return name != "" && len(name) <= 255 && name == filepath.Base(name) && name != "." && name != ".."
+}
+
+// normalizeMediaNames 去重并校验批量删除的文件名；空集合或超过上限视为非法。
+func normalizeMediaNames(names []string) ([]string, bool) {
+	result := make([]string, 0, len(names))
+	seen := make(map[string]struct{}, len(names))
+	for _, name := range names {
+		name = strings.TrimSpace(name)
+		if !validMediaName(name) {
+			return nil, false
+		}
+		if _, exists := seen[name]; exists {
+			continue
+		}
+		seen[name] = struct{}{}
+		result = append(result, name)
+	}
+	if len(result) == 0 || len(result) > maxMediaBatchNames {
+		return nil, false
+	}
+	return result, true
 }
 
 // mediaReference 描述某资源字段对当前文件的引用条数。

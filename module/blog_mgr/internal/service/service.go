@@ -24,6 +24,9 @@ var (
 	// ErrReferenceNotFound 表示 payload 引用了不存在的分类或标签，
 	// 与「字段格式非法」区分开，便于前端提示用户先创建对应分类/标签。
 	ErrReferenceNotFound = errors.New("referenced category or tag not found")
+	// 工具字段缺失的细分错误，避免统一落到「请求参数格式错误」这种无法定位的提示。
+	ErrToolURLRequired    = errors.New("tool url required")
+	ErrToolStatusRequired = errors.New("tool development status required")
 )
 
 type Service struct{}
@@ -422,20 +425,8 @@ func (s *Service) Delete(ctx context.Context, resource, id string) error {
 	}
 	item, _, _, err := modelFor(resource)
 	if resource == "categories" {
-		var category blogmodel.Category
-		if err := db.Where("id = ?", id).First(&category).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return ErrNotFound
-			}
+		if err := ensureCategoriesUnreferenced(db, []string{id}); err != nil {
 			return err
-		}
-		table := map[string]string{blogmodel.CategoryPost: "td_blog_post", blogmodel.CategoryPortfolio: "td_blog_portfolio_item", blogmodel.CategoryBookmark: "td_blog_bookmark"}[category.Scope]
-		var count int64
-		if err := db.Table(table).Where("category_id = ? AND deleted_at IS NULL", category.Slug).Count(&count).Error; err != nil {
-			return err
-		}
-		if count > 0 {
-			return ErrConflict
 		}
 	}
 	if err != nil {
@@ -447,6 +438,60 @@ func (s *Service) Delete(ctx context.Context, resource, id string) error {
 	}
 	if result.RowsAffected == 0 {
 		return ErrNotFound
+	}
+	return nil
+}
+
+// DeleteMany 批量软删除，返回实际删除条数；重复或已删除的 ID 会被自动忽略。
+// 语义与单条删除一致：分类被内容引用时整体拒绝（ErrConflict），不会部分删除。
+func (s *Service) DeleteMany(ctx context.Context, resource string, ids []string) (int64, error) {
+	if len(ids) == 0 {
+		return 0, ErrInvalid
+	}
+	db, err := s.database(ctx)
+	if err != nil {
+		return 0, err
+	}
+	item, _, _, err := modelFor(resource)
+	if err != nil {
+		return 0, err
+	}
+	if resource == "categories" {
+		if err := ensureCategoriesUnreferenced(db, ids); err != nil {
+			return 0, err
+		}
+	}
+	result := db.Where("id IN ?", ids).Delete(item)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return result.RowsAffected, nil
+}
+
+// ensureCategoriesUnreferenced 校验分类未被其归属内容引用。
+// 分类通过 slug 被内容引用，归属表由 scope 决定。
+func ensureCategoriesUnreferenced(db *gorm.DB, ids []string) error {
+	var categories []blogmodel.Category
+	if err := db.Where("id IN ?", ids).Find(&categories).Error; err != nil {
+		return err
+	}
+	tables := map[string]string{
+		blogmodel.CategoryPost:      "td_blog_post",
+		blogmodel.CategoryPortfolio: "td_blog_portfolio_item",
+		blogmodel.CategoryBookmark:  "td_blog_bookmark",
+	}
+	for _, category := range categories {
+		table := tables[category.Scope]
+		if table == "" {
+			continue
+		}
+		var count int64
+		if err := db.Table(table).Where("category_id = ? AND deleted_at IS NULL", category.Slug).Count(&count).Error; err != nil {
+			return err
+		}
+		if count > 0 {
+			return ErrConflict
+		}
 	}
 	return nil
 }
@@ -647,8 +692,8 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		}
 		return &blogmodel.PortfolioItem{Slug: value.Slug, Title: value.Title, Summary: value.Summary, CategoryID: value.CategoryID, Cover: value.Cover, TechStack: tech, Links: links, Gallery: gallery, Metrics: metrics, DemoURL: value.DemoURL, RepoURL: value.RepoURL, Status: value.Status, Role: value.Role, Content: value.Content, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Version: max(value.Version, 1)}, nil, "", nil
 	case request.Tool:
-		if request.ValidateTool(value) != nil {
-			return nil, nil, "", ErrInvalid
+		if err := request.ValidateTool(value); err != nil {
+			return nil, nil, "", mapToolValidationError(err)
 		}
 		_, at, _ := publishedTimes(value.PublishStatus, "", value.PublishedAt)
 		if value.Kind == "link" {
@@ -807,6 +852,21 @@ func validHexColor(value string) bool {
 	return true
 }
 
+// mapToolValidationError 把 request 层的工具校验失败细化为可提示的具体原因。
+func mapToolValidationError(err error) error {
+	switch {
+	case errors.Is(err, request.ErrToolURLRequired):
+		return ErrToolURLRequired
+	case errors.Is(err, request.ErrToolStatusRequired):
+		return ErrToolStatusRequired
+	default:
+		return ErrInvalid
+	}
+}
+
+// maxProfileContactLength 限制单条联系方式的长度：字段允许任意文本，只做长度保护。
+const maxProfileContactLength = 500
+
 func validateProfile(value blogresponse.Profile) error {
 	if strings.TrimSpace(value.Name) == "" {
 		return ErrInvalid
@@ -820,7 +880,8 @@ func validateProfile(value blogresponse.Profile) error {
 			return ErrInvalid
 		}
 		seen[link.ID] = struct{}{}
-		if link.URL != "" && !request.ValidURL(link.URL, true) {
+		// 联系方式不再限制协议：手机号、QQ 号、微信号等纯文本同样合法
+		if utf8.RuneCountInString(link.URL) > maxProfileContactLength {
 			return ErrInvalid
 		}
 	}

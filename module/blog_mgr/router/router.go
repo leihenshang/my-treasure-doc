@@ -19,6 +19,7 @@ func RegisterService(group *gin.RouterGroup, manager api.Manager) {
 		route := group.Group("/" + resource)
 		route.GET("", handler.List(resource))
 		route.POST("", handler.Create(resource))
+		route.POST("/batch-delete", handler.DeleteMany(resource))
 		route.GET("/:id", handler.Detail(resource))
 		route.PATCH("/:id", handler.Update(resource))
 		route.PATCH("/:id/fields", handler.UpdateFields(resource))
@@ -44,5 +45,6 @@ func RegisterService(group *gin.RouterGroup, manager api.Manager) {
 	mediaAPI := userapi.NewMediaApi()
 	group.GET("/medias", mediaAPI.List)
 	group.GET("/medias/:name/references", mediaAPI.References)
+	group.POST("/medias/batch-delete", mediaAPI.DeleteMany)
 	group.DELETE("/medias/:name", mediaAPI.Delete)
 }

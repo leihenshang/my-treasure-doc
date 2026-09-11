@@ -32,7 +32,10 @@ func (fakeManager) Update(context.Context, string, string, interface{}) (interfa
 func (fakeManager) UpdateFields(context.Context, string, string, map[string]interface{}) (interface{}, error) {
 	return map[string]string{"id": "1"}, nil
 }
-func (fakeManager) Delete(context.Context, string, string) error  { return nil }
+func (fakeManager) Delete(context.Context, string, string) error { return nil }
+func (fakeManager) DeleteMany(_ context.Context, _ string, ids []string) (int64, error) {
+	return int64(len(ids)), nil
+}
 func (fakeManager) Restore(context.Context, string, string) error { return nil }
 func (fakeManager) GetSetting(context.Context, string) (interface{}, error) {
 	return map[string]string{}, nil
@@ -54,7 +57,7 @@ func TestManagementRoutes(t *testing.T) {
 		tests := []struct {
 			method, path, body string
 			status             int
-		}{{http.MethodGet, "/api/blog-mgr/" + resource, "", 200}, {http.MethodPost, "/api/blog-mgr/" + resource, bodies[resource], 201}, {http.MethodGet, "/api/blog-mgr/" + resource + "/1", "", 200}, {http.MethodPatch, "/api/blog-mgr/" + resource + "/1", bodies[resource], 200}, {http.MethodDelete, "/api/blog-mgr/" + resource + "/1", "", 200}, {http.MethodPost, "/api/blog-mgr/" + resource + "/1/restore", "", 200}}
+		}{{http.MethodGet, "/api/blog-mgr/" + resource, "", 200}, {http.MethodPost, "/api/blog-mgr/" + resource, bodies[resource], 201}, {http.MethodPost, "/api/blog-mgr/" + resource + "/batch-delete", `{"ids":["1","2"]}`, 200}, {http.MethodGet, "/api/blog-mgr/" + resource + "/1", "", 200}, {http.MethodPatch, "/api/blog-mgr/" + resource + "/1", bodies[resource], 200}, {http.MethodDelete, "/api/blog-mgr/" + resource + "/1", "", 200}, {http.MethodPost, "/api/blog-mgr/" + resource + "/1/restore", "", 200}}
 		for _, test := range tests {
 			rec := httptest.NewRecorder()
 			req := httptest.NewRequest(test.method, test.path, strings.NewReader(test.body))
