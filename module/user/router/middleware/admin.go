@@ -23,6 +23,13 @@ func RequireAdmin() gin.HandlerFunc {
 			return
 		}
 
+		// 默认管理员首次启动会被标记强制改密：改密完成前不允许调用管理接口。
+		// 修改密码接口挂在 Auth 组（/api/user/change-pwd），不经过这里，因此不会把自己锁死。
+		if user.RequirePwdReset {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"code": 40301, "msg": "请先修改默认密码", "data": nil})
+			return
+		}
+
 		c.Next()
 	}
 }

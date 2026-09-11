@@ -22,6 +22,9 @@ func TestRequireAdmin(t *testing.T) {
 		{name: "regular user", user: &model.User{UserType: model.UserTypeUser}, wantStatus: http.StatusForbidden},
 		{name: "admin", user: &model.User{UserType: model.UserTypeAdmin}, wantStatus: http.StatusOK, wantCalled: true},
 		{name: "root", user: &model.User{UserType: model.UserTypeRoot}, wantStatus: http.StatusOK, wantCalled: true},
+		// 首次启动的默认管理员被标记强制改密，改密前管理接口一律拒绝
+		{name: "admin requires pwd reset", user: &model.User{UserType: model.UserTypeAdmin, RequirePwdReset: true}, wantStatus: http.StatusForbidden},
+		{name: "root requires pwd reset", user: &model.User{UserType: model.UserTypeRoot, RequirePwdReset: true}, wantStatus: http.StatusForbidden},
 	}
 
 	gin.SetMode(gin.TestMode)
