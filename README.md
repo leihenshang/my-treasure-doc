@@ -35,8 +35,9 @@ main.go
   │
   ├─ router.InitRouter(r)       ← 路由注册 + 中间件
   │     ├── middleware.Auth()   ← X-Token 认证（支持 Mock 开发模式）
-  │     ├── middleware.Cors()   ← 跨域
   │     └── api.*Handler       ← Handler 层：参数解析 → 调用 Service → 组装响应
+  │
+  │   （跨域 CORS 由前置反向代理统一处理，Go 侧不设置 Access-Control-* 头）
   │
   ├─ api/                       ← Handler 层（请求绑定、响应格式化）
   │     └── internal/service/   ← Service 层（业务逻辑、DB 操作）
@@ -245,7 +246,8 @@ treasure-doc/
 │       │   ├── router.go
 │       │   └── middleware/
 │       │       ├── auth.go          # X-Token 认证（含 Mock 模式）
-│       │       └── cors.go          # 跨域
+│       │       ├── admin.go         # 管理员鉴权
+│       │       └── ...               # 其它中间件（CORS 由反代处理，不在 Go 侧）
 │       │
 │       ├── utils/                   # 工具函数
 │       │   ├── datetime.go / file.go / slice.go / user.go

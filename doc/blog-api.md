@@ -1040,7 +1040,7 @@ X-Token: <login-token>
 | `2`    | admin |
 | `100`  | root  |
 
-认证和授权顺序为 `CORS -> Auth -> RequireAdmin -> Handler`。`OPTIONS` 预检请求由 CORS 中间件直接返回 HTTP 204。
+认证和授权顺序为 `Auth -> RequireAdmin -> Handler`。跨域（CORS）由前置反向代理统一处理，`OPTIONS` 预检请求应在反代层直接返回 HTTP 204，不会进入 Go 处理链。
 
 认证相关响应：
 

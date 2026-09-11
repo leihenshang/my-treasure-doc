@@ -51,7 +51,7 @@ go run . -c config.toml
 - 文档更新使用 `Doc.Version` 做乐观锁，并在事务中写入历史快照；修改更新或恢复流程时必须保留并发冲突检查和事务边界。
 - 文档删除使用 GORM 软删除；回收站查询和恢复依赖 `Unscoped()`，不要改成物理删除。
 - 业务列表使用 `data/request/request_req.go` 中的排序逻辑；根目录 `list_sort` 是独立包，目前未接入业务接口。拼接 SQL 排序前必须同时校验字段白名单和 `asc`/`desc` 方向。
-- CORS 不是全局中间件，Service 构造方式也不完全统一。新增代码时参考同类、相邻模块，不要强制套用单例或中间件模板。
+- 跨域（CORS）由前置反向代理（如 nginx）统一处理，Go 侧不设置任何 `Access-Control-*` 头，也不要在路由链里再加 CORS 中间件。Service 构造方式不完全统一，新增代码时参考同类、相邻模块，不要强制套用单例或中间件模板。
 
 ## 新增业务模块
 
@@ -59,7 +59,7 @@ go run . -c config.toml
 2. 在 `data/request/<module>` 增加请求 DTO，仅在确有专用输出结构时增加 response DTO。
 3. 在 `internal/service` 实现业务、事务和 GORM 查询，并补齐用户所有权条件。
 4. 在 `api` 增加 Handler，沿用相邻模块的绑定、校验、认证用户读取和统一响应方式。
-5. 在 `router/router.go` 注册路由，并明确选择所需的 Auth/CORS 中间件。
+5. 在 `router/router.go` 注册路由，并明确选择所需的 Auth 中间件（CORS 由反代处理，不在 Go 侧添加）。
 6. 为纯逻辑优先添加单元测试；涉及数据库（PostgreSQL/SQLite）的流程若无法自动测试，至少保证 `go test ./...` 和构建通过，并说明未做集成验证。
 
 ## 已知差异

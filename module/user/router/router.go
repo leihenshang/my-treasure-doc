@@ -70,11 +70,11 @@ func registerAPI(r *gin.Engine) {
 	blogrouter.RegisterSiteFiles(r)
 
 	blogMgr := apiBase.Group("blog-mgr")
-	blogMgr.Use(middleware.Cors(), middleware.Auth(), middleware.RequireAdmin())
+	blogMgr.Use(middleware.Auth(), middleware.RequireAdmin())
 	blogmgrrouter.Register(blogMgr)
 
 	userAPI := api.NewUserApi()
-	user := apiBase.Group("user").Use(middleware.Cors())
+	user := apiBase.Group("user")
 	user.GET("/captcha", userAPI.UserCaptcha)
 	user.POST("/login", userAPI.UserLogin)
 	user.Use(middleware.Auth())
