@@ -15,5 +15,5 @@ docker run -d \
   -v "$(pwd)/config.toml:/app/config.toml" \
   -v "$(pwd)/data:/app/data" \
   -v "$(pwd)/backup:/app/backup" \
-  -v "$(pwd)/files:/app/files" \
+  -v "$(pwd)/../my-treasure-doc-front/dist:/app/web" \
   treasure-doc:latest
