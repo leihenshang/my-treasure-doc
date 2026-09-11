@@ -13,7 +13,9 @@ type User struct {
 	Avatar        string     `json:"avatar" gorm:"column:avatar;type:varchar(500);comment:头像地址"`
 	Bio           string     `json:"bio" gorm:"column:bio;type:varchar(200);comment:个人说明"`
 	CurrentRoomId string     `json:"currentRoomId" gorm:"column:current_room_id;type:varchar(100);NOT NULL;default:'';comment:当前所在房间"`
-	Token         string     `json:"token" gorm:"-"`
+	// RequirePwdReset 为 true 时要求登录后立即修改密码（默认管理员首次启动会置位）
+	RequirePwdReset bool   `json:"requirePwdReset" gorm:"column:require_pwd_reset;type:tinyint(1);default:0;NOT NULL;comment:是否需要强制修改密码"`
+	Token           string `json:"token" gorm:"-"`
 }
 
 type Users []*User

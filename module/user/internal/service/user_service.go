@@ -38,6 +38,10 @@ func NewUserService() *UserService {
 // DefaultAdminAccount 默认管理员账号，账号、邮箱与初始密码保持一致
 const DefaultAdminAccount = "treasuredocmgr"
 
+// loginTokenTTL 登录态有效期，从默认的 7 天缩短为 2 小时，
+// 降低令牌泄露（如前端 XSS 窃取 localStorage）后的可利用窗口。
+const loginTokenTTL = 2 * time.Hour
+
 var rootUser = &model.User{
 	Account:  DefaultAdminAccount,
 	Email:    DefaultAdminAccount,
@@ -64,18 +68,19 @@ func (user *UserService) RegisterRootUser() error {
 	}
 
 	u := &model.User{
-		Nickname:   rootUser.Account,
-		Account:    rootUser.Account,
-		Email:      rootUser.Email,
-		Password:   encryptedPwd,
-		UserStatus: model.UserStatusAvailable,
-		UserType:   model.UserTypeRoot,
+		Nickname:        rootUser.Account,
+		Account:         rootUser.Account,
+		Email:           rootUser.Email,
+		Password:        encryptedPwd,
+		UserStatus:      model.UserStatusAvailable,
+		UserType:        model.UserTypeRoot,
+		RequirePwdReset: true,
 	}
 	if err := global.Db.Create(&u).Error; err != nil {
 		global.Log.Errorf("failed to create root user: %v", err)
 		return errors.New("创建默认管理员失败")
 	}
-	log.Printf("root user is registered,account is [%v],password is [%v], please update your password immediately\n", u.Account, rootUser.Password)
+	log.Printf("root user is registered, account is [%v], please update your password immediately\n", u.Account)
 	return nil
 }
 
@@ -154,6 +159,12 @@ func (user *UserService) ChangePassword(userId, currentToken, oldPassword, passw
 		global.Log.Errorf("failed to update password:%v", err)
 		tx.Rollback()
 		return errors.New("修改密码失败")
+	}
+	// 修改成功后清除强制改密标记
+	if err := tx.Model(&model.User{}).Where("id = ?", userId).Update("require_pwd_reset", false).Error; err != nil {
+		global.Log.Errorf("failed to clear require_pwd_reset:%v", err)
+		tx.Rollback()
+		return errors.New("清除改密标记失败")
 	}
 	// 其它设备上的登录态一律失效，当前请求使用的 token 保留
 	if err := tx.Where("user_id = ? AND token <> ?", userId, currentToken).Delete(&model.UserToken{}).Error; err != nil {
@@ -249,7 +260,7 @@ func (user *UserService) UserLogin(r userReq.LoginRequest, clientIp string) (u *
 
 	userToken := &model.UserToken{
 		Token:       utils.GenerateLoginToken(u.Id),
-		TokenExpire: time.Now().Add(time.Hour * 24 * 7),
+		TokenExpire: time.Now().Add(loginTokenTTL),
 		LoginIp:     clientIp,
 		LoginTime:   time.Now(),
 		UserId:      u.Id,

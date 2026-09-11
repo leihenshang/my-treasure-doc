@@ -1,11 +1,8 @@
 package utils
 
 import (
-	"crypto/md5"
 	"crypto/rand"
-	"encoding/binary"
-	"fmt"
-	"strconv"
+	"encoding/hex"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -30,19 +27,12 @@ func PasswordCompare(encryptedPassword string, inputPassword string) bool {
 	return false
 }
 
+// GenerateLoginToken 生成登录令牌。使用 16 字节（128 位）密码学随机量，
+// 不拼接任何可预测前缀，避免令牌被离线猜测。
 func GenerateLoginToken(userId string) string {
-	str := "treasure-doc-" + userId
-
-	// 生成随机数（生成4字节的随机数）
-	randomBytes := make([]byte, 4)
-	_, err := rand.Read(randomBytes)
-	if err != nil {
+	buf := make([]byte, 16)
+	if _, err := rand.Read(buf); err != nil {
 		return ""
 	}
-	randomInt := int(binary.BigEndian.Uint32(randomBytes))
-
-	data := []byte(strconv.Itoa(randomInt) + str)
-	has := md5.Sum(data)
-
-	return fmt.Sprintf("%x", has)
+	return hex.EncodeToString(buf)
 }

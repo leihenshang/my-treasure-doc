@@ -3,6 +3,9 @@ host = "localhost"
 port = 2026
 name = "my_treasure_doc"
 runMode = "release"      # dev-开发模式 release-生产模式
+# 允许跨域访问后台接口的来源白名单（开发态前端独立运行在其它端口时需加上其地址）。
+# 留空表示仅允许同源访问，不会返回 Allow-Origin，也不会携带凭据头。
+corsAllowOrigins = ["http://localhost:2024"]
 
 [database]
 # driver 可选：sqlite（默认，零依赖单文件） / postgres

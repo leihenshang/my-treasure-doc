@@ -35,6 +35,8 @@ func Auth() gin.HandlerFunc {
 		cfg := global.GetConf()
 
 		if cfg != nil && cfg.App.IsDev() && cfg.Debug.EnableMockLogin {
+			// mock 登录仅在开发模式显式开启时生效；生产（release）模式下永远走真实鉴权，
+			// 不会因误配而暴露管理员后台。
 			requestUser := *mockUser
 			if cfg.Debug.MockUserId != "" {
 				requestUser.Id = cfg.Debug.MockUserId
@@ -42,7 +44,7 @@ func Auth() gin.HandlerFunc {
 			c.Set(global.UserInfoKey, &requestUser)
 		} else {
 			if authKey == "" {
-				result.Msg = "参数错误"
+				result.Msg = "请先登录"
 				c.AbortWithStatusJSON(http.StatusUnauthorized, result)
 				return
 			}
@@ -50,7 +52,7 @@ func Auth() gin.HandlerFunc {
 			u, err := service.GetUserByToken(authKey)
 			if err != nil {
 				global.Log.Error(err)
-				result.Msg = err.Error()
+				result.Msg = "认证失败，请重新登录"
 				c.AbortWithStatusJSON(http.StatusUnauthorized, result)
 				return
 			}
