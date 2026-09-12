@@ -16,4 +16,4 @@ docker run -d \
   -v "$(pwd)/data:/app/data" \
   -v "$(pwd)/backup:/app/backup" \
   -v "$(pwd)/../my-treasure-doc-front/dist:/app/web" \
-  treasure-doc:latest
+  treasure-doc:v0.0.1

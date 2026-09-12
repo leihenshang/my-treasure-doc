@@ -4,7 +4,7 @@ ARG expose_port=2026
 ARG build_dir=module/user
 
 # ---- 后端构建 ----
-FROM golang:1.26.7-alpine3.23 AS builder
+FROM golang:1.26.8-alpine3.23 AS builder
 ARG work_dir
 ARG binary_name
 ARG build_dir
@@ -40,7 +40,7 @@ COPY --from=builder ${work_dir}/${build_dir}/config.example.toml ${work_dir}/con
 COPY --from=builder ${work_dir}/${build_dir}/files ${work_dir}/files
 # 前端静态资源（web）不再打进镜像，改为运行时通过数据卷挂载到 /app/web，
 # 以便独立构建前端、发版时无需重打后端镜像。保留空占位目录供仓库跟踪挂载点。
-COPY --from=builder ${work_dir}/${build_dir}/web/.gitkeep ${work_dir}/web/.gitkeep
+COPY --from=builder ${work_dir}/${build_dir}/web/ ${work_dir}/web/
 
 # 容器启动时执行的命令
 CMD ["/app/treasure-doc"]
