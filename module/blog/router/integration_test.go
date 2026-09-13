@@ -21,7 +21,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// 公开接口集成测试（对应 doc/feature-inventory.md 的 P-API-* / X-*）。
+// 公开接口集成测试（对应 .doc/feature-inventory.md 的 P-API-* / X-*）。
 //
 // 数据统一通过**管理端接口**写入（真实校验 + 真实落库），再断言公开接口的输出，
 // 覆盖「后台写 → 前台读」这条最关键的契约：可见性、筛选、分页、降级结构。

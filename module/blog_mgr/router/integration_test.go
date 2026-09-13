@@ -405,11 +405,8 @@ func TestSiteMaintenanceRoundTrip(t *testing.T) {
 	if _, ok := site["maintenanceMode"]; !ok {
 		t.Fatalf("站点设置缺少 maintenanceMode：%s", string(env.Data))
 	}
-	// 全新库的默认站点对象没有 name（已知问题 F3，见 doc/test-findings.md），
-	// 这里补一个合法名称，让本用例聚焦"维护模式零值能否写回"。
-	if name, _ := site["name"].(string); strings.TrimSpace(name) == "" {
-		site["name"] = "Treasure Blog"
-	}
+	// 站点名由默认对象直接给出（F3 已修：默认站点名 Treasure Blog），
+	// 因此这里可以直接把 GET 到的对象原样 PUT 回去，聚焦「维护模式零值能否写回」。
 
 	for _, want := range []bool{true, false, true} {
 		site["maintenanceMode"] = want

@@ -16,7 +16,7 @@ import (
 	"fastduck/treasure-doc/module/user/global"
 )
 
-// 上传 / 备份 / 个人资料校验的接口契约测试，对应 doc/feature-inventory.md 的：
+// 上传 / 备份 / 个人资料校验的接口契约测试，对应 .doc/feature-inventory.md 的：
 //   S-06 单图上传、S-07 媒体上传（多文件 + 去重）、M-BAK-01 备份、M-SET-01 个人资料校验
 //
 // 说明：这些 handler 走 module/user 的响应约定 —— **HTTP 恒为 200**，成败看业务码
