@@ -8,6 +8,10 @@ if [ ! -f "$(pwd)/config.toml" ]; then
   cp module/user/config.example.toml config.toml
 fi
 
+# 首次把上传目录切到宿主机前，先把容器里已有的文件复制出来，否则会被空目录遮住：
+#   mkdir -p files && docker cp treasure-doc:/app/files/. ./files/
+# 上传目录的路径是代码里的常量（module/user/config/app.go: FilesPath = "files"），
+# 相对容器工作目录 /app，因此只能挂到 /app/files；实际写入的是 /app/files/blog。
 docker run -d \
   --name treasure-doc \
   --restart unless-stopped \
@@ -16,6 +20,7 @@ docker run -d \
   -v "$(pwd)/data:/app/data" \
   -v "$(pwd)/backup:/app/backup" \
   -v "$(pwd)/web:/app/web" \
+  -v "$(pwd)/files:/app/files" \
   treasure-doc:v0.0.1
 
   # docker exec -it treasure-doc sh
