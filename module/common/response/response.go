@@ -46,6 +46,12 @@ func Error(c *gin.Context, status, code int, msg string) {
 	JSON(c, status, code, msg, nil)
 }
 
+// ErrorWithData 失败响应，data 携带结构化补充信息（例如出错字段 {"field": "url"}），
+// 便于前端把错误定位到具体表单项，而不仅仅弹一条消息。
+func ErrorWithData(c *gin.Context, status, code int, msg string, data interface{}) {
+	JSON(c, status, code, msg, data)
+}
+
 // Normalize 把结构体字段名转为小驼峰（ID → id、PublicID → publicID），
 // 供没有 json tag 的模型直接返回给前端；已带小驼峰 tag 的字段保持不变。
 func Normalize(value interface{}) interface{} {

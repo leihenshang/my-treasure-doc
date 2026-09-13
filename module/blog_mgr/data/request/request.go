@@ -3,6 +3,7 @@ package request
 import (
 	"errors"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -14,9 +15,25 @@ var ErrInvalid = errors.New("invalid request")
 
 // 工具校验的细分原因：让管理端能直接提示「缺哪个字段」，而不是笼统的参数格式错误。
 var (
-	ErrToolURLRequired    = errors.New("link tool requires https url")
+	ErrToolURLRequired    = errors.New("link tool requires a valid url")
 	ErrToolStatusRequired = errors.New("own tool requires development status")
 )
+
+// FieldError 指向具体字段的校验失败。
+//
+// 响应里会同时带出字段名（data.field）与可直接展示给用户的原因（msg），
+// 让前端能提示「哪个字段、该怎么改」，而不是笼统的「请求参数格式错误」。
+type FieldError struct {
+	Field  string
+	Reason string
+}
+
+func (e *FieldError) Error() string { return e.Reason }
+
+// Field 构造字段级校验错误；reason 会直接展示给用户，需写明字段与具体要求。
+func Field(field, reason string) *FieldError {
+	return &FieldError{Field: field, Reason: reason}
+}
 
 type List struct {
 	Page       int    `form:"page"`
@@ -204,6 +221,38 @@ func ValidURL(value string, allowMail bool) bool {
 	return parsed.Scheme == "https" || allowMail && parsed.Scheme == "mailto"
 }
 
+// 这些协议渲染成 <a href> 后会在访客浏览器里执行脚本，必须拒绝；
+// 其余协议（http / https / mailto / ftp / 自定义等）不做限制。
+var unsafeSchemes = map[string]struct{}{
+	"javascript": {},
+	"data":       {},
+	"vbscript":   {},
+	"file":       {},
+}
+
+var schemePrefix = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.-]*:`)
+
+// NormalizeLinkURL 归一化「地址」类字段（收藏集/利器的地址、作品演示与仓库地址、站点链接等）：
+// 不限制协议；没写协议时按 https 补全（`example.com` → `https://example.com`）；
+// 拒绝 javascript: / data: 这类可执行脚本的协议，以及无法解析的地址。
+func NormalizeLinkURL(value string) (string, bool) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "", false
+	}
+	if !schemePrefix.MatchString(value) && !strings.HasPrefix(value, "/") {
+		value = "https://" + value
+	}
+	parsed, err := url.ParseRequestURI(value)
+	if err != nil {
+		return "", false
+	}
+	if _, unsafe := unsafeSchemes[strings.ToLower(parsed.Scheme)]; unsafe {
+		return "", false
+	}
+	return value, true
+}
+
 func NormalizeIDs(values []string) ([]string, error) {
 	result := make([]string, 0, len(values))
 	seen := map[string]struct{}{}
@@ -222,20 +271,27 @@ func NormalizeIDs(values []string) ([]string, error) {
 }
 
 func ValidateTool(value Tool) error {
-	if !ValidID(value.Slug) || strings.TrimSpace(value.Name) == "" || !ValidStatus(value.PublishStatus) {
-		return ErrInvalid
+	if !ValidID(value.Slug) {
+		return Field("slug", "Slug 不能为空，且长度不超过 128")
 	}
-	if value.Kind == "link" {
-		if !ValidURL(value.URL, false) {
+	if strings.TrimSpace(value.Name) == "" {
+		return Field("name", "名称不能为空")
+	}
+	if !ValidStatus(value.PublishStatus) {
+		return Field("publishStatus", "发布状态只能是 draft / published / archived")
+	}
+	switch value.Kind {
+	case "link":
+		if _, ok := NormalizeLinkURL(value.URL); !ok {
 			return ErrToolURLRequired
 		}
 		return nil
+	case "own":
+		if strings.TrimSpace(value.DevelopmentStatus) == "" {
+			return ErrToolStatusRequired
+		}
+		return nil
+	default:
+		return Field("kind", "类型只能是「自研工具」或「外部链接」")
 	}
-	if value.Kind != "own" {
-		return ErrInvalid
-	}
-	if strings.TrimSpace(value.DevelopmentStatus) == "" {
-		return ErrToolStatusRequired
-	}
-	return nil
 }

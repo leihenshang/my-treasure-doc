@@ -22,3 +22,8 @@ func Created(c *gin.Context, data interface{}) {
 func Error(c *gin.Context, status, code int, message string) {
 	commonresponse.Error(c, status, code, message)
 }
+
+// ErrorWithData 失败响应并携带结构化信息（如出错字段）。
+func ErrorWithData(c *gin.Context, status, code int, message string, data interface{}) {
+	commonresponse.ErrorWithData(c, status, code, message, data)
+}

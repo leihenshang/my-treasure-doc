@@ -612,15 +612,27 @@ func TestToolValidationCodes(t *testing.T) {
 		body string
 		code int
 	}{
-		"外链缺地址":   {`{"slug":"t-link","kind":"link","name":"外链","publishStatus":"draft"}`, 40003},
-		"外链非 HTTPS": {`{"slug":"t-http","kind":"link","name":"外链","url":"http://example.com","publishStatus":"draft"}`, 40003},
-		"自研缺开发状态": {`{"slug":"t-own","kind":"own","name":"自研","publishStatus":"draft"}`, 40004},
-		"非法 kind":  {`{"slug":"t-bad","kind":"other","name":"X","publishStatus":"draft"}`, 40001},
+		"外链缺地址":    {`{"slug":"t-link","kind":"link","name":"外链","publishStatus":"draft"}`, 40003},
+		"外链不安全协议":  {`{"slug":"t-js","kind":"link","name":"外链","url":"javascript:alert(1)","publishStatus":"draft"}`, 40003},
+		"自研缺开发状态":  {`{"slug":"t-own","kind":"own","name":"自研","publishStatus":"draft"}`, 40004},
+		"非法 kind":   {`{"slug":"t-bad","kind":"other","name":"X","publishStatus":"draft"}`, 40001},
 	}
 	for name, test := range tests {
 		status, env := s.do(http.MethodPost, "/api/blog-mgr/tools", test.body)
 		if status != http.StatusBadRequest || env.Code != test.code {
 			t.Fatalf("%s = %d/%d，想要 400/%d", name, status, env.Code, test.code)
+		}
+	}
+
+	// 地址不限协议：http 与「没写协议」都要能创建，且落库时补全协议
+	for slug, url := range map[string]string{"t-http": "http://example.com", "t-bare": "example.com"} {
+		status, env := s.do(http.MethodPost, "/api/blog-mgr/tools", `{"slug":"`+slug+`","kind":"link","name":"外链","url":"`+url+`","publishStatus":"draft"}`)
+		if status != http.StatusCreated {
+			t.Fatalf("%s 创建失败：%d %s", slug, status, env.Msg)
+		}
+		got, _ := dataObject(t, env)["url"].(string)
+		if got != "http://example.com" && got != "https://example.com" {
+			t.Fatalf("%s 地址未按预期归一化：%q", slug, got)
 		}
 	}
 }

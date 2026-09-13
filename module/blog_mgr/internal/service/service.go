@@ -160,7 +160,7 @@ func publishedTimes(status, date string, at *time.Time) (time.Time, time.Time, e
 	if date != "" {
 		publishedOn, err = time.Parse("2006-01-02", date)
 		if err != nil {
-			return time.Time{}, time.Time{}, ErrInvalid
+			return time.Time{}, time.Time{}, request.Field("publishedOn", "创建日期格式必须是 YYYY-MM-DD")
 		}
 	}
 	publishedAt := time.Time{}
@@ -220,7 +220,7 @@ func (s *Service) Update(ctx context.Context, resource, id string, payload inter
 	var result interface{}
 	err = db.Transaction(func(tx *gorm.DB) error {
 		if requiresVersion(resource) && requestedVersion(payload) < 1 {
-			return ErrInvalid
+			return request.Field("version", "缺少 version：请先读取最新数据再提交（乐观锁）")
 		}
 		item, tagIDs, relation, err := buildModel(resource, payload)
 		if err != nil {
@@ -269,29 +269,32 @@ func (s *Service) Update(ctx context.Context, resource, id string, payload inter
 // UpdateFields 只更新白名单内的单个字段（列表快捷设置：置顶、发布状态）。
 // 与完整更新不同，它不要求客户端传 version，更新成功后 version 自增。
 func (s *Service) UpdateFields(ctx context.Context, resource, id string, fields map[string]interface{}) (interface{}, error) {
-	if !requiresVersion(resource) || !request.ValidID(id) {
+	if !requiresVersion(resource) {
 		return nil, ErrInvalid
+	}
+	if !request.ValidID(id) {
+		return nil, request.Field("id", "记录 ID 不合法")
 	}
 	updates := map[string]interface{}{}
 	if value, ok := fields["pinned"]; ok {
 		if resource != "posts" && resource != "diaries" {
-			return nil, ErrInvalid
+			return nil, request.Field("pinned", "置顶只支持文章与日记")
 		}
 		pinned, ok := value.(bool)
 		if !ok {
-			return nil, ErrInvalid
+			return nil, request.Field("pinned", "置顶取值必须是布尔值")
 		}
 		updates["pinned"] = pinned
 	}
 	if value, ok := fields["publishStatus"]; ok {
 		status, ok := value.(string)
 		if !ok || !request.ValidStatus(status) {
-			return nil, ErrInvalid
+			return nil, request.Field("publishStatus", "发布状态只能是 draft / published / archived")
 		}
 		updates["publish_status"] = status
 	}
 	if len(updates) == 0 || len(updates) != len(fields) {
-		return nil, ErrInvalid
+		return nil, request.Field("fields", "包含不支持的字段，快捷修改只支持 pinned 与 publishStatus")
 	}
 	updates["version"] = gorm.Expr("version + 1")
 	db, err := s.database(ctx)
@@ -645,8 +648,14 @@ func validateReferences(tx *gorm.DB, resource string, item interface{}, tagIDs [
 func buildModel(resource string, payload interface{}) (interface{}, []string, string, error) {
 	switch value := payload.(type) {
 	case request.Category:
-		if !request.ValidScope(value.Scope) || !request.ValidID(value.Slug) || strings.TrimSpace(value.Name) == "" {
-			return nil, nil, "", ErrInvalid
+		if !request.ValidScope(value.Scope) {
+			return nil, nil, "", request.Field("scope", "分类归属只能是 post / portfolio / bookmark")
+		}
+		if !request.ValidID(value.Slug) {
+			return nil, nil, "", request.Field("slug", "Slug 不能为空，且长度不超过 128")
+		}
+		if strings.TrimSpace(value.Name) == "" {
+			return nil, nil, "", request.Field("name", "名称不能为空")
 		}
 		enabled := true
 		if value.Enabled != nil {
@@ -656,44 +665,85 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 	case request.Tag:
 		name := strings.TrimSpace(value.Name)
 		if name == "" {
-			return nil, nil, "", ErrInvalid
+			return nil, nil, "", request.Field("name", "名称不能为空")
 		}
 		return &blogmodel.Tag{Name: name, NormalizedName: strings.ToLower(name)}, nil, "", nil
 	case request.Post:
-		if !request.ValidID(value.Slug) || value.Title == "" || !request.ValidStatus(value.PublishStatus) {
-			return nil, nil, "", ErrInvalid
+		if !request.ValidID(value.Slug) {
+			return nil, nil, "", request.Field("slug", "Slug 不能为空，且长度不超过 128")
+		}
+		if strings.TrimSpace(value.Title) == "" {
+			return nil, nil, "", request.Field("title", "标题不能为空")
+		}
+		if !request.ValidStatus(value.PublishStatus) {
+			return nil, nil, "", request.Field("publishStatus", "发布状态只能是 draft / published / archived")
 		}
 		on, at, err := publishedTimes(value.PublishStatus, value.PublishedOn, value.PublishedAt)
+		if err != nil {
+			return nil, nil, "", err
+		}
 		ids, err2 := request.NormalizeIDs(value.TagIDs)
-		if err != nil || err2 != nil {
-			return nil, nil, "", ErrInvalid
+		if err2 != nil {
+			return nil, nil, "", request.Field("tagIds", "标签 ID 不合法")
 		}
 		return &blogmodel.Post{Slug: value.Slug, Title: value.Title, Summary: value.Summary, CategoryID: value.CategoryID, Author: value.Author, Content: value.Content, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Pinned: value.Pinned, Version: max(value.Version, 1)}, ids, "td_blog_post_tag", nil
 	case request.Diary:
-		if !request.ValidID(value.PublicID) || value.Title == "" || !request.ValidStatus(value.PublishStatus) {
-			return nil, nil, "", ErrInvalid
+		if !request.ValidID(value.PublicID) {
+			return nil, nil, "", request.Field("publicId", "公开 ID 不能为空，且长度不超过 128")
+		}
+		if strings.TrimSpace(value.Title) == "" {
+			return nil, nil, "", request.Field("title", "标题不能为空")
+		}
+		if !request.ValidStatus(value.PublishStatus) {
+			return nil, nil, "", request.Field("publishStatus", "发布状态只能是 draft / published / archived")
 		}
 		on, at, err := publishedTimes(value.PublishStatus, value.PublishedOn, value.PublishedAt)
+		if err != nil {
+			return nil, nil, "", err
+		}
 		ids, err2 := request.NormalizeIDs(value.TagIDs)
-		if err != nil || err2 != nil {
-			return nil, nil, "", ErrInvalid
+		if err2 != nil {
+			return nil, nil, "", request.Field("tagIds", "标签 ID 不合法")
 		}
 		return &blogmodel.Diary{PublicID: value.PublicID, Title: value.Title, Summary: value.Summary, Content: value.Content, Mood: value.Mood, Weather: value.Weather, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Pinned: value.Pinned, Version: max(value.Version, 1)}, ids, "td_blog_diary_tag", nil
 	case request.Portfolio:
-		if !request.ValidID(value.Slug) || value.Title == "" || !request.ValidStatus(value.PublishStatus) {
-			return nil, nil, "", ErrInvalid
+		if !request.ValidID(value.Slug) {
+			return nil, nil, "", request.Field("slug", "Slug 不能为空，且长度不超过 128")
 		}
-		for _, mediaURL := range append([]string{value.DemoURL, value.RepoURL}, value.Gallery...) {
+		if strings.TrimSpace(value.Title) == "" {
+			return nil, nil, "", request.Field("title", "标题不能为空")
+		}
+		if !request.ValidStatus(value.PublishStatus) {
+			return nil, nil, "", request.Field("publishStatus", "发布状态只能是 draft / published / archived")
+		}
+		if value.DemoURL != "" {
+			demoURL, ok := request.NormalizeLinkURL(value.DemoURL)
+			if !ok {
+				return nil, nil, "", request.Field("demoUrl", "演示地址必须是合法链接（支持 http/https 等协议），或已上传的 /files 路径")
+			}
+			value.DemoURL = demoURL
+		}
+		if value.RepoURL != "" {
+			repoURL, ok := request.NormalizeLinkURL(value.RepoURL)
+			if !ok {
+				return nil, nil, "", request.Field("repoUrl", "仓库地址必须是合法链接（支持 http/https 等协议），或已上传的 /files 路径")
+			}
+			value.RepoURL = repoURL
+		}
+		for _, mediaURL := range value.Gallery {
 			if !validMediaURL(mediaURL) {
-				return nil, nil, "", ErrInvalid
+				return nil, nil, "", request.Field("gallery", "图集中的地址必须是以 https:// 开头的地址，或已上传的 /files 路径")
 			}
 		}
 		on, at, err := publishedTimes(value.PublishStatus, value.PublishedOn, value.PublishedAt)
+		if err != nil {
+			return nil, nil, "", err
+		}
 		tech, e1 := marshal(value.TechStack)
 		links, e2 := marshal(value.Links)
 		gallery, e3 := marshal(value.Gallery)
 		metrics, e4 := marshal(value.Metrics)
-		if err != nil || e1 != nil || e2 != nil || e3 != nil || e4 != nil {
+		if e1 != nil || e2 != nil || e3 != nil || e4 != nil {
 			return nil, nil, "", ErrInvalid
 		}
 		return &blogmodel.PortfolioItem{Slug: value.Slug, Title: value.Title, Summary: value.Summary, CategoryID: value.CategoryID, Cover: value.Cover, TechStack: tech, Links: links, Gallery: gallery, Metrics: metrics, DemoURL: value.DemoURL, RepoURL: value.RepoURL, Status: value.Status, Role: value.Role, Content: value.Content, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Version: max(value.Version, 1)}, nil, "", nil
@@ -703,6 +753,8 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		}
 		_, at, _ := publishedTimes(value.PublishStatus, "", value.PublishedAt)
 		if value.Kind == "link" {
+			// 校验已通过，这里只做归一化（缺协议时补 https://）
+			value.URL, _ = request.NormalizeLinkURL(value.URL)
 			value.Cover = ""
 			value.DevelopmentStatus = ""
 			value.Content = ""
@@ -711,13 +763,24 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		}
 		return &blogmodel.Tool{Slug: value.Slug, Kind: value.Kind, Name: value.Name, Description: value.Description, URL: value.URL, Cover: value.Cover, DevelopmentStatus: value.DevelopmentStatus, Content: value.Content, PublishStatus: value.PublishStatus, PublishedAt: at, SortOrder: value.SortOrder, Version: max(value.Version, 1)}, nil, "", nil
 	case request.Bookmark:
-		if !request.ValidID(value.PublicID) || value.Title == "" || !request.ValidURL(value.URL, false) || !request.ValidStatus(value.PublishStatus) {
-			return nil, nil, "", ErrInvalid
+		if !request.ValidID(value.PublicID) {
+			return nil, nil, "", request.Field("publicId", "公开 ID 不能为空，且长度不超过 128")
+		}
+		if strings.TrimSpace(value.Title) == "" {
+			return nil, nil, "", request.Field("title", "标题不能为空")
+		}
+		url, ok := request.NormalizeLinkURL(value.URL)
+		if !ok {
+			return nil, nil, "", request.Field("url", "地址不能为空，且必须是合法链接（支持 http/https 等协议，不支持 javascript: 这类地址）")
+		}
+		value.URL = url
+		if !request.ValidStatus(value.PublishStatus) {
+			return nil, nil, "", request.Field("publishStatus", "发布状态只能是 draft / published / archived")
 		}
 		_, at, _ := publishedTimes(value.PublishStatus, "", value.PublishedAt)
 		ids, err := request.NormalizeIDs(value.TagIDs)
 		if err != nil {
-			return nil, nil, "", ErrInvalid
+			return nil, nil, "", request.Field("tagIds", "标签 ID 不合法")
 		}
 		return &blogmodel.Bookmark{PublicID: value.PublicID, Title: value.Title, URL: value.URL, Description: value.Description, CategoryID: value.CategoryID, Icon: value.Icon, PublishStatus: value.PublishStatus, PublishedAt: at, SortOrder: value.SortOrder, Version: max(value.Version, 1)}, ids, "td_blog_bookmark_tag", nil
 	default:
@@ -863,15 +926,19 @@ func validHexColor(value string) bool {
 }
 
 // mapToolValidationError 把 request 层的工具校验失败细化为可提示的具体原因。
+// 字段级错误（*request.FieldError）原样上抛，由 API 层带出字段名与原因。
 func mapToolValidationError(err error) error {
 	switch {
 	case errors.Is(err, request.ErrToolURLRequired):
 		return ErrToolURLRequired
 	case errors.Is(err, request.ErrToolStatusRequired):
 		return ErrToolStatusRequired
-	default:
-		return ErrInvalid
 	}
+	var fieldErr *request.FieldError
+	if errors.As(err, &fieldErr) {
+		return err
+	}
+	return ErrInvalid
 }
 
 // maxProfileContactLength 限制单条联系方式的长度：字段允许任意文本，只做长度保护。
@@ -955,16 +1022,33 @@ func validateSite(value blogresponse.Site) error {
 	if _, err := normalizeSiteModules(value.Modules, true); err != nil {
 		return ErrInvalid
 	}
-	for _, url := range []string{value.Home.AI.LinkURL, value.Home.AI.ImageURL, value.Home.PortfolioImageURL, value.Home.BookmarkImageURL, value.Footer.LinkURL, value.Footer.ICPURL, value.Footer.PoliceURL} {
-		if url != "" && !validSiteURL(url) {
+	// 链接类字段：不限协议（http/https/mailto/自定义均可），只拦可执行脚本的协议
+	for _, url := range []string{value.Home.AI.LinkURL, value.Footer.LinkURL, value.Footer.ICPURL, value.Footer.PoliceURL} {
+		if url != "" && !validSiteLink(url) {
+			return ErrInvalid
+		}
+	}
+	// 图片类字段：浏览器以子资源加载，http 在 https 站点会被混合内容拦截，仍只收 /files 路径或 https
+	for _, url := range []string{value.Home.AI.ImageURL, value.Home.PortfolioImageURL, value.Home.BookmarkImageURL} {
+		if url != "" && !validSiteImage(url) {
 			return ErrInvalid
 		}
 	}
 	return nil
 }
 
-func validSiteURL(value string) bool {
-	return strings.HasPrefix(value, "/files/") || value == "/Blog" || strings.HasPrefix(value, "/Blog/") || request.ValidURL(value, true)
+// validSiteLink 站点设置里的链接：允许站内路径与未限协议的绝对地址（javascript: 等由 NormalizeLinkURL 拒绝）。
+func validSiteLink(value string) bool {
+	if strings.HasPrefix(value, "/files/") || value == "/Blog" || strings.HasPrefix(value, "/Blog/") {
+		return true
+	}
+	_, ok := request.NormalizeLinkURL(value)
+	return ok
+}
+
+// validSiteImage 站点设置里的图片：只接受已上传的 /files 路径或 https 绝对地址。
+func validSiteImage(value string) bool {
+	return strings.HasPrefix(value, "/files/") || request.ValidURL(value, false)
 }
 
 // validMediaURL 允许留空、已上传的 /files 路径，或 https 绝对地址。

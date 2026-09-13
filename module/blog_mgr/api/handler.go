@@ -243,13 +243,19 @@ func bindSetting(c *gin.Context, setting string) (interface{}, bool) {
 }
 
 func (h *Handler) write(c *gin.Context, data interface{}, err error, created bool) {
+	// 字段级校验失败：把「哪个字段 + 该怎么改」一并带出去，前端可直接定位到表单项
+	var fieldErr *request.FieldError
+	if errors.As(err, &fieldErr) {
+		response.ErrorWithData(c, http.StatusBadRequest, codeInvalidRequest, fieldErr.Reason, gin.H{"field": fieldErr.Field})
+		return
+	}
 	switch {
 	case errors.Is(err, service.ErrReferenceNotFound):
-		response.Error(c, http.StatusBadRequest, codeReferenceAbsent, "关联的分类或标签不存在，请先创建")
+		response.ErrorWithData(c, http.StatusBadRequest, codeReferenceAbsent, "关联的分类或标签不存在，请先创建", gin.H{"field": "categoryId 或 tagIds"})
 	case errors.Is(err, service.ErrToolURLRequired):
-		response.Error(c, http.StatusBadRequest, codeToolURLRequired, "外链工具必须填写 HTTPS 地址")
+		response.ErrorWithData(c, http.StatusBadRequest, codeToolURLRequired, "外链工具必须填写有效地址（支持 http/https 等协议，不支持 javascript: 这类地址）", gin.H{"field": "url"})
 	case errors.Is(err, service.ErrToolStatusRequired):
-		response.Error(c, http.StatusBadRequest, codeToolStatusRequired, "自研工具必须填写开发状态")
+		response.ErrorWithData(c, http.StatusBadRequest, codeToolStatusRequired, "自研工具必须填写开发状态", gin.H{"field": "developmentStatus"})
 	case errors.Is(err, service.ErrInvalid):
 		badRequest(c)
 	case errors.Is(err, service.ErrNotFound):
