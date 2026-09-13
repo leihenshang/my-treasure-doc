@@ -526,7 +526,13 @@ func (s *Service) getWithDB(db *gorm.DB, resource, id string) (interface{}, erro
 	return item, nil
 }
 
+// mapDBError 把数据库层的唯一键冲突翻译成业务错误。
+// 必须容忍 nil：调用方可能直接把更新结果交进来（成功时 Error 为 nil），
+// 早期写法漏了这一层，导致 err.Error() 空指针 panic。
 func mapDBError(err error) error {
+	if err == nil {
+		return nil
+	}
 	if strings.Contains(err.Error(), "SQLSTATE 23505") || strings.Contains(strings.ToLower(err.Error()), "duplicate key") {
 		return ErrConflict
 	}
@@ -754,7 +760,10 @@ func updateCategory(tx *gorm.DB, id string, next *blogmodel.Category) error {
 			return err
 		}
 	}
-	return mapDBError(tx.Model(&current).Updates(map[string]interface{}{"slug": next.Slug, "name": next.Name, "sort_order": next.SortOrder, "enabled": next.Enabled}).Error)
+	if err := tx.Model(&current).Updates(map[string]interface{}{"slug": next.Slug, "name": next.Name, "sort_order": next.SortOrder, "enabled": next.Enabled}).Error; err != nil {
+		return mapDBError(err)
+	}
+	return nil
 }
 
 func (s *Service) GetSetting(ctx context.Context, name string) (interface{}, error) {
@@ -766,7 +775,8 @@ func (s *Service) GetSetting(ctx context.Context, name string) (interface{}, err
 		value := &blogmodel.Profile{}
 		err = db.Unscoped().Where("profile_key = ?", "default").First(value).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return blogresponse.Profile{Links: []blogresponse.ProfileLink{}, Skills: []blogresponse.ProfileSkill{}}, nil
+			// Name 是必填（validateProfile），默认带上与 seed 一致的站长名，避免默认对象存不回去
+			return blogresponse.Profile{Name: defaultProfileName, Links: []blogresponse.ProfileLink{}, Skills: []blogresponse.ProfileSkill{}}, nil
 		}
 		if err != nil {
 			return nil, err

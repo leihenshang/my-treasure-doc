@@ -331,5 +331,10 @@ func decodeJSON[T any](value model.JSON) ([]T, error) {
 	if err := json.Unmarshal(value, &result); err != nil {
 		return nil, err
 	}
+	// 存储值是 JSON null 时，上面的 Unmarshal 会把预分配的切片重置回 nil，
+	// 序列化出去就成了 null；这里归一成空切片，保证数组字段永远不会是 null。
+	if result == nil {
+		result = make([]T, 0)
+	}
 	return result, nil
 }

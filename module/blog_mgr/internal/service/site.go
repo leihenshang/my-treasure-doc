@@ -23,9 +23,16 @@ func normalizeSiteModules(modules []blogresponse.SiteModule, strict bool) ([]blo
 	return result, nil
 }
 
+// 站点名与站长名是必填字段（validateSite / validateProfile 会拒绝空值）。
+// 默认对象带上与 seed 数据一致的名称，保证全新库上「GET → 改一项 → PUT 回去」这条链路可用。
+const (
+	defaultSiteName    = "Treasure Blog"
+	defaultProfileName = "Treasure"
+)
+
 // defaultSite 返回尚未保存站点配置时使用的默认对象，数组字段为空数组而不是 null。
 func defaultSite() blogresponse.Site {
-	return blogresponse.Site{TechStack: []string{}, Modules: defaultSiteModules(), Milestones: []blogresponse.SiteMilestone{}, Home: blogresponse.DefaultSiteHome(), Footer: blogresponse.DefaultSiteFooter(), Banner: blogresponse.DefaultSiteBanner()}
+	return blogresponse.Site{Name: defaultSiteName, TechStack: []string{}, Modules: defaultSiteModules(), Milestones: []blogresponse.SiteMilestone{}, Home: blogresponse.DefaultSiteHome(), Footer: blogresponse.DefaultSiteFooter(), Banner: blogresponse.DefaultSiteBanner()}
 }
 
 // Stats 汇总后台仪表盘需要的资源数量与总浏览量。
