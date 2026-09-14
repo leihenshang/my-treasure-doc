@@ -20,6 +20,24 @@ import (
 // 刷新时相对资源都从根路径加载。
 const webBaseHref = `<base href="/">`
 
+// staticMountPrefixes 是静态资源挂载点前缀，这类路径命中不到文件时永远不是前端路由：
+//   - /assets/ 由 Vite 产出，所有带哈希的 js/css/字体都在下面；
+//   - /files/  由 r.Static 托管上传文件。
+//
+// Vue Router 的路径只会落在 /Blog 或 /BlogManage 前缀内，因此这些前缀可以安全地
+// 排除在 SPA 兜底之外。
+var staticMountPrefixes = []string{"/assets/", "/files/"}
+
+// isStaticMountPath 判断请求是否指向静态资源挂载点。
+func isStaticMountPath(urlPath string) bool {
+	for _, prefix := range staticMountPrefixes {
+		if strings.HasPrefix(urlPath, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 func InitRouter(r *gin.Engine) {
 	// 全局中间件：静态缓存、安全响应头、gzip 压缩，以及针对登录/上传的限流
 	r.Use(
@@ -57,6 +75,17 @@ func registerFrontend(r *gin.Engine) {
 			return
 		}
 		if !serveWebFile(c, urlPath) {
+			// 静态资源缺失时不能回退 index.html：浏览器对模块脚本 / 样式表做严格
+			// MIME 校验，拿到 text/html 会直接报 "Expected a JavaScript-or-Wasm
+			// module script but the server responded with a MIME type of text/html"，
+			// 把「资源没上传 / index.html 与 assets 版本不一致」这类部署问题伪装成
+			// 难懂的 MIME 错误。这里显式 404，并禁止缓存这个否定结果，避免修好部署
+			// 后仍被浏览器缓存的 404 挡住。
+			if isStaticMountPath(urlPath) {
+				c.Header("Cache-Control", "no-store")
+				c.String(http.StatusNotFound, "resource not found")
+				return
+			}
 			serveSpaIndex(c)
 		}
 	})
