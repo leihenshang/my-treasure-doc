@@ -81,7 +81,12 @@ func registerFrontend(r *gin.Engine) {
 			// 把「资源没上传 / index.html 与 assets 版本不一致」这类部署问题伪装成
 			// 难懂的 MIME 错误。这里显式 404，并禁止缓存这个否定结果，避免修好部署
 			// 后仍被浏览器缓存的 404 挡住。
-			if isStaticMountPath(urlPath) {
+			//
+			// 判定范围：已知静态挂载前缀（/assets/、/files/）之外，凡是带扩展名的
+			// 请求（js/css/字体/图片等）都视为静态资源。这样即使前端 index.html 把
+			// 资源解析到了非 /assets/ 前缀（例如 /web/assets/...），缺失时也返回 404
+			// 而非 HTML，错误表现更直观。
+			if isStaticMountPath(urlPath) || filepath.Ext(urlPath) != "" {
 				c.Header("Cache-Control", "no-store")
 				c.String(http.StatusNotFound, "resource not found")
 				return
