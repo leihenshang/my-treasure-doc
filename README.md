@@ -260,10 +260,7 @@ treasure-doc/
 │       └── files/                   # 用户上传文件
 │
 ├── module/admin/                    # 管理后台（开发中）
-├── list_sort/                       # 列表排序算法（独立工具包）
-├── log/                             # 运行时日志
 ├── doc/                             # 设计文档
-├── template/                        # 模板文件
 │
 ├── Dockerfile                       # 多阶段 Docker 构建
 ├── build.sh                         # Docker 构建脚本
@@ -381,7 +378,7 @@ go run ./module/user -c config.toml resetpwd <新密码>
    &gorm.Config{Logger: logger.Default.LogMode(logger.Info)}
    ```
 
-4. **测试覆盖** — 仅在 `list_sort/` 和 `gid/` 有测试，核心 Service 缺少单元测试。
+4. **测试覆盖** — 核心 Service 缺少单元测试。
 5. **Admin 模块** — `module/admin/` 仅占位，用户管理功能暂在 user 模块 `user-manage` 路由下。
 
 ---

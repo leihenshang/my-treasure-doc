@@ -12,7 +12,6 @@
 
 ```bash
 go test ./...
-go test ./list_sort/... -run '^Test_ParseSortParams$'
 go test ./module/user/global/gid/...
 go fmt ./...
 go build -o treasure_user.exe ./module/user
@@ -50,7 +49,7 @@ go run . -c config.toml
 - 普通业务成功和失败通常通过 HTTP 200 响应体中的 `code` 区分，但认证中间件会返回 HTTP 401。新增响应时遵循相邻端点。
 - 文档更新使用 `Doc.Version` 做乐观锁，并在事务中写入历史快照；修改更新或恢复流程时必须保留并发冲突检查和事务边界。
 - 文档删除使用 GORM 软删除；回收站查询和恢复依赖 `Unscoped()`，不要改成物理删除。
-- 业务列表使用 `data/request/request_req.go` 中的排序逻辑；根目录 `list_sort` 是独立包，目前未接入业务接口。拼接 SQL 排序前必须同时校验字段白名单和 `asc`/`desc` 方向。
+- 业务列表使用 `data/request/request_req.go` 中的排序逻辑。拼接 SQL 排序前必须同时校验字段白名单和 `asc`/`desc` 方向。
 - 跨域（CORS）由前置反向代理（如 nginx）统一处理，Go 侧不设置任何 `Access-Control-*` 头，也不要在路由链里再加 CORS 中间件。Service 构造方式不完全统一，新增代码时参考同类、相邻模块，不要强制套用单例或中间件模板。
 
 ## 新增业务模块
@@ -68,4 +67,3 @@ go run . -c config.toml
 - 启动期 `AutoMigrate` 只负责当前所选数据库的表结构，不会迁移已有数据；切换 driver 须重启服务。
 - `team` 已有 API/Service 代码但尚未在路由中注册。
 - GORM 日志默认是 Silent；排查 SQL 时可临时调整日志级别，但不要把调试配置作为无关改动提交。
-- 历史问题记录见 [question.md](question.md)，独立排序包说明见 [list_sort/README.md](list_sort/README.md)。
