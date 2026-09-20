@@ -1,9 +1,11 @@
 # AGENTS.md
 
+本文件为 AI 编码代理在本仓库工作时提供指引。
+
 ## 项目范围
 
 - 本仓库是 Go 1.22 单模块项目（`fastduck/treasure-doc`），核心服务位于 `module/user`，技术栈为 Gin、GORM、SQLite（默认）/ PostgreSQL（可选）；Redis 可选。
-- 先阅读根目录 [README.md](README.md) 了解产品与 API 概览。部署目录和历史数据修复见 [module/user/README.md](module/user/README.md)，空间与权限的规划见 [doc/space.md](doc/space.md)。设计文档描述的是目标状态，实际行为以代码和 `router/router.go` 为准。
+- 先阅读根目录 [README.md](README.md) 了解产品与 API 概览，公开接口明细见 [doc/blog-api.md](doc/blog-api.md)，跨域反代示例见 [doc/nginx-cors.example.conf](doc/nginx-cors.example.conf)，部署目录和历史数据修复见 [module/user/README.md](module/user/README.md)。设计文档描述的是目标状态，实际行为以代码和 `module/user/router/router.go` 为准。
 - 代码与文档主要使用中文。保持现有命名、分层和错误响应风格，不做与任务无关的架构重构。
 
 ## 常用命令
@@ -27,28 +29,43 @@ go run . -c config.toml
 
 - 首次运行前按需从 `config.example.toml` 创建本地 `config.toml`；默认 SQLite 零依赖开箱即用，也可在 `[database]` 改为 PostgreSQL。
 - 启动服务会连接数据库、执行 `AutoMigrate`，并尝试注册默认 root 用户；不要把启动服务当作无副作用的验证步骤。
-- 重置密码使用 `go run ./module/user/cli/reset-pwd -u <账号> -p <新密码> -cfg <配置文件绝对路径>`。`module/user/cli/cli.go` 目前没有可用的代码生成入口。
+- 重置密码是主程序的子命令（见 `module/user/main.go` 的 `runResetPwd`）：`cd module/user && go run . -c config.toml resetpwd <新密码>`，仅重置默认管理员账号，新密码须满足 8–16 位规则。`module/user/cli/reset-pwd/` 目录下只有 README，没有可执行代码。
 - 仓库没有 CI、Makefile 或 lint 配置。修改 Go 代码后至少运行相关包测试和 `go test ./...`；提交前对改动文件执行 `gofmt` 或 `go fmt`。
 
 ## 代码边界
 
-请求链路为 `main.go` → `global.InitModule()` → `router.InitRouter()` → middleware → `api` → `internal/service` → `global.Db` → `data/model`。
+仓库含四个业务模块，共用同一 Gin Engine：`module/user`（进程入口、用户/鉴权/上传/备份、路由汇总与前端托管）、`module/blog`（公开只读博客 API）、`module/blog_mgr`（后台管理 CRUD）、`module/common`（统一响应）。
+
+请求链路为 `main.go` → `global.InitModule()` → `router.InitRouter()` → middleware → `api` → `internal/service` → `global.Db` → `data/model`。`module/blog` 与 `module/blog_mgr` 沿用同样的分层，各自持有 `api / internal/service / data / router`，由 `module/user/router/router.go` 统一挂载。
+
+各层职责：
 
 - `api/`：绑定请求、从 Gin context 获取当前用户、调用 Service，并使用 `data/response` 输出；不要在 Handler 中新增数据库查询。
 - `internal/service/`：业务规则、事务和 GORM 查询。项目没有 DAO/Repository 层；除非任务明确要求架构调整，否则沿用这一结构。
 - `data/request/` 与 `data/response/`：请求 DTO、分页/排序参数、响应 DTO 和业务错误码。
 - `data/model/`：GORM 模型、表名、软删除和创建钩子。新增模型通常嵌入 `BaseModel` 并实现 `TableName()`。
-- `router/router.go`：实际生效的路由清单。存在 API 或 Service 文件不代表端点已经暴露。
-- `global/`：配置、数据库、Redis、日志、迁移和 validator 等进程级状态。
+- `router/`：实际生效的路由清单。存在 API 或 Service 文件不代表端点已经暴露。
+- `global/`（仅 user 模块）：配置、数据库、Redis、日志、迁移和 validator 等进程级状态。
+
+## 已有功能实现地图（功能 → 代码位置）
+
+- **启动与初始化**：`module/user/main.go` → `global.InitModule()`（`global/global.go`，顺序为配置 → 日志 → 可选 Redis → 数据库 → 注册 root 用户，返回清理函数）→ `router.InitRouter()`。访问日志/gzip 等在 `main.go` 与 `router/middleware/` 注册。
+- **登录与鉴权**：`api/user_api.go`（`GET /api/user/captcha` 图形验证码 → `internal/service/captcha_service.go`；`POST /api/user/login` → `user_service.go` 签发 token，模型 `data/model/user_token.go`）。后续请求经 `router/middleware/auth.go` 校验 `X-Token` 并注入 `global.UserInfoKey`；后台再叠加 `middleware/admin.go`（`RequireAdmin`，`userType` ∈ {2, 100}）。dev 模式下 `debug.enableMockLogin` 可跳过真实鉴权（release 下永不生效）。登录与上传限流在 `middleware/ratelimit.go`，规则表在 `router/router.go`。
+- **公开博客只读 API（`/api/blog/*`）**：`module/blog/router/router.go` → `api/handler.go` + `api/feed.go` → `internal/service/`（`service.go` 内容与列表、`catalog.go` 分类/标签/归档/统计、`feed.go` RSS）。可见性规则集中在 `service.published()`：仅 `publish_status = published` 且 `published_at <= now`，草稿/未来文章对公众 404。`robots.txt`/`sitemap.xml`/`rss.xml` 由 `RegisterSiteFiles` 挂在站点根。演示数据种子在 `module/blog/seed/`，开关读 `config/blog_seed.go`。
+- **后台管理 CRUD（`/api/blog-mgr/*`）**：`module/blog_mgr/router/router.go` 按 `api.ResourceNames()`（categories/tags/posts/diaries/portfolio-items/tools/bookmarks）循环注册同一套泛化 Handler：List/Detail/Create/Update/`PATCH /:id/fields` 快捷字段/Delete/DeleteMany/`POST /:id/restore`。业务在 `internal/service/service.go`：快捷修改白名单仅 `pinned`（文章/日记）与 `publishStatus`；`version` 乐观锁（`requiresVersion`/`modelVersion`，版本过期返回冲突码）；删除为 GORM 软删除，回收站与恢复依赖 `Unscoped()`。请求 DTO 与字段级校验错误（`request.Field(...)`）在 `data/request/request.go`。
+- **站点设置与个人资料**：`GET/PUT /api/blog-mgr/profile|/site`，逻辑在 `blog_mgr/internal/service/site.go`；site 的模块可见性/里程碑等存 JSON `settings` 字段。
+- **上传 / 媒体库 / 备份**：Handler 在 user 模块——`api/file_api.go`（`UploadBlogImage` ≤ 8MB、`UploadBlogMedias` ≤ 50MB，文件按内容 sha256 命名存入 `files/blog/`，返回 `/files/blog/<hash>.<ext>`，相同内容去重）、`api/media_api.go`（列表、`references` 扫描内容的封面/图标/相册/JSON 设置与 Markdown 正文统计引用数、单删/批删）、`api/backup_api.go` + `global/db_backup.go`（SQLite 在线备份下载）。这些路由统一在 `blog_mgr/router/router.go` 注册，走后台鉴权链。
+- **统一响应**：外层 `{code,msg,data}` 由 `module/common/response` 输出；业务错误码在各模块 `data/response`。
+- **前端托管**：`router/router.go` `registerFrontend` 服务 `module/user/web/`（Vite 构建产物）：注入 `<base href="/">`、`/web` 301 收敛、SPA history 兜底；带扩展名的静态资源缺失时返回 404（不回退 index.html，避免 MIME 伪错误）。上传文件经 `r.Static("/files", config.FilesPath)` 暴露。
 
 ## 实现约束
 
-- 用户资源查询必须显式包含 `user_id` 所有权条件，并沿用相邻 Service 的鉴权方式。当前 Room/Team 权限仍不完整，不要把 [doc/space.md](doc/space.md) 的规划当成已实现规则。
+- 用户资源查询必须显式包含 `user_id` 所有权条件，并沿用相邻 Service 的鉴权方式；Room/Team 空间模型尚未实现，不要为其预留路由或中间件。
 - 配置文件监听只允许热更新 `app.registerEnabled`。数据库（driver/dsn）、Redis、日志、端口、运行模式和 Debug 配置运行中变更会被忽略并记录警告，修改后必须重启服务。
 - 模型的 `TableName()` 当前硬编码为 `td_*`。不要假设修改 `database.tablePrefix` 会自动改变已有模型表名。
 - 普通业务成功和失败通常通过 HTTP 200 响应体中的 `code` 区分，但认证中间件会返回 HTTP 401。新增响应时遵循相邻端点。
-- 文档更新使用 `Doc.Version` 做乐观锁，并在事务中写入历史快照；修改更新或恢复流程时必须保留并发冲突检查和事务边界。
-- 文档删除使用 GORM 软删除；回收站查询和恢复依赖 `Unscoped()`，不要改成物理删除。
+- 博客内容资源更新用模型上的 `version` 字段做乐观锁（`blog_mgr` 的 `requiresVersion`/`modelVersion`），创建钩子从 1 起、每次更新自增；修改更新流程必须保留版本冲突检查。快捷 PATCH 只允许白名单字段，新增可快捷修改字段须同步服务端白名单与前端表格。
+- 内容删除一律 GORM 软删除；回收站列表、彻底查询和恢复依赖 `Unscoped()`（见 `blog_mgr/internal/service/service.go`），不要改成物理删除。媒体文件被批删也不回写引用它的内容行——内容中保留失效的 `/files/...` 字符串，由前端降级占位图兜底。
 - 业务列表使用 `data/request/request_req.go` 中的排序逻辑。拼接 SQL 排序前必须同时校验字段白名单和 `asc`/`desc` 方向。
 - 跨域（CORS）由前置反向代理（如 nginx）统一处理，Go 侧不设置任何 `Access-Control-*` 头，也不要在路由链里再加 CORS 中间件。Service 构造方式不完全统一，新增代码时参考同类、相邻模块，不要强制套用单例或中间件模板。
 
@@ -65,5 +82,4 @@ go run . -c config.toml
 
 - 根目录 [README.md](README.md) 的部分配置示例和架构描述可能早于当前实现，例如运行模式、初始化顺序、CLI 生成器和模型字段；实现任务先核对源码。
 - 启动期 `AutoMigrate` 只负责当前所选数据库的表结构，不会迁移已有数据；切换 driver 须重启服务。
-- `team` 已有 API/Service 代码但尚未在路由中注册。
 - GORM 日志默认是 Silent；排查 SQL 时可临时调整日志级别，但不要把调试配置作为无关改动提交。
