@@ -10,7 +10,7 @@
 
 | 类别 | 技术 | 版本 |
 | ------ | ------ | ------ |
-| **语言** | Go | 1.22+ |
+| **语言** | Go | 1.26.8（`go.mod` 声明） |
 | **Web 框架** | Gin | v1.9.1 |
 | **ORM** | GORM | v1.24 |
 | **数据库** | SQLite（默认，零依赖）/ PostgreSQL（可选） | SQLite 单文件 / PG 12+ |
@@ -129,7 +129,7 @@ Blog 管理接口挂载在 `/api/blog-mgr`，仅 admin/root 可访问，提供�
 
 ### 环境要求 Requirements
 
-- **Go** 1.22+
+- **Go** 1.26+（`go.mod` 声明 go 1.26.8，与 Dockerfile 镜像一致）
 - **SQLite**（默认，零依赖单文件，开箱即用）或 **PostgreSQL** 12+（可选）
 - **Redis** (可选，用于缓存/验证码)
 
@@ -196,7 +196,7 @@ go run . -c /path/to/config.toml
 treasure-doc/
 │
 ├── module/                          # 业务模块
-│   └── user/                        # 核心用户文档模块
+│   ├── user/                        # 核心入口：用户/鉴权/上传/备份、路由汇总与前端托管
 │       ├── main.go                  # 程序入口
 │       ├── config.example.toml      # 配置示例
 │       ├── config.toml              # 运行时配置（gitignore 建议）
@@ -252,14 +252,15 @@ treasure-doc/
 │       ├── utils/                   # 工具函数
 │       │   ├── datetime.go / file.go / slice.go / user.go
 │       │
-│       ├── cli/                     # CLI 工具
-│       │   ├── cli.go               # -gen 生成模型
-│       │   └── reset-pwd/           # 密码重置工具
+│       ├── cli/                     # 仅含 reset-pwd/README.md；密码重置用主程序 resetpwd 子命令
 │       │
 │       ├── web/                     # 前端静态文件
 │       └── files/                   # 用户上传文件
 │
-├── module/admin/                    # 管理后台（开发中）
+│   ├── blog/                        # 公开只读博客 API（含 seed 演示数据）
+│   ├── blog_mgr/                    # 后台管理通用 CRUD（由 user 模块路由挂载）
+│   └── common/                      # 统一响应 {code,msg,data}
+│
 ├── doc/                             # 设计文档
 │
 ├── Dockerfile                       # 多阶段 Docker 构建
@@ -333,21 +334,13 @@ docker run --rm --name treasure-doc -it \
 
 ## 开发工具 Development Tools
 
-### CLI 数据库模型生成
-
-```bash
-cd module/user/cli
-go run . -gen
-```
-
-自动读取数据库表结构，生成 GORM 模型到 `data/model/`。
-
 ### CLI 密码重置
 
-重置默认管理员账号（`treasuredocmgr`）的密码，新密码需为 8-16 位：
+重置默认管理员账号（`treasuredocmgr`）的密码，新密码需为 8-16 位。必须从 `module/user` 运行（`FilesPath`/`WebPath` 为相对路径）：
 
 ```bash
-go run ./module/user -c config.toml resetpwd <新密码>
+cd module/user
+go run . -c config.toml resetpwd <新密码>
 ```
 
 ---
@@ -368,10 +361,10 @@ go run ./module/user -c config.toml resetpwd <新密码>
 
 ## 已知问题 & 待改进 Known Issues
 
-> 以下对应 `question.md` 中的记录：
+> 以下为仍需改进的已知问题：
 
-1. **缺少 DAO 层** — Service 直接操作 `global.Db`，查询逻辑分散。建议抽取 `data/repository/` 封装。
-2. **CLI 配置路径** — cli 子工具应通过 `-cfg` 参数传递配置文件绝对路径。
+1. **缺少 DAO 层** — Service 直接操作 `global.Db`，查询逻辑分散。建议抽取 `data/repository/` 封装。另 `module/user/api/file_api.go`/`media_api.go` 在 Handler 内直接查库，属遗留例外，新代码不要效仿。
+2. **工作目录约束** — `FilesPath`/`WebPath` 为相对路径，服务与 resetpwd 都必须从 `module/user` 运行，从仓库根启动会解析错路径。
 3. **GORM SQL 日志** — 当前 GORM Logger 使用 Silent 级别，不打印 SQL。排查时可临时切换为 Info：
 
    ```go
@@ -379,7 +372,7 @@ go run ./module/user -c config.toml resetpwd <新密码>
    ```
 
 4. **测试覆盖** — 核心 Service 缺少单元测试。
-5. **Admin 模块** — `module/admin/` 仅占位，用户管理功能暂在 user 模块 `user-manage` 路由下。
+5. **用户管理占位代码** — `module/admin/` 并不存在；`api/user_manage_api.go` 存在但未注册任何路由，其 DTO 内嵌的 `request.Sort` 也因此暂无调用方；实际的后台管理能力在 `module/blog_mgr`。
 
 ---
 

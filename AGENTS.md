@@ -4,7 +4,7 @@
 
 ## 项目范围
 
-- 本仓库是 Go 1.22 单模块项目（`fastduck/treasure-doc`），核心服务位于 `module/user`，技术栈为 Gin、GORM、SQLite（默认）/ PostgreSQL（可选）；Redis 可选。
+- 本仓库是 Go 1.26 单模块项目（`fastduck/treasure-doc`，`go.mod` 声明 `go 1.26.8`，与 Dockerfile 的 `golang:1.26.8-alpine3.23` 一致），核心服务位于 `module/user`，技术栈为 Gin、GORM、SQLite（默认）/ PostgreSQL（可选）；Redis 可选。
 - 先阅读根目录 [README.md](README.md) 了解产品与 API 概览，公开接口明细见 [doc/blog-api.md](doc/blog-api.md)，跨域反代示例见 [doc/nginx-cors.example.conf](doc/nginx-cors.example.conf)，部署目录和历史数据修复见 [module/user/README.md](module/user/README.md)。设计文档描述的是目标状态，实际行为以代码和 `module/user/router/router.go` 为准。
 - 代码与文档主要使用中文。保持现有命名、分层和错误响应风格，不做与任务无关的架构重构。
 
@@ -49,12 +49,12 @@ go run . -c config.toml
 
 ## 已有功能实现地图（功能 → 代码位置）
 
-- **启动与初始化**：`module/user/main.go` → `global.InitModule()`（`global/global.go`，顺序为配置 → 日志 → 可选 Redis → 数据库 → 注册 root 用户，返回清理函数）→ `router.InitRouter()`。访问日志/gzip 等在 `main.go` 与 `router/middleware/` 注册。
+- **启动与初始化**：`module/user/main.go` → `global.InitModule()`（`global/global.go`，顺序为配置 → 日志 → 可选 Redis → 数据库 → 可选 SQLite 定时备份调度器 → validator（`InitTrans`）→ 配置热更新监听 → `migrateDbTable`（AutoMigrate）→ `seedBlogData`，返回清理函数）→ `router.InitRouter()`。默认 root 用户不在 `InitModule` 里：由 `registerAPI` 中 `api.NewUserApi()` → `service.NewUserService()` → `RegisterRootUser()` 注册，失败直接 `log.Fatalf`（排查“默认账号没出现”时先看这里）。访问日志/gzip 等在 `main.go` 与 `router/middleware/` 注册。
 - **登录与鉴权**：`api/user_api.go`（`GET /api/user/captcha` 图形验证码 → `internal/service/captcha_service.go`；`POST /api/user/login` → `user_service.go` 签发 token，模型 `data/model/user_token.go`）。后续请求经 `router/middleware/auth.go` 校验 `X-Token` 并注入 `global.UserInfoKey`；后台再叠加 `middleware/admin.go`（`RequireAdmin`，`userType` ∈ {2, 100}）。dev 模式下 `debug.enableMockLogin` 可跳过真实鉴权（release 下永不生效）。登录与上传限流在 `middleware/ratelimit.go`，规则表在 `router/router.go`。
 - **公开博客只读 API（`/api/blog/*`）**：`module/blog/router/router.go` → `api/handler.go` + `api/feed.go` → `internal/service/`（`service.go` 内容与列表、`catalog.go` 分类/标签/归档/统计、`feed.go` RSS）。可见性规则集中在 `service.published()`：仅 `publish_status = published` 且 `published_at <= now`，草稿/未来文章对公众 404。`robots.txt`/`sitemap.xml`/`rss.xml` 由 `RegisterSiteFiles` 挂在站点根。演示数据种子在 `module/blog/seed/`，开关读 `config/blog_seed.go`。
 - **后台管理 CRUD（`/api/blog-mgr/*`）**：`module/blog_mgr/router/router.go` 按 `api.ResourceNames()`（categories/tags/posts/diaries/portfolio-items/tools/bookmarks）循环注册同一套泛化 Handler：List/Detail/Create/Update/`PATCH /:id/fields` 快捷字段/Delete/DeleteMany/`POST /:id/restore`。业务在 `internal/service/service.go`：快捷修改白名单仅 `pinned`（文章/日记）与 `publishStatus`；`version` 乐观锁（`requiresVersion`/`modelVersion`，版本过期返回冲突码）；删除为 GORM 软删除，回收站与恢复依赖 `Unscoped()`。请求 DTO 与字段级校验错误（`request.Field(...)`）在 `data/request/request.go`。
 - **站点设置与个人资料**：`GET/PUT /api/blog-mgr/profile|/site`，逻辑在 `blog_mgr/internal/service/site.go`；site 的模块可见性/里程碑等存 JSON `settings` 字段。
-- **上传 / 媒体库 / 备份**：Handler 在 user 模块——`api/file_api.go`（`UploadBlogImage` ≤ 8MB、`UploadBlogMedias` ≤ 50MB，文件按内容 sha256 命名存入 `files/blog/`，返回 `/files/blog/<hash>.<ext>`，相同内容去重）、`api/media_api.go`（列表、`references` 扫描内容的封面/图标/相册/JSON 设置与 Markdown 正文统计引用数、单删/批删）、`api/backup_api.go` + `global/db_backup.go`（SQLite 在线备份下载）。这些路由统一在 `blog_mgr/router/router.go` 注册，走后台鉴权链。
+- **上传 / 媒体库 / 备份**：Handler 在 user 模块——`api/file_api.go`（`UploadBlogImage` ≤ 8MB、`UploadBlogMedias` ≤ 50MB，文件按内容 sha256 命名存入 `files/blog/`，返回 `/files/blog/<hash>.<ext>`，相同内容去重）、`api/media_api.go`（列表、`references` 扫描内容的封面/图标/相册/JSON 设置与 Markdown 正文统计引用数、单删/批删）、`api/backup_api.go` + `global/db_backup.go`（SQLite 在线备份下载）。注意：这几个 Handler 直接查 `global.Db`，是「Handler 不做 DB 查询」规则的遗留例外，新代码不要效仿，也不要顺手重构。这些路由统一在 `blog_mgr/router/router.go` 注册，走后台鉴权链。
 - **统一响应**：外层 `{code,msg,data}` 由 `module/common/response` 输出；业务错误码在各模块 `data/response`。
 - **前端托管**：`router/router.go` `registerFrontend` 服务 `module/user/web/`（Vite 构建产物）：注入 `<base href="/">`、`/web` 301 收敛、SPA history 兜底；带扩展名的静态资源缺失时返回 404（不回退 index.html，避免 MIME 伪错误）。上传文件经 `r.Static("/files", config.FilesPath)` 暴露。
 
@@ -64,9 +64,9 @@ go run . -c config.toml
 - 配置文件监听只允许热更新 `app.registerEnabled`。数据库（driver/dsn）、Redis、日志、端口、运行模式和 Debug 配置运行中变更会被忽略并记录警告，修改后必须重启服务。
 - 模型的 `TableName()` 当前硬编码为 `td_*`。不要假设修改 `database.tablePrefix` 会自动改变已有模型表名。
 - 普通业务成功和失败通常通过 HTTP 200 响应体中的 `code` 区分，但认证中间件会返回 HTTP 401。新增响应时遵循相邻端点。
-- 博客内容资源更新用模型上的 `version` 字段做乐观锁（`blog_mgr` 的 `requiresVersion`/`modelVersion`），创建钩子从 1 起、每次更新自增；修改更新流程必须保留版本冲突检查。快捷 PATCH 只允许白名单字段，新增可快捷修改字段须同步服务端白名单与前端表格。
+- 博客内容资源更新用模型上的 `version` 字段做乐观锁（`blog_mgr` 的 `requiresVersion`/`modelVersion`）：初始值来自列标签 `default:1` 与 `buildModel` 里的 `max(version, 1)` 归一化（`BaseModel.BeforeCreate` 只生成雪花 ID，不设 version），更新时 `gorm.Expr("version + 1")`，冲突返回 409 业务码；修改更新流程必须保留版本冲突检查。快捷 PATCH 只允许白名单字段，新增可快捷修改字段须同步服务端白名单与前端表格。
 - 内容删除一律 GORM 软删除；回收站列表、彻底查询和恢复依赖 `Unscoped()`（见 `blog_mgr/internal/service/service.go`），不要改成物理删除。媒体文件被批删也不回写引用它的内容行——内容中保留失效的 `/files/...` 字符串，由前端降级占位图兜底。
-- 业务列表使用 `data/request/request_req.go` 中的排序逻辑。拼接 SQL 排序前必须同时校验字段白名单和 `asc`/`desc` 方向。
+- 列表排序目前按模块硬编码：公开博客 `orderByDate()`（`module/blog/internal/service/service.go`，`pinned DESC` + `published_on` 方向由 query `sort` 参数控制），后台列表 `created_at ASC/DESC`（`module/blog_mgr/internal/service/service.go`）。`module/user/data/request/request_req.go` 的 `request.Sort` 仅被尚未注册路由的 user-manage DTO 内嵌，暂无调用方。任何新排序必须服务端校验字段白名单和 `asc`/`desc` 方向，禁止把请求值直接拼进 `ORDER BY`。
 - 跨域（CORS）由前置反向代理（如 nginx）统一处理，Go 侧不设置任何 `Access-Control-*` 头，也不要在路由链里再加 CORS 中间件。Service 构造方式不完全统一，新增代码时参考同类、相邻模块，不要强制套用单例或中间件模板。
 
 ## 新增业务模块
