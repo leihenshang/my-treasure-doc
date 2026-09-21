@@ -31,6 +31,8 @@ func applyConfigDefaults(v *viper.Viper) {
 	v.SetDefault("backup.dir", "backup")
 	v.SetDefault("backup.compress", true)
 	v.SetDefault("backup.keepDays", 7)
+	v.SetDefault("backup.autoPack", false)
+	v.SetDefault("backup.apiToken", "")
 }
 
 var globalConfig *Config

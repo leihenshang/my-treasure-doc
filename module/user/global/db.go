@@ -22,6 +22,7 @@ import (
 var TableMigrate = append([]schema.Tabler{
 	&model.User{},
 	&model.UserToken{},
+	&model.SystemSetting{},
 }, blogTables()...)
 
 func blogTables() []schema.Tabler {

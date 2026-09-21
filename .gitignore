@@ -28,3 +28,4 @@ module/user/treasure_doc.db
 module/user/data/treasure_doc.db
 /.doc
 .e2e-tmp
+module/user/backup/*

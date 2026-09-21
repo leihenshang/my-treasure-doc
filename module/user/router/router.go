@@ -107,6 +107,9 @@ func registerAPI(r *gin.Engine) {
 	blogMgr.Use(middleware.Auth(), middleware.RequireAdmin())
 	blogmgrrouter.Register(blogMgr)
 
+	// NAS 机器令牌下载完整备份（免登录），仅只读导出，不走管理端鉴权链。
+	apiBase.GET("/backup/export", middleware.BackupToken(), api.NewBackupApi().NasExportArchive)
+
 	userAPI := api.NewUserApi()
 	user := apiBase.Group("user")
 	user.GET("/captcha", userAPI.UserCaptcha)

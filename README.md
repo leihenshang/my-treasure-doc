@@ -156,6 +156,16 @@ tablePrefix = "td_"
 # driver = "postgres"
 # dsn = "host=127.0.0.1 user=postgres password=postgres dbname=treasure_doc port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
+[backup]
+# SQLite 定时备份（仅 driver=sqlite 生效；postgres 不启用）
+enable = false
+interval = 86400 # 备份周期（秒），86400 = 每天
+dir = "backup"   # 备份文件存放目录
+compress = true  # 是否 gzip 压缩（.db.gz）
+keepDays = 7     # 旧备份保留天数，0 = 不清理
+autoPack = false # 定时备份是否同时生成「完整备份包」（含图片）
+apiToken = ""    # NAS 免登录拉取完整备份的机器令牌（X-Backup-Token）
+
 [redis]
 enable = false        # 不启用 Redis 可跳过
 host = "127.0.0.1"
@@ -187,6 +197,39 @@ go run . -c /path/to/config.toml
 > AutoMigrate 仅用于在空数据库中初始化或调整表结构，不会迁移已有数据；切换数据库驱动需重启服务。
 
 > ⚠️ **首次登录后请立即修改 root 密码。**
+
+### 备份与恢复 Backup & Restore
+
+SQLite 场景下，数据 = **数据库文件 + 上传目录（`files/`，含图片/视频）**。系统提供两种备份形态：
+
+| 形态 | 内容 | 触发方式 |
+| --- | --- | --- |
+| 数据库快照（`.db` / `.db.gz`） | 仅数据库 | 定时任务或 `POST /api/blog-mgr/backups` |
+| 完整备份包（`.tar.gz`） | `treasure_doc.db` + `files/` 图片 + `manifest.json` | 后台「导出完整备份」/ NAS 接口 |
+
+完整备份包是自包含归档，可跨环境恢复。
+
+**后台管理**（`[backup]` 相关接口均在 `config.example.toml` 的 `[backup]` 段配置）：
+
+- `GET /api/blog-mgr/backups` — 备份列表
+- `POST /api/blog-mgr/backups` — 立即生成数据库快照
+- `GET /api/blog-mgr/backups/:name` — 下载指定备份
+- `POST /api/blog-mgr/backups/export` — 导出「完整备份包」（含图片，落盘到备份目录）
+- `POST /api/blog-mgr/backups/restore` — 导入并恢复（上传 `.tar.gz`；先校验完整性/版本再替换数据库并补齐图片，仅管理员可操作，导入前建议先开站点维护模式）
+
+**NAS 定时拉取**（机器令牌，免登录、只读）：
+
+```bash
+# 每日拉取最新完整备份到 NAS
+30 2 * * * curl -fsSL -H "X-Backup-Token: <你的令牌>" \
+  -o "$HOME/backup/treasure-$(date +\%Y\%m\%d).tar.gz" \
+  "https://<你的域名>/api/backup/export"
+```
+
+要点：
+- NAS 令牌在 `[backup].apiToken` 配置；该接口仅开放「下载」，不提供导入/删除。
+- 想让定时任务/NAS 得到**含图片**的完整包，需同时开启 `[backup].autoPack = true`（定时任务产出完整备份包）。
+- 恢复会把「当前库」替换成备份内容，属于破坏性操作：建议恢复前先对现有库导出一次留底。
 
 ---
 

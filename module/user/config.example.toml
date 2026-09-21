@@ -22,8 +22,14 @@ tablePrefix = "td_"
 enable = false
 interval = 86400 # 备份周期（秒），86400 = 每天
 dir = "backup"   # 备份文件存放目录
-compress = true  # 是否 gzip 压缩（生成 .db.gz）
+compress = true  # 是否 gzip 压缩（.db.gz）
 keepDays = 7     # 旧备份保留天数，0 = 不清理
+# autoPack：定时备份是否生成「完整备份包」（treasure_doc.db + files/ 图片 + manifest.json 的 tar.gz）。
+# 开启后 NAS 下载接口 /api/backup/export 才有含图片的可迁移完整备份。
+autoPack = false
+# apiToken：NAS 免登录拉取完整备份的机器令牌（配在 /api/backup/export 的 X-Backup-Token 请求头）。
+# 仅开放「导出」，不提供导入/删除；留空表示禁用 NAS 导出接口。
+apiToken = ""
 
 [log]
 directory = "log"

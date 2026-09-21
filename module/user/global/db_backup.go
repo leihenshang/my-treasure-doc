@@ -118,7 +118,15 @@ func StartSqliteBackupScheduler(interval time.Duration, backupDir string, compre
 				ticker.Stop()
 				return
 			case <-ticker.C:
-				path, err := BackupSqlite(backupDir, compress)
+				var path string
+				var err error
+				// autoPack 开启时定时任务直接产出完整备份包（含图片），供 NAS 下载与一键恢复。
+				cfg := GetConf()
+				if cfg != nil && cfg.Backup.AutoPack {
+					path, err = BuildBackupArchive(backupDir)
+				} else {
+					path, err = BackupSqlite(backupDir, compress)
+				}
 				if err != nil {
 					logBackupError("sqlite backup failed", err)
 					continue

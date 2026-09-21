@@ -29,4 +29,10 @@ type Backup struct {
 	Compress bool ``
 	// KeepDays 保留天数，超过该天数的旧备份会被自动清理；0 表示不清理。
 	KeepDays int ``
+	// AutoPack 定时备份时是否生成「完整备份包」（treasure_doc.db + files/ + manifest.json 的 tar.gz），
+	// 而非只有数据库文件。开启后 NAS 下载接口 /api/backup/export 才有完整的可迁移含图片备份。
+	AutoPack bool ``
+	// ApiToken NAS 机器令牌：供定时任务免登录调用 /api/backup/export 拉取完整备份。
+	// 仅开放「导出」权限，不参与导入/删除；留空表示禁用 NAS 导出接口。
+	ApiToken string ``
 }
