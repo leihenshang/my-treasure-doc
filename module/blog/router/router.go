@@ -26,6 +26,8 @@ func RegisterSiteFilesService(r *gin.Engine, publicService api.PublicService) {
 func RegisterService(apiGroup *gin.RouterGroup, publicService api.PublicService) {
 	handler := api.NewHandler(publicService)
 	blog := apiGroup.Group("blog")
+	// 记录访客访问（IP/路径），只作用于公开博客 API
+	blog.Use(VisitorLogger())
 	blog.GET("/categories", handler.BlogCategories)
 	blog.GET("/tags", handler.BlogTags)
 	blog.GET("/posts", handler.BlogPosts)

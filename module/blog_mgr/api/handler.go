@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strconv"
 
 	blogresponse "fastduck/treasure-doc/module/blog/data/response"
 	"fastduck/treasure-doc/module/blog_mgr/data/request"
@@ -37,6 +38,7 @@ type Manager interface {
 	GetSetting(context.Context, string) (interface{}, error)
 	PutSetting(context.Context, string, interface{}) (interface{}, error)
 	Stats(context.Context) (response.Stats, error)
+	VisitorStats(context.Context, int) (response.VisitorStats, error)
 }
 
 // 资源标识与请求体类型集中定义，供路由注册与请求解析共用。
@@ -199,6 +201,23 @@ func (h *Handler) PutSetting(setting string) gin.HandlerFunc {
 func (h *Handler) Stats() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		data, err := h.service.Stats(c.Request.Context())
+		h.write(c, data, err, false)
+	}
+}
+
+// VisitorStats 返回时间范围内的访客 IP 统计，days 默认 7，限制在 [1, 365]。
+func (h *Handler) VisitorStats() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		days := 7
+		if raw := c.Query("days"); raw != "" {
+			n, err := strconv.Atoi(raw)
+			if err != nil || n < 1 || n > 365 {
+				badRequest(c)
+				return
+			}
+			days = n
+		}
+		data, err := h.service.VisitorStats(c.Request.Context(), days)
 		h.write(c, data, err, false)
 	}
 }

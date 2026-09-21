@@ -28,6 +28,7 @@ func RegisterService(group *gin.RouterGroup, manager api.Manager) {
 	}
 
 	group.GET("/stats", handler.Stats())
+	group.GET("/visitor-stats", handler.VisitorStats())
 
 	for _, setting := range []string{"profile", "site"} {
 		group.GET("/"+setting, handler.GetSetting(setting))

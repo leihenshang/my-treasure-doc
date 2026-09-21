@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"log"
+	"time"
 
 	blogmodel "fastduck/treasure-doc/module/blog/data/model"
 	blogresponse "fastduck/treasure-doc/module/blog/data/response"
@@ -88,4 +90,90 @@ func (s *Service) Stats(ctx context.Context) (response.Stats, error) {
 		result.TotalViews += views
 	}
 	return result, nil
+}
+
+// VisitorStats 统计最近 days 天内访问公开博客的 IP：总量、去重 IP 数与明细。
+// days 由调用方限制在 [1, 365]。
+func (s *Service) VisitorStats(ctx context.Context, days int) (response.VisitorStats, error) {
+	db, err := s.database(ctx)
+	if err != nil {
+		return response.VisitorStats{}, err
+	}
+
+	since := time.Now().AddDate(0, 0, -days)
+	var result response.VisitorStats
+	result.Days = int64(days)
+
+	if err := db.Model(&blogmodel.VisitorLog{}).Where("created_at >= ?", since).Count(&result.TotalCount).Error; err != nil {
+		return response.VisitorStats{}, err
+	}
+	if err := db.Model(&blogmodel.VisitorLog{}).Where("created_at >= ?", since).Distinct("ip").Count(&result.DistinctIP).Error; err != nil {
+		return response.VisitorStats{}, err
+	}
+
+	var list []response.VisitorStat
+	type visitorRow struct {
+		IP        string
+		Count     int64
+		FirstSeen string
+		LastSeen  string
+	}
+	// SQLite 下 MIN/MAX(created_at) 聚合返回字符串，不能用 time.Time 直接 Scan，
+	// 先收进字符串再按常见时间格式解析。
+	var rows []visitorRow
+	if err := db.Model(&blogmodel.VisitorLog{}).
+		Where("created_at >= ?", since).
+		Select("ip, COUNT(*) AS count, MIN(created_at) AS first_seen, MAX(created_at) AS last_seen").
+		Group("ip").
+		Order("count DESC").
+		Scan(&rows).Error; err != nil {
+		log.Printf("[visitor-stats] 聚合查询失败: %v", err)
+		return response.VisitorStats{}, err
+	}
+	list = make([]response.VisitorStat, 0, len(rows))
+	// 附加每个 IP 访问过的去重分类：SQLite/PG 的 group_concat 方言不同，改用一次 DISTINCT 查询在 Go 里聚合。
+	type ipCategory struct {
+		IP       string
+		Category string
+	}
+	var ipCats []ipCategory
+	if err := db.Model(&blogmodel.VisitorLog{}).
+		Where("created_at >= ?", since).
+		Distinct("ip", "category").
+		Scan(&ipCats).Error; err != nil {
+		log.Printf("[visitor-stats] 分类查询失败: %v", err)
+		return response.VisitorStats{}, err
+	}
+	catsByIP := make(map[string][]string, len(ipCats))
+	for _, row := range ipCats {
+		if row.Category == "" {
+			continue
+		}
+		catsByIP[row.IP] = append(catsByIP[row.IP], row.Category)
+	}
+	for _, row := range rows {
+		entry := response.VisitorStat{
+			IP:         row.IP,
+			Count:      row.Count,
+			FirstSeen:  parseVisitorTime(row.FirstSeen),
+			LastSeen:   parseVisitorTime(row.LastSeen),
+			Categories: catsByIP[row.IP],
+		}
+		if entry.Categories == nil {
+			entry.Categories = []string{}
+		}
+		list = append(list, entry)
+	}
+	result.List = list
+	return result, nil
+}
+
+// parseVisitorTime 解析访客日志里的时间字符串，兼容 SQLite 存储与 RFC3339 两种形态。
+func parseVisitorTime(raw string) time.Time {
+	for _, layout := range []string{time.RFC3339Nano, "2006-01-02 15:04:05.999999999-07:00", "2006-01-02 15:04:05"} {
+		if t, err := time.Parse(layout, raw); err == nil {
+			return t
+		}
+	}
+	return time.Time{}
 }

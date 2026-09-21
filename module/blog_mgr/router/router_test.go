@@ -46,6 +46,9 @@ func (fakeManager) PutSetting(context.Context, string, interface{}) (interface{}
 func (fakeManager) Stats(context.Context) (mgrresponse.Stats, error) {
 	return mgrresponse.Stats{}, nil
 }
+func (fakeManager) VisitorStats(context.Context, int) (mgrresponse.VisitorStats, error) {
+	return mgrresponse.VisitorStats{}, nil
+}
 
 func TestManagementRoutes(t *testing.T) {
 	gin.SetMode(gin.TestMode)
