@@ -2,6 +2,7 @@ package global
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"time"
@@ -12,6 +13,17 @@ import (
 	"go.uber.org/zap/zapcore"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 )
+
+// stdoutSyncer 包装控制台输出，把 Sync 变成无副作用的空操作。
+//
+// Windows 下终端句柄不支持 FlushFileBuffers，zap 在进程退出时调用 Sync 会返回
+// ERROR_INVALID_HANDLE（"The handle is invalid"）；而标准输出本来就不需要 fsync，
+// 这个错误没有任何实际影响，吞掉它可以避免退出日志里出现两条看起来像故障的错误。
+type stdoutSyncer struct{ writer io.Writer }
+
+func (s stdoutSyncer) Write(p []byte) (int, error) { return s.writer.Write(p) }
+
+func (s stdoutSyncer) Sync() error { return nil }
 
 func initZapLogger() error {
 	writeSyncyer, err := getLogWriter()
@@ -112,7 +124,7 @@ func getLogWriter() (zapcore.WriteSyncer, error) {
 	}
 
 	if Conf.Log.ShowInConsole {
-		return zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(lumberJackLogger)), err
+		return zapcore.NewMultiWriteSyncer(stdoutSyncer{writer: os.Stdout}, zapcore.AddSync(lumberJackLogger)), err
 	}
 
 	return zapcore.AddSync(lumberJackLogger), err

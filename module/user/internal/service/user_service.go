@@ -50,7 +50,11 @@ var rootUser = &model.User{
 
 // RegisterRootUser 确保博客管理员默认账号存在，仅用于服务启动时初始化。
 func (user *UserService) RegisterRootUser() error {
-	if checkAccountIsDuplicate(rootUser.Account) {
+	duplicated, err := checkAccountIsDuplicate(rootUser.Account)
+	if err != nil {
+		return err
+	}
+	if duplicated {
 		log.Printf("root account [%v] already exists, cancel registration\n", rootUser.Account)
 		return nil
 	}
@@ -84,16 +88,23 @@ func (user *UserService) RegisterRootUser() error {
 	return nil
 }
 
-// checkAccountIsDuplicate 检查账号是否重复
-func checkAccountIsDuplicate(account string) bool {
+// checkAccountIsDuplicate 检查账号是否重复。
+//
+// 查到记录时 err == nil，这是「账号已存在」的正常结果，不能再落到错误分支打印
+// failed to get user by account:<nil>；只有真正的查询失败才返回错误，避免把数据库
+// 故障伪装成「账号已存在」而静默跳过初始化。
+func checkAccountIsDuplicate(account string) (bool, error) {
 	var u *model.User
 	err := global.Db.Where("LOWER(account) = LOWER(?)", account).First(&u).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return false
-	} else {
-		global.Log.Errorf("failed to get user by account:%v", err)
+	if err == nil {
+		return true, nil
 	}
-	return true
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return false, nil
+	}
+
+	global.Log.Errorf("failed to get user by account:%v", err)
+	return false, errors.New("查询账号失败")
 }
 
 // checkAccountRule 检查账号规则
@@ -182,6 +193,10 @@ func (user *UserService) ResetDefaultAdminPassword(password string) error {
 }
 
 // ResetPassword 管理员重置指定账号的密码，重置后该账号所有登录态失效。
+//
+// 重置同时清除 require_pwd_reset：默认管理员首次启动会被置位以强制改密，
+// 但命令行/管理员已经用受控方式设定了新密码，此时再要求「先改默认密码」
+// 会把账号锁在管理接口之外（RequireAdmin 返回 40301）。
 func (user *UserService) ResetPassword(account, password, repeatPassword string) error {
 	newPwd, err := checkPasswordRule(password, repeatPassword)
 	if err != nil {
@@ -203,7 +218,10 @@ func (user *UserService) ResetPassword(account, password, repeatPassword string)
 	}
 
 	tx := global.Db.Begin()
-	if err := tx.Model(&model.User{}).Where("id = ?", u.Id).Update("password", encryptedPwd).Error; err != nil {
+	// 新密码由管理员/命令行设定，与 ChangePassword 一致地清除强制改密标记，
+	// 否则重置后登录会被 RequireAdmin 以 40301 拦在管理接口外，看起来像重置失败。
+	if err := tx.Model(&model.User{}).Where("id = ?", u.Id).
+		Updates(map[string]interface{}{"password": encryptedPwd, "require_pwd_reset": false}).Error; err != nil {
 		global.Log.Errorf("failed to reset password:%v", err)
 		tx.Rollback()
 		return errors.New("重置密码失败")
