@@ -30,7 +30,7 @@ go run . -c config.toml
 - 首次运行前按需从 `config.example.toml` 创建本地 `config.toml`；默认 SQLite 零依赖开箱即用，也可在 `[database]` 改为 PostgreSQL。
 - 启动服务会连接数据库、执行 `AutoMigrate`，并尝试注册默认 root 用户；不要把启动服务当作无副作用的验证步骤。
 - 重置密码是主程序的子命令（见 `module/user/main.go` 的 `runResetPwd`）：`cd module/user && go run . -c config.toml resetpwd <新密码>`，仅重置默认管理员账号，新密码须满足 8–16 位规则。`module/user/cli/reset-pwd/` 目录下只有 README，没有可执行代码。
-- 仓库没有 CI、Makefile 或 lint 配置。修改 Go 代码后至少运行相关包测试和 `go test ./...`；提交前对改动文件执行 `gofmt` 或 `go fmt`。
+- 仓库没有 CI、Makefile 或 lint 配置。门禁检查（`go test ./...`、`gofmt` / `go fmt`）**仅在重要改动时执行**：新增大模块、大块业务逻辑调整、重构或大规模跨文件改动必须跑通；单文件小改（样式微调、文案/提示语、参数调整、单行 bug 修复）可直接提交。
 
 ## 代码边界
 
