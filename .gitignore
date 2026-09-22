@@ -30,3 +30,4 @@ module/user/data/treasure_doc.db
 .e2e-tmp
 module/user/backup/*
 /.trae
+/bin/_runtime
