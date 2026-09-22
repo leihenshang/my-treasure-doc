@@ -145,6 +145,7 @@ cp config.example.toml config.toml
 [app]
 port = 2026
 runMode = "dev"       # dev-开发模式 release-生产模式
+trustedProxies = []   # 信任的反代 IP/CIDR，命中时才采信 X-Forwarded-For（空=不信任代理头）
 
 [database]
 # driver：sqlite（默认，零依赖单文件）或 postgres
@@ -165,6 +166,10 @@ compress = true  # 是否 gzip 压缩（.db.gz）
 keepDays = 7     # 旧备份保留天数，0 = 不清理
 autoPack = false # 定时备份是否同时生成「完整备份包」（含图片）
 apiToken = ""    # NAS 免登录拉取完整备份的机器令牌（X-Backup-Token）
+allowIPs = []    # 备份接口来源 IP 白名单（精确 IP 或 CIDR，空=不限）
+
+[publish]
+allowIPs = []    # 发布接口来源 IP 白名单（精确 IP 或 CIDR，空=不限）
 
 [redis]
 enable = false        # 不启用 Redis 可跳过
@@ -230,6 +235,33 @@ SQLite 场景下，数据 = **数据库文件 + 上传目录（`files/`，含图
 - NAS 令牌在 `[backup].apiToken` 配置；该接口仅开放「下载」，不提供导入/删除。
 - 想让定时任务/NAS 得到**含图片**的完整包，需同时开启 `[backup].autoPack = true`（定时任务产出完整备份包）。
 - 恢复会把「当前库」替换成备份内容，属于破坏性操作：建议恢复前先对现有库导出一次留底。
+- 可用 `[backup].allowIPs` 限制来源 IP（精确 IP 或 CIDR，空=不限）。
+
+### 内容发布接口 Publish API
+
+供脚本 / CI / NAS 用机器令牌**免登录直接发布内容**（文章/日记/作品/利器/收藏集），与后台手动发布走同一套校验与默认分类逻辑。鉴权：
+
+- 令牌为 `X-Publish-Token`，在后台“备份”页或 `PUT /api/blog-mgr/publish/token` 设置（写入数据库，即时生效，留空=关闭接口）。
+- 可用 `[publish].allowIPs` 限制来源 IP；接口自带**每 IP 限流**（`/api/publish`）。
+- **反代下注意**：IP 白名单/限流按真实客户端 IP 判定。部署在 nginx 后需在 `[app].trustedProxies` 填入反代地址（如 `["127.0.0.1"]`），后端才会采信 `X-Forwarded-For` 拿到真实 IP，否则取到的是反代出口 IP。此项为启动期配置，改动需重启。
+
+发布语义：`publishStatus` 恒为 `published`（入参忽略）；未指定分类自动落到“默认分类”；`slug`/`publicId` 未填自动按标题生成。
+
+**调用示例**
+
+```bash
+# 1) 配置发布令牌
+curl -sSL -X PUT http://<域名>/api/blog-mgr/publish/token \
+  -H "X-Token: <管理员token>" -H "Content-Type: application/json" \
+  -d '{"token":"your-publish-secret"}'
+
+# 2) 直接发布一篇已发布状态的文章（未给分类 → 默认分类；未给 slug → 按标题生成）
+curl -sSL -X POST http://<域名>/api/publish/posts \
+  -H "X-Publish-Token: your-publish-secret" -H "Content-Type: application/json" \
+  -d '{"title":"Hello API 文章","content":"正文…"}'
+
+# 3) 其他资源：/api/publish/diaries | portfolio-items | tools | bookmarks
+```
 
 ---
 

@@ -271,8 +271,8 @@ func TestBatchDeleteContract(t *testing.T) {
 
 	// 空集合 / 超限 → 40001
 	for name, payload := range map[string]string{
-		"空集合": `{"ids":[]}`,
-		"空 ID":  `{"ids":[""]}`,
+		"空集合":  `{"ids":[]}`,
+		"空 ID": `{"ids":[""]}`,
 	} {
 		status, env = s.do(http.MethodPost, "/api/blog-mgr/posts/batch-delete", payload)
 		if status != http.StatusBadRequest || env.Code != 40001 {
@@ -516,8 +516,8 @@ func TestUpdateFieldsContract(t *testing.T) {
 
 	toolID := s.create("tools", `{"slug":"fields-tool","kind":"own","name":"工具","developmentStatus":"可用","publishStatus":"draft"}`)
 	for name, test := range map[string]struct{ resource, id, body string }{
-		"非白名单字段":   {"posts", postID, `{"title":"改名"}`},
-		"非法发布状态":   {"posts", postID, `{"publishStatus":"bogus"}`},
+		"非白名单字段":    {"posts", postID, `{"title":"改名"}`},
+		"非法发布状态":    {"posts", postID, `{"publishStatus":"bogus"}`},
 		"置顶只支持文章日记": {"tools", toolID, `{"pinned":true}`},
 		"分类不走快捷接口":  {"categories", "cat-1", `{"publishStatus":"published"}`},
 	} {
@@ -609,10 +609,10 @@ func TestToolValidationCodes(t *testing.T) {
 		body string
 		code int
 	}{
-		"外链缺地址":    {`{"slug":"t-link","kind":"link","name":"外链","publishStatus":"draft"}`, 40003},
-		"外链不安全协议":  {`{"slug":"t-js","kind":"link","name":"外链","url":"javascript:alert(1)","publishStatus":"draft"}`, 40003},
-		"自研缺开发状态":  {`{"slug":"t-own","kind":"own","name":"自研","publishStatus":"draft"}`, 40004},
-		"非法 kind":   {`{"slug":"t-bad","kind":"other","name":"X","publishStatus":"draft"}`, 40001},
+		"外链缺地址":   {`{"slug":"t-link","kind":"link","name":"外链","publishStatus":"draft"}`, 40003},
+		"外链不安全协议": {`{"slug":"t-js","kind":"link","name":"外链","url":"javascript:alert(1)","publishStatus":"draft"}`, 40003},
+		"自研缺开发状态": {`{"slug":"t-own","kind":"own","name":"自研","publishStatus":"draft"}`, 40004},
+		"非法 kind": {`{"slug":"t-bad","kind":"other","name":"X","publishStatus":"draft"}`, 40001},
 	}
 	for name, test := range tests {
 		status, env := s.do(http.MethodPost, "/api/blog-mgr/tools", test.body)
@@ -668,7 +668,8 @@ func TestStatsContract(t *testing.T) {
 	if total, _ := diaries["total"].(float64); int(total) != 1 {
 		t.Fatalf("diaries.total = %v，想要 1", diaries["total"])
 	}
-	if categories, _ := stats["categories"].(float64); int(categories) != 1 {
-		t.Fatalf("categories = %v，想要 1", stats["categories"])
+	// 显式创建 1 个分类 + 未指定分类的文章自动落到「默认分类」，故这里的分类总数应为 2
+	if categories, _ := stats["categories"].(float64); int(categories) != 2 {
+		t.Fatalf("categories = %v，想要 2（默认分类 + 显式分类）", stats["categories"])
 	}
 }

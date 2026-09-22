@@ -47,6 +47,10 @@ func RegisterService(group *gin.RouterGroup, manager api.Manager) {
 	group.GET("/backups/token", backupAPI.GetBackupToken)
 	group.PUT("/backups/token", backupAPI.PutBackupToken)
 
+	publishAPI := userapi.NewPublishApi()
+	group.GET("/publish/token", publishAPI.GetToken)
+	group.PUT("/publish/token", publishAPI.PutToken)
+
 	mediaAPI := userapi.NewMediaApi()
 	group.GET("/medias", mediaAPI.List)
 	group.GET("/medias/:name/references", mediaAPI.References)

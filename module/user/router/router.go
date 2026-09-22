@@ -8,6 +8,7 @@ import (
 
 	"fastduck/treasure-doc/module/user/api"
 	"fastduck/treasure-doc/module/user/config"
+	"fastduck/treasure-doc/module/user/global"
 	"fastduck/treasure-doc/module/user/router/middleware"
 
 	blogrouter "fastduck/treasure-doc/module/blog/router"
@@ -47,6 +48,7 @@ func InitRouter(r *gin.Engine) {
 		middleware.RateLimit([]middleware.RateRule{
 			{Prefix: "/api/user/login", Rate: 0.1, Burst: 5},
 			{Prefix: "/api/blog-mgr/uploads/", Rate: 0.5, Burst: 20},
+			{Prefix: "/api/publish", Rate: 0.2, Burst: 20},
 		}),
 	)
 
@@ -107,8 +109,19 @@ func registerAPI(r *gin.Engine) {
 	blogMgr.Use(middleware.Auth(), middleware.RequireAdmin())
 	blogmgrrouter.Register(blogMgr)
 
+	var backupAllowIPs, publishAllowIPs []string
+	if cfg := global.GetConf(); cfg != nil {
+		backupAllowIPs = cfg.Backup.AllowIPs
+		publishAllowIPs = cfg.Publish.AllowIPs
+	}
+
 	// NAS 机器令牌下载完整备份（免登录），仅只读导出，不走管理端鉴权链。
-	apiBase.GET("/backup/export", middleware.BackupToken(), api.NewBackupApi().NasExportArchive)
+	apiBase.GET("/backup/export", middleware.IPWhitelist(backupAllowIPs), middleware.BackupToken(), api.NewBackupApi().NasExportArchive)
+
+	// 机器令牌发布接口：免登录、用 X-Publish-Token，创建即发布；可叠加 IP 白名单。
+	publish := apiBase.Group("publish")
+	publish.Use(middleware.IPWhitelist(publishAllowIPs), middleware.RequirePublishToken())
+	blogmgrrouter.RegisterPublish(publish)
 
 	userAPI := api.NewUserApi()
 	user := apiBase.Group("user")

@@ -10,7 +10,10 @@ import (
 )
 
 // 系统级设置键名。
-const SystemSettingBackupTokenKey = "backup.apiToken"
+const (
+	SystemSettingBackupTokenKey  = "backup.apiToken"
+	SystemSettingPublishTokenKey = "publish.apiToken"
+)
 
 // GetSystemSetting 读取系统设置，存在返回 (value, true)。数据表未迁移/查询失败时返回错误。
 func GetSystemSetting(key string) (string, bool, error) {
@@ -59,4 +62,14 @@ func EffectiveBackupApiToken() string {
 		return strings.TrimSpace(cfg.Backup.ApiToken)
 	}
 	return ""
+}
+
+// EffectivePublishApiToken 返回当前生效的内容发布令牌（存于 DB，后台可视化管理）。
+// 空值表示发布接口关闭。
+func EffectivePublishApiToken() string {
+	value, _, err := GetSystemSetting(SystemSettingPublishTokenKey)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(value)
 }

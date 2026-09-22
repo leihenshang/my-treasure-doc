@@ -19,6 +19,7 @@ type Config struct {
 	BlogSeed BlogSeed
 	Captcha  Captcha
 	Backup   Backup
+	Publish  Publish
 }
 
 // applyConfigDefaults 设置配置文件可省略项的默认值。
@@ -33,6 +34,9 @@ func applyConfigDefaults(v *viper.Viper) {
 	v.SetDefault("backup.keepDays", 7)
 	v.SetDefault("backup.autoPack", false)
 	v.SetDefault("backup.apiToken", "")
+	v.SetDefault("backup.allowIPs", []string{})
+	v.SetDefault("publish.allowIPs", []string{})
+	v.SetDefault("app.trustedProxies", []string{})
 }
 
 var globalConfig *Config

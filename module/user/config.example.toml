@@ -3,6 +3,9 @@ host = "localhost"
 port = 2026
 name = "my_treasure_doc"
 runMode = "release"      # dev-开发模式 release-生产模式
+# trustedProxies：信任的反代 IP/CIDR 列表（nginx 等）。命中时才采信 X-Forwarded-For，
+# 使 IP 白名单 / 限流拿到真实客户端 IP。空 = 不信任反代头。
+trustedProxies = []
 # 跨域（CORS）已由前置反向代理（如 nginx）统一处理，Go 侧不再设置任何 Access-Control-* 头。
 # 反代需按白名单精确匹配前端 Origin，并在命中时才返回 Allow-Origin 与 Allow-Credentials。
 
@@ -30,6 +33,9 @@ autoPack = false
 # apiToken：NAS 免登录拉取完整备份的机器令牌（配在 /api/backup/export 的 X-Backup-Token 请求头）。
 # 仅开放「导出」，不提供导入/删除；留空表示禁用 NAS 导出接口。
 apiToken = ""
+# allowIPs：允许调用备份接口（/api/backup/export）的客户端 IP 白名单（精确 IP 或 CIDR）。
+# 空 = 不限来源（仅靠 ApiToken 鉴权）；例如限定 NAS 网段：allowIPs = ["192.168.1.0/24"]
+allowIPs = []
 
 [log]
 directory = "log"
@@ -56,3 +62,8 @@ enabled = true
 enabled = false
 allowRemote = false
 restoreDeleted = false
+
+[publish]
+# allowIPs：允许调用内容发布接口（/api/publish/*）的客户端 IP 白名单（精确 IP 或 CIDR）。
+# 空 = 不限来源（仅靠发布令牌鉴权）；例如只让本机/NAS 调用：allowIPs = ["127.0.0.1", "192.168.1.0/24"]
+allowIPs = []

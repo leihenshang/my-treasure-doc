@@ -35,4 +35,14 @@ type Backup struct {
 	// ApiToken NAS 机器令牌：供定时任务免登录调用 /api/backup/export 拉取完整备份。
 	// 仅开放「导出」权限，不参与导入/删除；留空表示禁用 NAS 导出接口。
 	ApiToken string ``
+	// AllowIPs 允许访问备份接口的客户端 IP 白名单（支持精确 IP 与 CIDR，如 192.168.1.0/24）。
+	// 为空表示不限制来源（靠 ApiToken 鉴权）。
+	AllowIPs []string ``
+}
+
+// Publish 控制内容发布接口（/api/publish/*）的访问约束。
+type Publish struct {
+	// AllowIPs 允许调用发布接口的客户端 IP 白名单（精确 IP 或 CIDR）。
+	// 为空表示不限制来源（靠发布令牌鉴权）。发布令牌本身在 DB 中通过后台配置。
+	AllowIPs []string ``
 }

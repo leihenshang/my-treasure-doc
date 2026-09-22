@@ -195,6 +195,9 @@ func (s *Service) Create(ctx context.Context, resource string, payload interface
 		if err := validateReferences(tx, resource, item, tagIDs); err != nil {
 			return err
 		}
+		if err := resolveIdentifier(tx, resource, "", item, true); err != nil {
+			return err
+		}
 		if err := tx.Create(item).Error; err != nil {
 			return mapDBError(err)
 		}
@@ -224,6 +227,9 @@ func (s *Service) Update(ctx context.Context, resource, id string, payload inter
 		}
 		item, tagIDs, relation, err := buildModel(resource, payload)
 		if err != nil {
+			return err
+		}
+		if err := resolveIdentifier(tx, resource, id, item, false); err != nil {
 			return err
 		}
 		if err := validateReferences(tx, resource, item, tagIDs); err != nil {
@@ -478,6 +484,12 @@ func ensureCategoriesUnreferenced(db *gorm.DB, ids []string) error {
 	if err := db.Where("id IN ?", ids).Find(&categories).Error; err != nil {
 		return err
 	}
+	// 默认分类不可删除：无论是否被引用都拒绝
+	for _, category := range categories {
+		if category.Slug == defaultCategorySlug {
+			return ErrConflict
+		}
+	}
 	tables := map[string]string{
 		blogmodel.CategoryPost:      "td_blog_post",
 		blogmodel.CategoryPortfolio: "td_blog_portfolio_item",
@@ -536,7 +548,7 @@ func mapDBError(err error) error {
 	if err == nil {
 		return nil
 	}
-	if strings.Contains(err.Error(), "SQLSTATE 23505") || strings.Contains(strings.ToLower(err.Error()), "duplicate key") {
+	if strings.Contains(err.Error(), "SQLSTATE 23505") || strings.Contains(strings.ToLower(err.Error()), "duplicate key") || strings.Contains(strings.ToLower(err.Error()), "unique constraint failed") {
 		return ErrConflict
 	}
 	return err
@@ -623,7 +635,13 @@ func validateReferences(tx *gorm.DB, resource string, item interface{}, tagIDs [
 	case *blogmodel.Bookmark:
 		scope, category = blogmodel.CategoryBookmark, value.CategoryID
 	}
-	if category != "" {
+	if category == "" && scope != "" {
+		// 未指定分类：自动落到该 scope 的默认分类（不存在则创建），保证内容始终有归属
+		if err := ensureDefaultCategory(tx, scope); err != nil {
+			return err
+		}
+		assignDefaultCategory(item)
+	} else if category != "" {
 		var count int64
 		if err := tx.Model(&blogmodel.Category{}).Where("scope = ? AND slug = ?", scope, category).Count(&count).Error; err != nil {
 			return err
@@ -643,6 +661,132 @@ func validateReferences(tx *gorm.DB, resource string, item interface{}, tagIDs [
 	}
 	_ = resource
 	return nil
+}
+
+// defaultCategorySlug / defaultCategoryName 各 scope 的默认（未分类）分类，保留名、不可删除。
+const (
+	defaultCategoryName = "默认分类"
+	defaultCategorySlug = "uncategorized"
+)
+
+// assignDefaultCategory 把内容的分类落到该 scope 的默认分类。
+func assignDefaultCategory(item interface{}) {
+	switch value := item.(type) {
+	case *blogmodel.Post:
+		value.CategoryID = defaultCategorySlug
+	case *blogmodel.PortfolioItem:
+		value.CategoryID = defaultCategorySlug
+	case *blogmodel.Bookmark:
+		value.CategoryID = defaultCategorySlug
+	}
+}
+
+// ensureDefaultCategory 确保该 scope 的默认分类存在；并发重复创建时容忍唯一冲突。
+func ensureDefaultCategory(tx *gorm.DB, scope string) error {
+	var count int64
+	if err := tx.Model(&blogmodel.Category{}).Where("scope = ? AND slug = ?", scope, defaultCategorySlug).Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+	cat := blogmodel.Category{Scope: scope, Slug: defaultCategorySlug, Name: defaultCategoryName, SortOrder: 9999, Enabled: true}
+	if err := tx.Create(&cat).Error; err != nil {
+		// 并发下已由其他请求创建，视为成功
+		var again int64
+		if qerr := tx.Model(&blogmodel.Category{}).Where("scope = ? AND slug = ?", scope, defaultCategorySlug).Count(&again).Error; qerr != nil {
+			return qerr
+		}
+		if again > 0 {
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
+// resolveIdentifier 为 posts 的 slug / diaries 的 publicId 保证非空：
+// 创建时为空 → 按标题自动生成唯一标识；更新时为空 → 沿用既有记录的值，避免改写公开 URL。
+func resolveIdentifier(tx *gorm.DB, resource, id string, item interface{}, create bool) error {
+	var exists bool
+	switch v := item.(type) {
+	case *blogmodel.Post:
+		exists = v.Slug != ""
+	case *blogmodel.Diary:
+		exists = v.PublicID != ""
+	default:
+		return nil
+	}
+	if exists {
+		return nil
+	}
+
+	var table, field, label, title string
+	switch v := item.(type) {
+	case *blogmodel.Post:
+		table, field, label, title = "td_blog_post", "slug", "post", v.Title
+	case *blogmodel.Diary:
+		table, field, label, title = "td_blog_diary", "public_id", "diary", v.Title
+	}
+
+	if !create {
+		// 更新：沿用现有值，避免 URL 变化
+		var existing string
+		if err := tx.Table(table).Where("id = ?", id).Pluck(field, &existing).Error; err != nil {
+			return err
+		}
+		if existing != "" {
+			setIdentifier(item, existing)
+		}
+		return nil
+	}
+
+	// 创建：按标题生成，冲突时追加 -2 / -3 …
+	base := slugify(title)
+	if base == "" {
+		base = label
+	}
+	candidate := base
+	for suffix := 2; ; suffix++ {
+		var count int64
+		if err := tx.Table(table).Where(field+" = ? AND deleted_at IS NULL", candidate).Count(&count).Error; err != nil {
+			return err
+		}
+		if count == 0 {
+			break
+		}
+		candidate = fmt.Sprintf("%s-%d", base, suffix)
+	}
+	setIdentifier(item, candidate)
+	return nil
+}
+
+// setIdentifier 写回生成的 slug / publicId 到模型。
+func setIdentifier(item interface{}, value string) {
+	switch v := item.(type) {
+	case *blogmodel.Post:
+		v.Slug = value
+	case *blogmodel.Diary:
+		v.PublicID = value
+	}
+}
+
+// slugify 把标题转成 URL 友好的标识：保留字母/数字/中文，其余转连字符并折叠。
+func slugify(s string) string {
+	b := strings.Builder{}
+	prevDash := false
+	for _, r := range strings.ToLower(strings.TrimSpace(s)) {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || (r >= '\u4e00' && r <= '\u9fff') {
+			b.WriteRune(r)
+			prevDash = false
+			continue
+		}
+		if !prevDash && b.Len() > 0 {
+			b.WriteByte('-')
+			prevDash = true
+		}
+	}
+	return strings.Trim(b.String(), "-")
 }
 
 func buildModel(resource string, payload interface{}) (interface{}, []string, string, error) {
@@ -669,7 +813,7 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		}
 		return &blogmodel.Tag{Name: name, NormalizedName: strings.ToLower(name)}, nil, "", nil
 	case request.Post:
-		if !request.ValidID(value.Slug) {
+		if value.Slug != "" && !request.ValidID(value.Slug) {
 			return nil, nil, "", request.Field("slug", "Slug 不能为空，且长度不超过 128")
 		}
 		if strings.TrimSpace(value.Title) == "" {
@@ -688,7 +832,7 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		}
 		return &blogmodel.Post{Slug: value.Slug, Title: value.Title, Summary: value.Summary, CategoryID: value.CategoryID, Author: value.Author, Content: value.Content, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Pinned: value.Pinned, Version: max(value.Version, 1)}, ids, "td_blog_post_tag", nil
 	case request.Diary:
-		if !request.ValidID(value.PublicID) {
+		if value.PublicID != "" && !request.ValidID(value.PublicID) {
 			return nil, nil, "", request.Field("publicId", "公开 ID 不能为空，且长度不超过 128")
 		}
 		if strings.TrimSpace(value.Title) == "" {

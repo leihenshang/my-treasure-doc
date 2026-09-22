@@ -112,6 +112,50 @@ func (h *Handler) Create(resource string) gin.HandlerFunc {
 	}
 }
 
+// RegisterPublishRoutes 注册机器令牌发布接口（/api/publish/?:resource）：
+// 免管理员 X-Token、改用 X-Publish-Token 鉴权，创建即发布（强制 publishStatus=published）。
+// 仅开放内容资源（文章/日记/作品/利器/收藏集），分类/标签不可发布。
+func RegisterPublishRoutes(group *gin.RouterGroup, manager Manager) {
+	handler := New(manager)
+	for _, resource := range []string{"posts", "diaries", "portfolio-items", "tools", "bookmarks"} {
+		group.POST("/"+resource, handler.PublishCreate(resource))
+	}
+}
+
+// PublishCreate 发布接口的创建处理：绑定后强制发布，再走与后台一致的创建链路。
+func (h *Handler) PublishCreate(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		payload, ok := bindResource(c, resource)
+		if !ok {
+			return
+		}
+		data, err := h.service.Create(c.Request.Context(), resource, forcePublishStatus(payload))
+		h.write(c, data, err, true)
+	}
+}
+
+// forcePublishStatus 把待发布内容的 publishStatus 强制为 published（发布接口语义），返回改写后的入参。
+func forcePublishStatus(payload interface{}) interface{} {
+	switch value := payload.(type) {
+	case request.Post:
+		value.PublishStatus = "published"
+		return value
+	case request.Diary:
+		value.PublishStatus = "published"
+		return value
+	case request.Portfolio:
+		value.PublishStatus = "published"
+		return value
+	case request.Tool:
+		value.PublishStatus = "published"
+		return value
+	case request.Bookmark:
+		value.PublishStatus = "published"
+		return value
+	}
+	return payload
+}
+
 func (h *Handler) Update(resource string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, ok := pathID(c)
