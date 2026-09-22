@@ -43,6 +43,10 @@ func main() {
 	}
 
 	r := gin.New()
+	// 信任代理配置：仅在反代 IP 命中时可采信 X-Forwarded-For（影响 ClientIP → IP 白名单/限流）。
+	if err := r.SetTrustedProxies(global.GetConf().App.TrustedProxies); err != nil {
+		global.Log.Warn("invalid trusted proxies", "err", err)
+	}
 	//记录全部的访问日志
 	//把gin致命错误写入日志
 	r.Use(ginzap.Ginzap(global.Zap, time.RFC3339, true)).Use(ginzap.RecoveryWithZap(global.Zap, true))
