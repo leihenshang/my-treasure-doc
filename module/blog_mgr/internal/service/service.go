@@ -210,7 +210,7 @@ func (s *Service) Create(ctx context.Context, resource string, payload interface
 		if err != nil {
 			return err
 		}
-		return nil
+		return recordEditHistory(tx, resource, result)
 	})
 	return result, err
 }
@@ -267,7 +267,10 @@ func (s *Service) Update(ctx context.Context, resource, id string, payload inter
 			return err
 		}
 		result, err = enrichItemWithTags(tx, resource, loaded)
-		return err
+		if err != nil {
+			return err
+		}
+		return recordEditHistory(tx, resource, result)
 	})
 	return result, err
 }

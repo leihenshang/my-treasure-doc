@@ -198,13 +198,13 @@ func (*Profile) TableName() string { return "td_blog_profile" }
 
 type Site struct {
 	BaseModel
-	SiteKey    string `gorm:"column:site_key;type:varchar(50);not null;uniqueIndex"`
-	Name       string `gorm:"column:name;type:varchar(100);not null"`
-	Slogan     string `gorm:"column:slogan;type:varchar(200);not null"`
-	Intro      string `gorm:"column:intro;type:text;not null"`
-	TechStack  JSON   `gorm:"column:tech_stack;not null;default:'[]'"`
-	Modules    JSON   `gorm:"column:modules;not null;default:'[]'"`
-	Milestones JSON   `gorm:"column:milestones;not null;default:'[]'"`
+	SiteKey         string `gorm:"column:site_key;type:varchar(50);not null;uniqueIndex"`
+	Name            string `gorm:"column:name;type:varchar(100);not null"`
+	Slogan          string `gorm:"column:slogan;type:varchar(200);not null"`
+	Intro           string `gorm:"column:intro;type:text;not null"`
+	TechStack       JSON   `gorm:"column:tech_stack;not null;default:'[]'"`
+	Modules         JSON   `gorm:"column:modules;not null;default:'[]'"`
+	Milestones      JSON   `gorm:"column:milestones;not null;default:'[]'"`
 	Home            JSON   `gorm:"column:home;not null;default:'{}'"`
 	Footer          JSON   `gorm:"column:footer;not null;default:'{}'"`
 	Banner          JSON   `gorm:"column:banner;not null;default:'{}'"`
@@ -213,10 +213,25 @@ type Site struct {
 
 func (*Site) TableName() string { return "td_blog_site" }
 
+// EditHistory 文章/日记的编辑历史：每次保存记录一条完整快照，支持查看与恢复。
+// 每个 ref（resource+ref_id）保留最近 maxEditHistory 条。
+type EditHistory struct {
+	BaseModel
+	Resource string `gorm:"column:resource;type:varchar(20);not null;index:idx_edit_history_ref"`
+	RefID    string `gorm:"column:ref_id;type:varchar(100);not null;index:idx_edit_history_ref"`
+	Seq      int    `gorm:"column:seq;not null"`
+	Version  int    `gorm:"column:version;not null;default:0"`
+	Summary  string `gorm:"column:summary;type:varchar(200);not null;default:''"`
+	// Snapshot 完整实体快照（含 categoryID/tagIds 等，与详情返回一致）。
+	Snapshot JSON `gorm:"column:snapshot;not null"`
+}
+
+func (*EditHistory) TableName() string { return "td_edit_history" }
+
 func Tables() []interface{} {
 	return []interface{}{
 		&Category{}, &Tag{}, &Post{}, &PostTag{}, &Diary{}, &DiaryTag{},
 		&PortfolioItem{}, &Tool{}, &Bookmark{}, &BookmarkTag{}, &Profile{}, &Site{},
-		&Media{}, &VisitorLog{},
+		&Media{}, &VisitorLog{}, &EditHistory{},
 	}
 }

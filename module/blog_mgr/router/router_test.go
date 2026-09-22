@@ -49,6 +49,27 @@ func (fakeManager) Stats(context.Context) (mgrresponse.Stats, error) {
 func (fakeManager) VisitorStats(context.Context, int) (mgrresponse.VisitorStats, error) {
 	return mgrresponse.VisitorStats{}, nil
 }
+func (fakeManager) ListCategoriesForPublish(context.Context, string) ([]service.PublishCategory, error) {
+	return []service.PublishCategory{}, nil
+}
+func (fakeManager) ListTagsForPublish(context.Context) ([]service.PublishTag, error) {
+	return []service.PublishTag{}, nil
+}
+func (fakeManager) PublishLookup(context.Context, string, string) (service.PublishStatus, error) {
+	return service.PublishStatus{}, nil
+}
+func (fakeManager) PublishUpdate(context.Context, string, string, interface{}) (interface{}, error) {
+	return map[string]interface{}{}, nil
+}
+func (fakeManager) ListEditHistory(context.Context, string, string) ([]service.EditHistoryMeta, error) {
+	return []service.EditHistoryMeta{}, nil
+}
+func (fakeManager) GetEditHistory(context.Context, string, string, int) (service.EditHistoryDetail, error) {
+	return service.EditHistoryDetail{}, nil
+}
+func (fakeManager) RestoreEditHistory(context.Context, string, string, int) (interface{}, error) {
+	return map[string]interface{}{}, nil
+}
 
 func TestManagementRoutes(t *testing.T) {
 	gin.SetMode(gin.TestMode)

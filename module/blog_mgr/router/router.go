@@ -56,4 +56,9 @@ func RegisterService(group *gin.RouterGroup, manager api.Manager) {
 	group.GET("/medias/:name/references", mediaAPI.References)
 	group.POST("/medias/batch-delete", mediaAPI.DeleteMany)
 	group.DELETE("/medias/:name", mediaAPI.Delete)
+
+	// 文章/日记编辑历史：列表 / 单版本 / 恢复
+	group.GET("/history/:resource/:id", handler.HistoryList())
+	group.GET("/history/:resource/:id/:seq", handler.HistoryDetail())
+	group.POST("/history/:resource/:id/:seq/restore", handler.HistoryRestore())
 }

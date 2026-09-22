@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	blogresponse "fastduck/treasure-doc/module/blog/data/response"
 	"fastduck/treasure-doc/module/blog_mgr/data/request"
@@ -39,6 +40,15 @@ type Manager interface {
 	PutSetting(context.Context, string, interface{}) (interface{}, error)
 	Stats(context.Context) (response.Stats, error)
 	VisitorStats(context.Context, int) (response.VisitorStats, error)
+	// 发布端（令牌）只读/覆盖
+	ListCategoriesForPublish(context.Context, string) ([]service.PublishCategory, error)
+	ListTagsForPublish(context.Context) ([]service.PublishTag, error)
+	PublishLookup(context.Context, string, string) (service.PublishStatus, error)
+	PublishUpdate(context.Context, string, string, interface{}) (interface{}, error)
+	// 编辑历史
+	ListEditHistory(context.Context, string, string) ([]service.EditHistoryMeta, error)
+	GetEditHistory(context.Context, string, string, int) (service.EditHistoryDetail, error)
+	RestoreEditHistory(context.Context, string, string, int) (interface{}, error)
 }
 
 // 资源标识与请求体类型集中定义，供路由注册与请求解析共用。
@@ -112,13 +122,96 @@ func (h *Handler) Create(resource string) gin.HandlerFunc {
 	}
 }
 
-// RegisterPublishRoutes 注册机器令牌发布接口（/api/publish/?:resource）：
+// RegisterPublishRoutes 注册机器令牌发布接口（/api/publish/…）：
 // 免管理员 X-Token、改用 X-Publish-Token 鉴权，创建即发布（强制 publishStatus=published）。
-// 仅开放内容资源（文章/日记/作品/利器/收藏集），分类/标签不可发布。
+// 覆盖：发布创建、分类/标签列表、发布状态查询、按 slug 强制覆盖（仅 posts/diaries）。
 func RegisterPublishRoutes(group *gin.RouterGroup, manager Manager) {
 	handler := New(manager)
 	for _, resource := range []string{"posts", "diaries", "portfolio-items", "tools", "bookmarks"} {
 		group.POST("/"+resource, handler.PublishCreate(resource))
+	}
+	// 发布端元数据：插件据此渲染分类/标签下拉
+	group.GET("/categories", handler.PublishCategories())
+	group.GET("/tags", handler.PublishTags())
+	// 发布状态查询 + 强制覆盖（仅文章/日记）
+	for _, resource := range []string{"posts", "diaries"} {
+		group.GET("/"+resource+"/by-slug/:slug", handler.PublishLookup(resource))
+		group.PUT("/"+resource+"/:slug", handler.PublishForceUpdate(resource))
+	}
+}
+
+// PublishCategories 发布端可选分类列表（?scope= 可选）。
+func (h *Handler) PublishCategories() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		scope := strings.TrimSpace(c.Query("scope"))
+		if scope != "" && !request.ValidScope(scope) {
+			badRequest(c)
+			return
+		}
+		data, err := h.service.ListCategoriesForPublish(c.Request.Context(), scope)
+		h.write(c, data, err, false)
+	}
+}
+
+// PublishTags 发布端可选标签列表。
+func (h *Handler) PublishTags() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		data, err := h.service.ListTagsForPublish(c.Request.Context())
+		h.write(c, data, err, false)
+	}
+}
+
+// PublishLookup 查询某文章/日记是否已发布（按 slug）。
+func (h *Handler) PublishLookup(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		data, err := h.service.PublishLookup(c.Request.Context(), resource, c.Param("slug"))
+		h.write(c, data, err, false)
+	}
+}
+
+// PublishForceUpdate 按 slug 强制覆盖文章/日记并发布。
+func (h *Handler) PublishForceUpdate(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		payload, ok := bindResource(c, resource)
+		if !ok {
+			return
+		}
+		data, err := h.service.PublishUpdate(c.Request.Context(), resource, c.Param("slug"), forcePublishStatus(payload))
+		h.write(c, data, err, false)
+	}
+}
+
+// HistoryList 某文章/日记的编辑历史列表。
+func (h *Handler) HistoryList() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		data, err := h.service.ListEditHistory(c.Request.Context(), c.Param("resource"), c.Param("id"))
+		h.write(c, data, err, false)
+	}
+}
+
+// HistoryDetail 某历史版本的完整快照。
+func (h *Handler) HistoryDetail() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		seq, err := strconv.Atoi(c.Param("seq"))
+		if err != nil {
+			badRequest(c)
+			return
+		}
+		data, err := h.service.GetEditHistory(c.Request.Context(), c.Param("resource"), c.Param("id"), seq)
+		h.write(c, data, err, false)
+	}
+}
+
+// HistoryRestore 恢复某历史版本为当前内容。
+func (h *Handler) HistoryRestore() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		seq, err := strconv.Atoi(c.Param("seq"))
+		if err != nil {
+			badRequest(c)
+			return
+		}
+		data, err := h.service.RestoreEditHistory(c.Request.Context(), c.Param("resource"), c.Param("id"), seq)
+		h.write(c, data, err, false)
 	}
 }
 
