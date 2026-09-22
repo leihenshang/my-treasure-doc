@@ -833,7 +833,7 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		if err2 != nil {
 			return nil, nil, "", request.Field("tagIds", "标签 ID 不合法")
 		}
-		return &blogmodel.Post{Slug: value.Slug, Title: value.Title, Summary: value.Summary, CategoryID: value.CategoryID, Author: value.Author, Content: value.Content, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Pinned: value.Pinned, Version: max(value.Version, 1)}, ids, "td_blog_post_tag", nil
+		return &blogmodel.Post{Slug: value.Slug, Title: value.Title, Summary: value.Summary, CategoryID: value.CategoryID, Author: value.Author, Content: value.Content, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Pinned: value.Pinned, Version: max(value.Version, 1), PublishSource: value.PublishSource, SourceID: value.SourceID}, ids, "td_blog_post_tag", nil
 	case request.Diary:
 		if value.PublicID != "" && !request.ValidID(value.PublicID) {
 			return nil, nil, "", request.Field("publicId", "公开 ID 不能为空，且长度不超过 128")
@@ -852,7 +852,7 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		if err2 != nil {
 			return nil, nil, "", request.Field("tagIds", "标签 ID 不合法")
 		}
-		return &blogmodel.Diary{PublicID: value.PublicID, Title: value.Title, Summary: value.Summary, Content: value.Content, Mood: value.Mood, Weather: value.Weather, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Pinned: value.Pinned, Version: max(value.Version, 1)}, ids, "td_blog_diary_tag", nil
+		return &blogmodel.Diary{PublicID: value.PublicID, Title: value.Title, Summary: value.Summary, Content: value.Content, Mood: value.Mood, Weather: value.Weather, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Pinned: value.Pinned, Version: max(value.Version, 1), PublishSource: value.PublishSource, SourceID: value.SourceID}, ids, "td_blog_diary_tag", nil
 	case request.Portfolio:
 		if !request.ValidID(value.Slug) {
 			return nil, nil, "", request.Field("slug", "Slug 不能为空，且长度不超过 128")
@@ -940,9 +940,9 @@ func updateMap(item interface{}) map[string]interface{} {
 	case *blogmodel.Tag:
 		return map[string]interface{}{"name": value.Name, "normalized_name": value.NormalizedName}
 	case *blogmodel.Post:
-		return map[string]interface{}{"slug": value.Slug, "title": value.Title, "summary": value.Summary, "category_id": value.CategoryID, "author": value.Author, "content": value.Content, "publish_status": value.PublishStatus, "published_on": value.PublishedOn, "published_at": value.PublishedAt, "pinned": value.Pinned}
+		return map[string]interface{}{"slug": value.Slug, "title": value.Title, "summary": value.Summary, "category_id": value.CategoryID, "author": value.Author, "content": value.Content, "publish_status": value.PublishStatus, "published_on": value.PublishedOn, "published_at": value.PublishedAt, "pinned": value.Pinned, "publish_source": value.PublishSource, "source_id": value.SourceID}
 	case *blogmodel.Diary:
-		return map[string]interface{}{"public_id": value.PublicID, "title": value.Title, "summary": value.Summary, "content": value.Content, "mood": value.Mood, "weather": value.Weather, "publish_status": value.PublishStatus, "published_on": value.PublishedOn, "published_at": value.PublishedAt, "pinned": value.Pinned}
+		return map[string]interface{}{"public_id": value.PublicID, "title": value.Title, "summary": value.Summary, "content": value.Content, "mood": value.Mood, "weather": value.Weather, "publish_status": value.PublishStatus, "published_on": value.PublishedOn, "published_at": value.PublishedAt, "pinned": value.Pinned, "publish_source": value.PublishSource, "source_id": value.SourceID}
 	case *blogmodel.PortfolioItem:
 		return map[string]interface{}{"slug": value.Slug, "title": value.Title, "summary": value.Summary, "category_id": value.CategoryID, "cover": value.Cover, "tech_stack": value.TechStack, "links": value.Links, "gallery": value.Gallery, "metrics": value.Metrics, "demo_url": value.DemoURL, "repo_url": value.RepoURL, "status": value.Status, "role": value.Role, "content": value.Content, "publish_status": value.PublishStatus, "published_on": value.PublishedOn, "published_at": value.PublishedAt}
 	case *blogmodel.Tool:

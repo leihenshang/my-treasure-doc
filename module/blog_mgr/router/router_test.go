@@ -58,7 +58,7 @@ func (fakeManager) ListTagsForPublish(context.Context) ([]service.PublishTag, er
 func (fakeManager) PublishLookup(context.Context, string, string) (service.PublishStatus, error) {
 	return service.PublishStatus{}, nil
 }
-func (fakeManager) PublishCheck(context.Context, string, string) (service.PublishStatus, error) {
+func (fakeManager) PublishResolve(context.Context, string, string, string) (service.PublishStatus, error) {
 	return service.PublishStatus{}, nil
 }
 func (fakeManager) PublishUpdate(context.Context, string, string, interface{}) (interface{}, error) {

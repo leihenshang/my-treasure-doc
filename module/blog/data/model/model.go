@@ -76,6 +76,9 @@ type Post struct {
 	Pinned        bool      `gorm:"column:pinned;not null;default:false;index:idx_blog_post_public,priority:2"`
 	ViewCount     int64     `gorm:"column:view_count;not null;default:0"`
 	Version       int       `gorm:"column:version;not null;default:1"`
+	// 发布来源（default/siyuan…可扩展）：source_id 在该来源内的稳定标识，用于覆盖更新精确定位
+	PublishSource string `gorm:"column:publish_source;type:varchar(32);not null;default:'default';index:idx_blog_post_source"`
+	SourceID      string `gorm:"column:source_id;type:varchar(128);not null;default:'';index:idx_blog_post_source"`
 }
 
 func (*Post) TableName() string { return "td_blog_post" }
@@ -102,6 +105,9 @@ type Diary struct {
 	Pinned        bool      `gorm:"column:pinned;not null;default:false;index:idx_blog_diary_public,priority:2"`
 	ViewCount     int64     `gorm:"column:view_count;not null;default:0"`
 	Version       int       `gorm:"column:version;not null;default:1"`
+	// 发布来源（default/siyuan…可扩展）：source_id 在该来源内的稳定标识，用于覆盖更新精确定位
+	PublishSource string `gorm:"column:publish_source;type:varchar(32);not null;default:'default';index:idx_blog_diary_source"`
+	SourceID      string `gorm:"column:source_id;type:varchar(128);not null;default:'';index:idx_blog_diary_source"`
 }
 
 func (*Diary) TableName() string { return "td_blog_diary" }

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
+	"strings"
 
 	"fastduck/treasure-doc/module/blog/data/model"
 	"fastduck/treasure-doc/module/blog_mgr/data/request"
@@ -111,51 +111,46 @@ func (s *Service) PublishLookup(ctx context.Context, resource, slug string) (Pub
 	return status, nil
 }
 
-// PublishCheck 发布前校验：按标题推导 slug（含 -2/-3… 冲突后缀回查）判断该资源是否已发布，
-// 供插件在勾选「覆盖」前调用，无需插件本地缓存。已发布返回真实 slug；未发布返回生成的基础 slug。
-func (s *Service) PublishCheck(ctx context.Context, resource, title string) (PublishStatus, error) {
+// PublishResolve 覆盖更新前的定位：按「发布来源 + source_id」精确定位（思源端传 siyuan + 文档 id）。
+// 不提供来源信息或未命中 -> 返回 exists=false；不做按标题推导 slug 的猜测。
+func (s *Service) PublishResolve(ctx context.Context, resource, publishSource, sourceID string) (PublishStatus, error) {
 	status := PublishStatus{}
 	if !isPublishableContent(resource) {
 		return status, ErrInvalid
 	}
-	base := slugify(title)
-	if base == "" {
-		return status, ErrInvalid
+	source := strings.TrimSpace(publishSource)
+	sid := strings.TrimSpace(sourceID)
+	if source == "" || source == "default" || sid == "" {
+		return status, nil
 	}
 	db, err := s.database(ctx)
 	if err != nil {
 		return status, err
 	}
-	var table, field string
-	switch resource {
-	case "posts":
-		table, field = "td_blog_post", "slug"
-	case "diaries":
-		table, field = "td_blog_diary", "public_id"
+	table := "td_blog_post"
+	slugField := "slug"
+	if resource == "diaries" {
+		table = "td_blog_diary"
+		slugField = "public_id"
 	}
 	type row struct {
 		ID    string
 		Title string
+		Slug  string
 	}
 	var found row
-	for n := 0; n < 9; n++ {
-		candidate := base
-		if n > 0 {
-			candidate = fmt.Sprintf("%s-%d", base, n+1)
-		}
-		if err := db.Table(table).Where(field+" = ? AND deleted_at IS NULL", candidate).First(&found).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				continue
-			}
+	if err := db.Table(table).Select("id", "title", slugField+" as slug").
+		Where("publish_source = ? AND source_id = ? AND deleted_at IS NULL", source, sid).
+		First(&found).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return status, err
 		}
-		status.Exists = true
-		status.ID = found.ID
-		status.Title = found.Title
-		status.Slug = candidate
-		return status, nil
+		return status, nil // 未命中（含删除）→ 视为未发布
 	}
-	status.Slug = base
+	status.Exists = true
+	status.ID = found.ID
+	status.Title = found.Title
+	status.Slug = found.Slug
 	return status, nil
 }
 

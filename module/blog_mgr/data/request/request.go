@@ -108,6 +108,9 @@ type Post struct {
 	TagIDs        []string   `json:"tagIds"`
 	// Overwrite 仅发布端使用：true 时按标题推导 slug、服务端校验已发布后覆盖，否则新建。
 	Overwrite bool `json:"overwrite"`
+	// 发布来源 + 该来源内的稳定标识（思源端传 siyuan + 文档 id），用于覆盖更新精确定位
+	PublishSource string `json:"publishSource"`
+	SourceID      string `json:"sourceId"`
 }
 type Diary struct {
 	PublicID      string     `json:"publicId"`
@@ -124,6 +127,9 @@ type Diary struct {
 	TagIDs        []string   `json:"tagIds"`
 	// Overwrite 仅发布端使用：true 时按标题推导 slug、服务端校验已发布后覆盖，否则新建。
 	Overwrite bool `json:"overwrite"`
+	// 发布来源 + 该来源内的稳定标识（思源端传 siyuan + 文档 id），用于覆盖更新精确定位
+	PublishSource string `json:"publishSource"`
+	SourceID      string `json:"sourceId"`
 }
 type Portfolio struct {
 	Slug          string                       `json:"slug"`
