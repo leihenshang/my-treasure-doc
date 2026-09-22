@@ -64,7 +64,9 @@ do_start() {
     build
     echo "[start] 使用配置: $CONFIG"
     # 必须从 module/user 目录运行（配置 dsn/files 等用相对路径）
-    ( cd "$USER_DIR" && nohup "$ACT_BIN" -c "$CONFIG" >>"$LOG_FILE" 2>&1 & echo $! > "$PID_FILE" )
+    # 直接后台启动二进制并用 disown 脱离作业控制；不经过 nohup，避免某些
+    # nohup 实现把二进制 fork 成子进程，导致记录的 PID 不是真正监听端口的进程。
+    ( cd "$USER_DIR" || exit 1; "$ACT_BIN" -c "$CONFIG" >>"$LOG_FILE" 2>&1 & echo $! > "$PID_FILE"; disown )
     sleep 1
     if is_running; then
         echo "[start] 已启动，PID $(get_pid)"
