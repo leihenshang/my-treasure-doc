@@ -101,6 +101,11 @@ func InitModule(cfgPath string) (destructFunc func(), err error) {
 		destructFunc = nil
 		return
 	}
+	if err = SyncMediaCatalog(); err != nil {
+		destructFunc()
+		destructFunc = nil
+		return
+	}
 	return
 }
 

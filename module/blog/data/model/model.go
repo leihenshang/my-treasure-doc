@@ -217,6 +217,6 @@ func Tables() []interface{} {
 	return []interface{}{
 		&Category{}, &Tag{}, &Post{}, &PostTag{}, &Diary{}, &DiaryTag{},
 		&PortfolioItem{}, &Tool{}, &Bookmark{}, &BookmarkTag{}, &Profile{}, &Site{},
-		&VisitorLog{},
+		&Media{}, &VisitorLog{},
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 
 	"fastduck/treasure-doc/module/user/config"
 	"fastduck/treasure-doc/module/user/data/response"
+	"fastduck/treasure-doc/module/user/global"
 
 	"github.com/gin-gonic/gin"
 )
@@ -82,9 +84,18 @@ func mergeMediaExtensions(sources ...map[string]string) map[string]string {
 type blogMedia struct {
 	// Path 公开访问路径，例如 /files/blog/<sha256>.png
 	Path string
-	// Name 上传时的原始文件名，便于调用方展示
+	// Name 存储文件名 <sha256>.<ext>
 	Name string
+	// Size 文件字节数
 	Size int64
+	// Sha256 内容摘要（不含后缀）
+	Sha256 string
+	// Ext 存储后缀，含点，如 .png
+	Ext string
+	// Mime 内容嗅探得到的 MIME 类型
+	Mime string
+	// OriginName 上传时的原始文件名
+	OriginName string
 	// Existed 为 true 表示服务端已存在相同内容，未重复写入磁盘
 	Existed bool
 }
@@ -101,6 +112,7 @@ func UploadBlogImage(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
+	upsertSavedMediaMeta(media)
 	response.OkWithData(c, gin.H{"path": media.Path})
 }
 
@@ -132,6 +144,7 @@ func UploadBlogMedias(c *gin.Context) {
 			response.FailWithMessage(c, fmt.Sprintf("[%s]%s", file.Filename, err.Error()))
 			return
 		}
+		upsertSavedMediaMeta(media)
 		list = append(list, gin.H{
 			"path":    media.Path,
 			"name":    media.Name,
@@ -142,10 +155,17 @@ func UploadBlogMedias(c *gin.Context) {
 	response.OkWithData(c, gin.H{"list": list})
 }
 
+// upsertSavedMediaMeta 把保存成功的文件登记进媒体元数据表（尽力而为，失败不影响上传结果）。
+func upsertSavedMediaMeta(media blogMedia) {
+	if err := global.UpsertMediaMeta(media.Name, media.Sha256, media.Ext, media.Mime, media.OriginName, media.Size); err != nil {
+		log.Printf("upsert media meta failed: %v", err)
+	}
+}
+
 // saveBlogMedia 校验并保存单个上传文件。文件以内容 sha256 加后缀命名，
 // 因此相同内容重复上传时直接复用已有文件，不再写盘。
 func saveBlogMedia(file *multipart.FileHeader, allowed map[string]string, maxSize int64) (blogMedia, error) {
-	media := blogMedia{Name: file.Filename, Size: file.Size}
+	media := blogMedia{Name: file.Filename, Size: file.Size, OriginName: file.Filename}
 	if file.Size <= 0 {
 		return media, errors.New("文件内容为空")
 	}
@@ -159,7 +179,7 @@ func saveBlogMedia(file *multipart.FileHeader, allowed map[string]string, maxSiz
 	}
 	defer source.Close()
 
-	extension, err := detectMediaExtension(source, file.Filename, allowed)
+	extension, contentType, err := detectMediaExtension(source, file.Filename, allowed)
 	if err != nil {
 		return media, err
 	}
@@ -171,13 +191,18 @@ func saveBlogMedia(file *multipart.FileHeader, allowed map[string]string, maxSiz
 	if _, err = io.Copy(hasher, source); err != nil {
 		return media, errors.New("读取文件失败")
 	}
-	name := hex.EncodeToString(hasher.Sum(nil)) + extension
+	hexSum := hex.EncodeToString(hasher.Sum(nil))
+	name := hexSum + extension
 
 	directory := filepath.Join(config.FilesPath, "blog")
 	if err = os.MkdirAll(directory, 0o755); err != nil {
 		return media, errors.New("创建文件目录失败")
 	}
 	media.Path = "/files/blog/" + name
+	media.Name = name
+	media.Sha256 = hexSum
+	media.Ext = extension
+	media.Mime = contentType
 	target := filepath.Join(directory, name)
 	if info, statErr := os.Stat(target); statErr == nil && !info.IsDir() {
 		media.Existed = true
@@ -204,24 +229,24 @@ func saveBlogMedia(file *multipart.FileHeader, allowed map[string]string, maxSiz
 	return media, nil
 }
 
-// detectMediaExtension 通过文件内容嗅探类型，无法嗅探时按后缀兜底，返回存储后缀。
-func detectMediaExtension(source io.ReadSeeker, filename string, allowed map[string]string) (string, error) {
+// detectMediaExtension 通过文件内容嗅探类型，无法嗅探时按后缀兜底，返回存储后缀与 MIME。
+func detectMediaExtension(source io.ReadSeeker, filename string, allowed map[string]string) (string, string, error) {
 	header := make([]byte, detectBufferSize)
 	n, err := io.ReadFull(source, header)
 	if err != nil && err != io.ErrUnexpectedEOF {
-		return "", errors.New("读取文件失败")
+		return "", "", errors.New("读取文件失败")
 	}
 	contentType := http.DetectContentType(header[:n])
 	if extension, ok := allowed[contentType]; ok {
-		return extension, nil
+		return extension, contentType, nil
 	}
 	// 只有内容完全无法识别时才信任后缀，避免被改名的文本/脚本文件蒙混过关
 	if contentType == "application/octet-stream" {
 		if fallback, ok := contentTypeBySuffix[strings.ToLower(filepath.Ext(filename))]; ok {
 			if extension, exists := allowed[fallback]; exists {
-				return extension, nil
+				return extension, fallback, nil
 			}
 		}
 	}
-	return "", errors.New("不支持的文件格式")
+	return "", "", errors.New("不支持的文件格式")
 }

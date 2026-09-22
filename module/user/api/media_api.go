@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
 
+	"fastduck/treasure-doc/module/blog/data/model"
 	"fastduck/treasure-doc/module/user/config"
 	"fastduck/treasure-doc/module/user/data/response"
 	"fastduck/treasure-doc/module/user/global"
@@ -22,6 +24,18 @@ type mediaFile struct {
 	Path    string `json:"path"`
 	Size    int64  `json:"size"`
 	ModTime string `json:"modTime"`
+	// Referenced 是否被任意内容引用（未引用的文件可安全删除）
+	Referenced bool `json:"referenced"`
+	// ReferenceCount 引用它的内容记录条数（不同资源条数之和）
+	ReferenceCount int64 `json:"referenceCount"`
+	// References 引用它来源（资源/字段）明细，未引用时为空数组
+	References []mediaReference `json:"references"`
+	// 以下为元数据表登记的信息（未登记时为空/零值）
+	OriginName string `json:"originName"`
+	Ext        string `json:"ext"`
+	Mime       string `json:"mime"`
+	Width      int    `json:"width"`
+	Height     int    `json:"height"`
 }
 
 // MediaApi 管理博客上传目录（/files/blog）下的文件。
@@ -29,7 +43,8 @@ type MediaApi struct{}
 
 func NewMediaApi() *MediaApi { return &MediaApi{} }
 
-// List 列出已上传的媒体文件，按修改时间倒序。
+// List 列出已上传的媒体文件，按修改时间倒序，并标注引用状态。
+// 可选 query `ref=all|referenced|unreferenced` 过滤（缺省 all）。
 func (m *MediaApi) List(c *gin.Context) {
 	dir := blogMediaDir()
 	entries, err := os.ReadDir(dir)
@@ -42,7 +57,16 @@ func (m *MediaApi) List(c *gin.Context) {
 		return
 	}
 
-	files := make([]mediaFile, 0, len(entries))
+	refIndex, idxErr := buildMediaReferenceIndex()
+	if idxErr != nil {
+		response.FailWithMessage(c, "扫描内容引用失败")
+		return
+	}
+	refFilter := strings.ToLower(c.Query("ref"))
+
+	// 先读目录得到文件名，再按名批量查元数据表（避免对每个文件单独查询）
+	names := make([]string, 0, len(entries))
+	infos := make(map[string]os.FileInfo, len(entries))
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
@@ -51,15 +75,65 @@ func (m *MediaApi) List(c *gin.Context) {
 		if err != nil {
 			continue
 		}
+		names = append(names, entry.Name())
+		infos[entry.Name()] = info
+	}
+	metaMap, metaErr := loadMediaMetaMap(names)
+	if metaErr != nil {
+		response.FailWithMessage(c, "读取媒体元数据失败")
+		return
+	}
+
+	files := make([]mediaFile, 0, len(names))
+	for _, name := range names {
+		info := infos[name]
+		meta := metaMap[name]
+		refs := refIndex[name]
+		referenced := len(refs) > 0
+		// 筛选：referenced=仅被引用、unreferenced=仅未引用
+		if (refFilter == "referenced" && !referenced) || (refFilter == "unreferenced" && referenced) {
+			continue
+		}
+		var count int64
+		for _, ref := range refs {
+			count += ref.Count
+		}
+		if refs == nil {
+			refs = []mediaReference{}
+		}
 		files = append(files, mediaFile{
-			Name:    entry.Name(),
-			Path:    "/files/blog/" + entry.Name(),
-			Size:    info.Size(),
-			ModTime: info.ModTime().Format(time.RFC3339),
+			Name:           name,
+			Path:           "/files/blog/" + name,
+			Size:           info.Size(),
+			ModTime:        info.ModTime().Format(time.RFC3339),
+			Referenced:     referenced,
+			ReferenceCount: count,
+			References:     refs,
+			OriginName:     meta.OriginName,
+			Ext:            meta.Ext,
+			Mime:           meta.Mime,
+			Width:          meta.Width,
+			Height:         meta.Height,
 		})
 	}
 	sort.Slice(files, func(i, j int) bool { return files[i].ModTime > files[j].ModTime })
 	response.OkWithData(c, files)
+}
+
+// loadMediaMetaMap 按文件名批量读取媒体元数据，返回 name→记录 的映射。
+func loadMediaMetaMap(names []string) (map[string]model.Media, error) {
+	result := map[string]model.Media{}
+	if global.Db == nil || len(names) == 0 {
+		return result, nil
+	}
+	var rows []model.Media
+	if err := global.Db.Where("name IN ?", names).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		result[row.Name] = row
+	}
+	return result, nil
 }
 
 // References 统计指定媒体文件被哪些内容引用，供删除前提示。
@@ -92,6 +166,7 @@ func (m *MediaApi) Delete(c *gin.Context) {
 		response.FailWithMessage(c, "删除失败")
 		return
 	}
+	_ = global.RemoveMediaMeta(name)
 	response.OkWithData(c, gin.H{"deleted": true})
 }
 
@@ -132,6 +207,7 @@ func (m *MediaApi) DeleteMany(c *gin.Context) {
 			response.FailWithMessage(c, fmt.Sprintf("删除 %s 失败", name))
 			return
 		}
+		_ = global.RemoveMediaMeta(name)
 		deleted++
 	}
 	response.OkWithData(c, gin.H{"deleted": deleted})
@@ -245,4 +321,51 @@ func countMediaReferences(name string) ([]mediaReference, int64, error) {
 // escapeLikeValue 转义 LIKE 通配符，避免文件名中的 % 或 _ 造成误匹配。
 func escapeLikeValue(value string) string {
 	return strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(value)
+}
+
+// mediaFilePathRe 匹配内容里内联的公开媒体路径，捕获真实文件名 <sha256>.<ext>。
+var mediaFilePathRe = regexp.MustCompile(`/files/blog/([0-9a-f]{64}\.[a-zA-Z0-9]+)`)
+
+// buildMediaReferenceIndex 一次性扫描所有引用目标列，提取其中的媒体文件名，
+// 得到「文件名 → 引用来源（资源/字段，及条数）」的索引。
+// 相比逐个文件 LIKE 全表扫描，这里把所有内容字段各读一遍即可标出全部文件的引用状态。
+func buildMediaReferenceIndex() (map[string][]mediaReference, error) {
+	idx := map[string][]mediaReference{}
+	keyPos := map[string]int{}
+	if global.Db == nil {
+		return idx, nil
+	}
+	for _, target := range mediaReferenceTargets {
+		var values []string
+		if err := global.Db.Table(target.Table).
+			Where("deleted_at IS NULL").
+			Pluck("CAST("+target.Column+" AS TEXT)", &values).Error; err != nil {
+			return nil, err
+		}
+		for _, value := range values {
+			if value == "" {
+				continue
+			}
+			// 同一记录内文件名去重：引用条数按「记录数」计，而非出现次数
+			seen := map[string]struct{}{}
+			for _, match := range mediaFilePathRe.FindAllStringSubmatch(value, -1) {
+				if len(match) < 2 {
+					continue
+				}
+				name := match[1]
+				if _, ok := seen[name]; ok {
+					continue
+				}
+				seen[name] = struct{}{}
+				key := name + "\x00" + target.Resource + "\x00" + target.Field
+				if pos, ok := keyPos[key]; ok {
+					idx[name][pos].Count++
+					continue
+				}
+				keyPos[key] = len(idx[name])
+				idx[name] = append(idx[name], mediaReference{Resource: target.Resource, Field: target.Field, Count: 1})
+			}
+		}
+	}
+	return idx, nil
 }
