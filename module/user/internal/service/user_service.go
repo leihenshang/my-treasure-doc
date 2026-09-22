@@ -146,6 +146,14 @@ func (user *UserService) ChangePassword(userId, currentToken, oldPassword, passw
 	var u *model.User
 	if err := global.Db.Where("id = ?", userId).First(&u).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// debug/mock 模式下 Auth 中间件会注入不落库的 mock 用户(id 9999999999)，
+			// 该用户在 td_user 中不存在。此时无需真正校验密码：
+			// 直接返回成功并清除默认管理员账号的强制改密标记，
+			// 否则前端会一直卡在"请先修改默认密码"的弹窗上。
+			cfg := global.GetConf()
+			if cfg != nil && cfg.App.IsDev() && cfg.Debug.EnableMockLogin {
+				return user.clearDefaultAdminRequirePwdReset()
+			}
 			return errors.New("用户不存在")
 		}
 		global.Log.Errorf("failed to get user by id:%v", err)
@@ -184,6 +192,18 @@ func (user *UserService) ChangePassword(userId, currentToken, oldPassword, passw
 		return errors.New("清除其它登录态失败")
 	}
 	tx.Commit()
+	return nil
+}
+
+// clearDefaultAdminRequirePwdReset 清除默认管理员账号的强制改密标记。
+// 供 debug/mock 模式下改密使用：mock 用户不落库，只能针对真实默认账号清标记。
+func (user *UserService) clearDefaultAdminRequirePwdReset() error {
+	if err := global.Db.Model(&model.User{}).
+		Where("LOWER(account) = LOWER(?)", DefaultAdminAccount).
+		Update("require_pwd_reset", false).Error; err != nil {
+		global.Log.Errorf("failed to clear default admin require_pwd_reset in mock mode:%v", err)
+		return errors.New("清除改密标记失败")
+	}
 	return nil
 }
 
