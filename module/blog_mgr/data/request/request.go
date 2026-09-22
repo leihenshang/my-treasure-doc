@@ -106,6 +106,8 @@ type Post struct {
 	Pinned        bool       `json:"pinned"`
 	Version       int        `json:"version"`
 	TagIDs        []string   `json:"tagIds"`
+	// Overwrite 仅发布端使用：true 时按标题推导 slug、服务端校验已发布后覆盖，否则新建。
+	Overwrite bool `json:"overwrite"`
 }
 type Diary struct {
 	PublicID      string     `json:"publicId"`
@@ -120,6 +122,8 @@ type Diary struct {
 	Pinned        bool       `json:"pinned"`
 	Version       int        `json:"version"`
 	TagIDs        []string   `json:"tagIds"`
+	// Overwrite 仅发布端使用：true 时按标题推导 slug、服务端校验已发布后覆盖，否则新建。
+	Overwrite bool `json:"overwrite"`
 }
 type Portfolio struct {
 	Slug          string                       `json:"slug"`

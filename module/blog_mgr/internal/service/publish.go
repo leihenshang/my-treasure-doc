@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"fastduck/treasure-doc/module/blog/data/model"
 	"fastduck/treasure-doc/module/blog_mgr/data/request"
@@ -107,6 +108,54 @@ func (s *Service) PublishLookup(ctx context.Context, resource, slug string) (Pub
 	status.ID = found.ID
 	status.Title = found.Title
 	status.Slug = slug
+	return status, nil
+}
+
+// PublishCheck 发布前校验：按标题推导 slug（含 -2/-3… 冲突后缀回查）判断该资源是否已发布，
+// 供插件在勾选「覆盖」前调用，无需插件本地缓存。已发布返回真实 slug；未发布返回生成的基础 slug。
+func (s *Service) PublishCheck(ctx context.Context, resource, title string) (PublishStatus, error) {
+	status := PublishStatus{}
+	if !isPublishableContent(resource) {
+		return status, ErrInvalid
+	}
+	base := slugify(title)
+	if base == "" {
+		return status, ErrInvalid
+	}
+	db, err := s.database(ctx)
+	if err != nil {
+		return status, err
+	}
+	var table, field string
+	switch resource {
+	case "posts":
+		table, field = "td_blog_post", "slug"
+	case "diaries":
+		table, field = "td_blog_diary", "public_id"
+	}
+	type row struct {
+		ID    string
+		Title string
+	}
+	var found row
+	for n := 0; n < 9; n++ {
+		candidate := base
+		if n > 0 {
+			candidate = fmt.Sprintf("%s-%d", base, n+1)
+		}
+		if err := db.Table(table).Where(field+" = ? AND deleted_at IS NULL", candidate).First(&found).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				continue
+			}
+			return status, err
+		}
+		status.Exists = true
+		status.ID = found.ID
+		status.Title = found.Title
+		status.Slug = candidate
+		return status, nil
+	}
+	status.Slug = base
 	return status, nil
 }
 

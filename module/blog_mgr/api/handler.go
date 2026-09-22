@@ -44,6 +44,7 @@ type Manager interface {
 	ListCategoriesForPublish(context.Context, string) ([]service.PublishCategory, error)
 	ListTagsForPublish(context.Context) ([]service.PublishTag, error)
 	PublishLookup(context.Context, string, string) (service.PublishStatus, error)
+	PublishCheck(context.Context, string, string) (service.PublishStatus, error)
 	PublishUpdate(context.Context, string, string, interface{}) (interface{}, error)
 	// 编辑历史
 	ListEditHistory(context.Context, string, string) ([]service.EditHistoryMeta, error)
@@ -133,8 +134,9 @@ func RegisterPublishRoutes(group *gin.RouterGroup, manager Manager) {
 	// 发布端元数据：插件据此渲染分类/标签下拉
 	group.GET("/categories", handler.PublishCategories())
 	group.GET("/tags", handler.PublishTags())
-	// 发布状态查询 + 强制覆盖（仅文章/日记）
+	// 发布状态查询 + 发布前校验 + 强制覆盖（仅文章/日记）
 	for _, resource := range []string{"posts", "diaries"} {
+		group.POST("/"+resource+"/check", handler.PublishCheck(resource))
 		group.GET("/"+resource+"/by-slug/:slug", handler.PublishLookup(resource))
 		group.PUT("/"+resource+"/:slug", handler.PublishForceUpdate(resource))
 	}
@@ -165,6 +167,21 @@ func (h *Handler) PublishTags() gin.HandlerFunc {
 func (h *Handler) PublishLookup(resource string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		data, err := h.service.PublishLookup(c.Request.Context(), resource, c.Param("slug"))
+		h.write(c, data, err, false)
+	}
+}
+
+// PublishCheck 发布前校验（供插件判断是否已发布、能否覆盖；按标题推导 slug，插件无需本地缓存）。
+func (h *Handler) PublishCheck(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req struct {
+			Title string `json:"title" binding:"required"`
+		}
+		if c.ShouldBindJSON(&req) != nil {
+			badRequest(c)
+			return
+		}
+		data, err := h.service.PublishCheck(c.Request.Context(), resource, req.Title)
 		h.write(c, data, err, false)
 	}
 }
@@ -215,16 +232,52 @@ func (h *Handler) HistoryRestore() gin.HandlerFunc {
 	}
 }
 
-// PublishCreate 发布接口的创建处理：绑定后强制发布，再走与后台一致的创建链路。
+// PublishCreate 发布接口的创建处理：绑定后强制发布；请求体携带 overwrite 时由服务端校验并覆盖，否则走创建链路。
 func (h *Handler) PublishCreate(resource string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		payload, ok := bindResource(c, resource)
 		if !ok {
 			return
 		}
-		data, err := h.service.Create(c.Request.Context(), resource, forcePublishStatus(payload))
+		ctx := c.Request.Context()
+		// 覆盖发布：overwrite 直接带进发布请求，由服务端按标题校验是否已发布后覆盖（插件不做本地判断）
+		switch p := payload.(type) {
+		case request.Post:
+			if p.Overwrite {
+				h.publishOverwrite(ctx, c, resource, forcePublishStatus(p))
+				return
+			}
+		case request.Diary:
+			if p.Overwrite {
+				h.publishOverwrite(ctx, c, resource, forcePublishStatus(p))
+				return
+			}
+		}
+		data, err := h.service.Create(ctx, resource, forcePublishStatus(payload))
 		h.write(c, data, err, true)
 	}
+}
+
+// publishOverwrite 覆盖发布：按标题推导 slug，服务端校验该文档是否已发布；未发布则拒绝，已发布则覆盖。
+func (h *Handler) publishOverwrite(ctx context.Context, c *gin.Context, resource string, payload interface{}) {
+	title := ""
+	switch p := payload.(type) {
+	case request.Post:
+		title = p.Title
+	case request.Diary:
+		title = p.Title
+	}
+	status, err := h.service.PublishCheck(ctx, resource, title)
+	if err != nil {
+		h.write(c, nil, err, true)
+		return
+	}
+	if !status.Exists {
+		response.Error(c, http.StatusBadRequest, codeInvalidRequest, "该文档尚未发布，无法覆盖")
+		return
+	}
+	data, err := h.service.PublishUpdate(ctx, resource, status.Slug, payload)
+	h.write(c, data, err, true)
 }
 
 // forcePublishStatus 把待发布内容的 publishStatus 强制为 published（发布接口语义），返回改写后的入参。
