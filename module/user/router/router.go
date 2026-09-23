@@ -122,6 +122,8 @@ func registerAPI(r *gin.Engine) {
 	publish := apiBase.Group("publish")
 	publish.Use(middleware.IPWhitelist(publishAllowIPs), middleware.RequirePublishToken())
 	blogmgrrouter.RegisterPublish(publish)
+	// 发布时上传文章中的图片/附件：同样用发布令牌鉴权，返回可替换引用的 /files/blog/... 地址。
+	publish.POST("/uploads", api.PublishUploadMedias)
 
 	userAPI := api.NewUserApi()
 	user := apiBase.Group("user")

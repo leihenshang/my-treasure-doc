@@ -250,3 +250,151 @@ func detectMediaExtension(source io.ReadSeeker, filename string, allowed map[str
 	}
 	return "", "", errors.New("不支持的文件格式")
 }
+
+// 发布端允许的附件类型（思源发布时的图片/视频之外的“其他文件”）。
+// 除明确识别的图片/视频外，这里以原始后缀为准保留语义（docx/xlsx 等实际是 zip，内容嗅探不可靠）。
+const (
+	// 发布端单文件大小上限（允许覆盖思源里较大的视频/资料）
+	maxPublishMediaSize = 100 << 20
+	// 发布端单次上传文件数量上限（思源一篇文档的图片/附件通常不会超过此数）
+	maxPublishMediaCount = 30
+)
+
+// publishSuffixWhitelist：发布端允许的附件后缀（含点）→ 内容类型。
+var publishSuffixWhitelist = map[string]string{
+	".pdf":  "application/pdf",
+	".zip":  "application/zip",
+	".doc":  "application/msword",
+	".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+	".xls":  "application/vnd.ms-excel",
+	".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+	".ppt":  "application/vnd.ms-powerpoint",
+	".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+	".txt":  "text/plain",
+	".md":   "text/markdown",
+	".csv":  "text/csv",
+}
+
+// savePublishMedia 保存思源发布端上传的单个文件。
+// 图片/视频走内容嗅探（防伪装），附件按原始后缀决定存储扩展名，保留 .docx/.zip 等语义；
+// 仍按内容 sha256 命名去重，返回公开访问路径 /files/blog/<hash>.<ext>。
+func savePublishMedia(file *multipart.FileHeader) (blogMedia, error) {
+	media := blogMedia{Name: file.Filename, Size: file.Size, OriginName: file.Filename}
+	if file.Size <= 0 {
+		return media, errors.New("文件内容为空")
+	}
+	if file.Size > maxPublishMediaSize {
+		return media, fmt.Errorf("文件大小不能超过 %dMB", maxPublishMediaSize>>20)
+	}
+	source, err := file.Open()
+	if err != nil {
+		return media, errors.New("读取文件失败")
+	}
+	defer source.Close()
+
+	header := make([]byte, detectBufferSize)
+	n, err := io.ReadFull(source, header)
+	if err != nil && err != io.ErrUnexpectedEOF {
+		return media, errors.New("读取文件失败")
+	}
+	contentType := http.DetectContentType(header[:n])
+
+	var ext, mime string
+	switch {
+	case imageMediaExtensions[contentType] != "":
+		ext, mime = imageMediaExtensions[contentType], contentType
+	case videoMediaExtensions[contentType] != "":
+		ext, mime = videoMediaExtensions[contentType], contentType
+	case contentType == "application/pdf":
+		ext, mime = ".pdf", "application/pdf"
+	default:
+		// 其余按原始后缀兜底（docx/xlsx/zip 等可能被嗅探成 zip/octet-stream）
+		suffix := strings.ToLower(filepath.Ext(file.Filename))
+		fallbackMime, ok := publishSuffixWhitelist[suffix]
+		if !ok {
+			return media, errors.New("不支持的文件格式")
+		}
+		ext, mime = suffix, fallbackMime
+	}
+
+	if _, err = source.Seek(0, io.SeekStart); err != nil {
+		return media, errors.New("读取文件失败")
+	}
+	hasher := sha256.New()
+	if _, err = io.Copy(hasher, source); err != nil {
+		return media, errors.New("读取文件失败")
+	}
+	hexSum := hex.EncodeToString(hasher.Sum(nil))
+	name := hexSum + ext
+
+	directory := filepath.Join(config.FilesPath, "blog")
+	if err = os.MkdirAll(directory, 0o755); err != nil {
+		return media, errors.New("创建文件目录失败")
+	}
+	media.Path = "/files/blog/" + name
+	media.Name = name
+	media.Sha256 = hexSum
+	media.Ext = ext
+	media.Mime = mime
+	target := filepath.Join(directory, name)
+	if info, statErr := os.Stat(target); statErr == nil && !info.IsDir() {
+		media.Existed = true
+		return media, nil
+	}
+	if _, err = source.Seek(0, io.SeekStart); err != nil {
+		return media, errors.New("读取文件失败")
+	}
+	output, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+	if err != nil {
+		if os.IsExist(err) {
+			media.Existed = true
+			return media, nil
+		}
+		return media, errors.New("保存文件失败")
+	}
+	defer output.Close()
+	if _, err = io.Copy(output, source); err != nil {
+		_ = os.Remove(output.Name())
+		return media, errors.New("保存文件失败")
+	}
+	return media, nil
+}
+
+// PublishUploadMedias 思源发布端上传接口（/api/publish/uploads）：
+// 由发布令牌（X-Publish-Token）鉴权，接收图片/视频与常见附件，返回可供替换引用的公开地址列表。
+// 解析与返回格式与后台 /api/blog-mgr/uploads/medias 一致（{list:[{path,...}]}）。
+func PublishUploadMedias(c *gin.Context) {
+	form, err := c.MultipartForm()
+	if err != nil {
+		response.FailWithMessage(c, "解析上传内容失败")
+		return
+	}
+	files := form.File["files"]
+	if len(files) == 0 {
+		files = form.File["file"]
+	}
+	if len(files) == 0 {
+		response.FailWithMessage(c, "请选择要上传的文件")
+		return
+	}
+	if len(files) > maxPublishMediaCount {
+		response.FailWithMessage(c, fmt.Sprintf("一次最多上传 %d 个文件", maxPublishMediaCount))
+		return
+	}
+	list := make([]gin.H, 0, len(files))
+	for _, file := range files {
+		media, err := savePublishMedia(file)
+		if err != nil {
+			response.FailWithMessage(c, fmt.Sprintf("[%s]%s", file.Filename, err.Error()))
+			return
+		}
+		upsertSavedMediaMeta(media)
+		list = append(list, gin.H{
+			"path": media.Path,
+			"name": media.Name,
+			"size": media.Size,
+			"existed": media.Existed,
+		})
+	}
+	response.OkWithData(c, gin.H{"list": list})
+}
