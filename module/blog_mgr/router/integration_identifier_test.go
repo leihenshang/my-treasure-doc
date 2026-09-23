@@ -7,7 +7,7 @@ import (
 )
 
 // TestIdentifierAutoGenerate M-ID-01：posts 的 slug / diaries 的 publicId 省略时自动生成；
-// 更新省略时沿用原值，不改变公开 URL。
+// portfolio-items / tools 的 slug 同样自动生成；更新省略时沿用原值，不改变公开 URL。
 func TestIdentifierAutoGenerate(t *testing.T) {
 	s := newTestServer(t)
 
@@ -30,6 +30,20 @@ func TestIdentifierAutoGenerate(t *testing.T) {
 	_, env = s.do(http.MethodGet, "/api/blog-mgr/diaries/"+diaryID, "")
 	if got, _ := dataObject(t, env)["publicID"].(string); got != "我的日记" {
 		t.Fatalf("日记自动生成 publicId = %q", got)
+	}
+
+	// 作品省略 slug → 按标题自动生成
+	workID := s.create("portfolio-items", `{"title":"我的作品","publishStatus":"published"}`)
+	_, env = s.do(http.MethodGet, "/api/blog-mgr/portfolio-items/"+workID, "")
+	if got, _ := dataObject(t, env)["slug"].(string); got != "我的作品" {
+		t.Fatalf("作品自动生成 slug = %q", got)
+	}
+
+	// 利器省略 slug → 按名称自动生成
+	toolID := s.create("tools", `{"kind":"own","name":"我的利器","developmentStatus":"开发中","publishStatus":"published"}`)
+	_, env = s.do(http.MethodGet, "/api/blog-mgr/tools/"+toolID, "")
+	if got, _ := dataObject(t, env)["slug"].(string); got != "我的利器" {
+		t.Fatalf("利器自动生成 slug = %q", got)
 	}
 
 	// 更新时省略 slug → 沿用原值

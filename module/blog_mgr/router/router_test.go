@@ -79,7 +79,7 @@ func TestManagementRoutes(t *testing.T) {
 	engine := gin.New()
 	RegisterService(engine.Group("/api/blog-mgr"), fakeManager{})
 	resources := []string{"categories", "tags", "posts", "diaries", "portfolio-items", "tools", "bookmarks"}
-	bodies := map[string]string{"categories": `{"scope":"post","slug":"tech","name":"Tech"}`, "tags": `{"name":"Go"}`, "posts": `{"slug":"p","title":"P","publishStatus":"draft"}`, "diaries": `{"publicId":"d","title":"D","publishStatus":"draft"}`, "portfolio-items": `{"slug":"w","title":"W","publishStatus":"draft"}`, "tools": `{"slug":"t","kind":"own","name":"T","developmentStatus":"开发中","publishStatus":"draft"}`, "bookmarks": `{"publicId":"b","title":"B","url":"https://example.com","publishStatus":"draft"}`}
+	bodies := map[string]string{"categories": `{"scope":"post","slug":"tech","name":"Tech"}`, "tags": `{"name":"Go"}`, "posts": `{"slug":"p","title":"P","publishStatus":"draft"}`, "diaries": `{"publicId":"d","title":"D","publishStatus":"draft"}`, "portfolio-items": `{"slug":"w","title":"W","publishStatus":"draft"}`, "tools": `{"slug":"t","kind":"own","name":"T","developmentStatus":"开发中","publishStatus":"draft"}`, "bookmarks": `{"title":"B","url":"https://example.com","publishStatus":"draft"}`}
 	for _, resource := range resources {
 		tests := []struct {
 			method, path, body string

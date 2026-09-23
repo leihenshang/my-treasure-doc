@@ -142,7 +142,7 @@ func (s *Service) ListBookmarks(ctx context.Context, query request.BookmarkQuery
 		q = q.Where("LOWER(title) LIKE ? ESCAPE '\\' OR LOWER(description) LIKE ? ESCAPE '\\' OR LOWER(url) LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM td_blog_bookmark_tag bt JOIN td_blog_tag t ON t.id = bt.tag_id WHERE bt.bookmark_id = td_blog_bookmark.id AND LOWER(t.name) LIKE ? ESCAPE '\\' AND t.deleted_at IS NULL)", pattern, pattern, pattern, pattern)
 	}
 	var records []model.Bookmark
-	if err := q.Order("sort_order ASC, public_id ASC").Find(&records).Error; err != nil {
+	if err := q.Order("sort_order ASC, title ASC").Find(&records).Error; err != nil {
 		return nil, err
 	}
 	items := make([]response.Bookmark, 0, len(records))
@@ -151,7 +151,7 @@ func (s *Service) ListBookmarks(ctx context.Context, query request.BookmarkQuery
 		if err != nil {
 			return nil, err
 		}
-		items = append(items, response.Bookmark{ID: record.PublicID, Title: record.Title, URL: record.URL, Desc: record.Description, Category: record.CategoryID, Tags: tags, Icon: record.Icon})
+		items = append(items, response.Bookmark{ID: record.ID, Title: record.Title, URL: record.URL, Desc: record.Description, Category: record.CategoryID, Tags: tags, Icon: record.Icon})
 	}
 	return items, nil
 }

@@ -141,5 +141,13 @@ func migrateDbTable() error {
 		}
 	}
 
+	// 兼容旧库：收藏集不再使用公开 ID（public_id），移除历史遗留列。
+	// AutoMigrate 只建表/加列不会删列，旧库若不清理，NOT NULL 的 public_id 会让新建收藏集失败。
+	if Db.Migrator().HasColumn(&blogmodel.Bookmark{}, "public_id") {
+		if err := Db.Migrator().DropColumn(&blogmodel.Bookmark{}, "public_id"); err != nil {
+			return fmt.Errorf("failed to drop deprecated column td_blog_bookmark.public_id: %v", err)
+		}
+	}
+
 	return nil
 }

@@ -68,6 +68,7 @@ go run . -c config.toml
 - 内容删除一律 GORM 软删除；回收站列表、彻底查询和恢复依赖 `Unscoped()`（见 `blog_mgr/internal/service/service.go`），不要改成物理删除。媒体文件被批删也不回写引用它的内容行——内容中保留失效的 `/files/...` 字符串，由前端降级占位图兜底。
 - 列表排序目前按模块硬编码：公开博客 `orderByDate()`（`module/blog/internal/service/service.go`，`pinned DESC` + `published_on` 方向由 query `sort` 参数控制），后台列表 `created_at ASC/DESC`（`module/blog_mgr/internal/service/service.go`）。`module/user/data/request/request_req.go` 的 `request.Sort` 仅被尚未注册路由的 user-manage DTO 内嵌，暂无调用方。任何新排序必须服务端校验字段白名单和 `asc`/`desc` 方向，禁止把请求值直接拼进 `ORDER BY`。
 - 跨域（CORS）由前置反向代理（如 nginx）统一处理，Go 侧不设置任何 `Access-Control-*` 头，也不要在路由链里再加 CORS 中间件。Service 构造方式不完全统一，新增代码时参考同类、相邻模块，不要强制套用单例或中间件模板。
+- GORM `AutoMigrate` 只「加列不删列」：模型**新增**字段会自动 `ALTER TABLE ADD COLUMN`、删除字段不会 DROP，旧库会残留列。**删除模型字段时，必须同步在 `module/user/global/db.go` 的 `migrateDbTable()` 里补 `Db.Migrator().DropColumn(...)` 兼容代码**（参考已移除的 `td_blog_bookmark.public_id`），否则 `NOT NULL` 且无默认值的残留列会让新插入记录直接失败。
 
 ## 新增业务模块
 

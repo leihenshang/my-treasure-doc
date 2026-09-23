@@ -171,8 +171,9 @@ func seedTools(tx *gorm.DB, options Options, result *Result) error {
 func seedBookmarks(tx *gorm.DB, options Options, tags map[string]*model.Tag, result *Result) error {
 	for index := 1; index <= 8; index++ {
 		status, at := otherState(index)
-		item := model.Bookmark{PublicID: fmt.Sprintf("mock-bookmark-%02d", index), Title: fmt.Sprintf("Mock 书签 %02d", index), URL: fmt.Sprintf("https://example.com/mock/%02d", index), Description: "固定书签描述", CategoryID: []string{"dev", "design"}[(index-1)%2], Icon: "🔖", PublishStatus: status, PublishedAt: at, SortOrder: index, Version: 1}
-		created, err := ensureCreated(tx, "public_id = ?", []interface{}{item.PublicID}, &item, options, result)
+		// 收藏集直接以固定 ID 幂等播种（公开列表只展示外链，不再需要 public_id 标识）
+		item := model.Bookmark{BaseModel: model.BaseModel{ID: fmt.Sprintf("mock-bookmark-%02d", index)}, Title: fmt.Sprintf("Mock 书签 %02d", index), URL: fmt.Sprintf("https://example.com/mock/%02d", index), Description: "固定书签描述", CategoryID: []string{"dev", "design"}[(index-1)%2], Icon: "🔖", PublishStatus: status, PublishedAt: at, SortOrder: index, Version: 1}
+		created, err := ensureCreated(tx, "id = ?", []interface{}{item.ID}, &item, options, result)
 		if err != nil {
 			return err
 		}

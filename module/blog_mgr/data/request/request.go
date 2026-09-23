@@ -166,7 +166,6 @@ type Tool struct {
 	Version           int        `json:"version"`
 }
 type Bookmark struct {
-	PublicID      string     `json:"publicId"`
 	Title         string     `json:"title"`
 	URL           string     `json:"url"`
 	Description   string     `json:"description"`
@@ -281,8 +280,8 @@ func NormalizeIDs(values []string) ([]string, error) {
 }
 
 func ValidateTool(value Tool) error {
-	if !ValidID(value.Slug) {
-		return Field("slug", "Slug 不能为空，且长度不超过 128")
+	if value.Slug != "" && !ValidID(value.Slug) {
+		return Field("slug", "Slug 长度不能超过 128")
 	}
 	if strings.TrimSpace(value.Name) == "" {
 		return Field("name", "名称不能为空")

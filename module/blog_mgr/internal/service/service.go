@@ -708,19 +708,28 @@ func ensureDefaultCategory(tx *gorm.DB, scope string) error {
 	return nil
 }
 
-// resolveIdentifier 为 posts 的 slug / diaries 的 publicId 保证非空：
-// 创建时为空 → 按标题自动生成唯一标识；更新时为空 → 沿用既有记录的值，避免改写公开 URL。
-func resolveIdentifier(tx *gorm.DB, resource, id string, item interface{}, create bool) error {
-	var exists bool
+// identifierOf 返回模型当前的公开标识（post/portfolio/tool 的 slug、diary 的 publicId）；
+// 不参与自动生成标识的资源（分类/标签/收藏集等）返回 ok=false。
+func identifierOf(item interface{}) (string, bool) {
 	switch v := item.(type) {
 	case *blogmodel.Post:
-		exists = v.Slug != ""
+		return v.Slug, true
 	case *blogmodel.Diary:
-		exists = v.PublicID != ""
+		return v.PublicID, true
+	case *blogmodel.PortfolioItem:
+		return v.Slug, true
+	case *blogmodel.Tool:
+		return v.Slug, true
 	default:
-		return nil
+		return "", false
 	}
-	if exists {
+}
+
+// resolveIdentifier 为 posts / portfolio-items / tools 的 slug 与 diaries 的 publicId 保证非空：
+// 创建时为空 → 按标题/名称自动生成唯一标识；更新时为空 → 沿用既有记录的值，避免改写公开 URL。
+func resolveIdentifier(tx *gorm.DB, resource, id string, item interface{}, create bool) error {
+	value, ok := identifierOf(item)
+	if !ok || value != "" {
 		return nil
 	}
 
@@ -730,6 +739,10 @@ func resolveIdentifier(tx *gorm.DB, resource, id string, item interface{}, creat
 		table, field, label, title = "td_blog_post", "slug", "post", v.Title
 	case *blogmodel.Diary:
 		table, field, label, title = "td_blog_diary", "public_id", "diary", v.Title
+	case *blogmodel.PortfolioItem:
+		table, field, label, title = "td_blog_portfolio_item", "slug", "portfolio", v.Title
+	case *blogmodel.Tool:
+		table, field, label, title = "td_blog_tool", "slug", "tool", v.Name
 	}
 
 	if !create {
@@ -771,6 +784,10 @@ func setIdentifier(item interface{}, value string) {
 		v.Slug = value
 	case *blogmodel.Diary:
 		v.PublicID = value
+	case *blogmodel.PortfolioItem:
+		v.Slug = value
+	case *blogmodel.Tool:
+		v.Slug = value
 	}
 }
 
@@ -854,8 +871,8 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		}
 		return &blogmodel.Diary{PublicID: value.PublicID, Title: value.Title, Summary: value.Summary, Content: value.Content, Mood: value.Mood, Weather: value.Weather, PublishStatus: value.PublishStatus, PublishedOn: on, PublishedAt: at, Pinned: value.Pinned, Version: max(value.Version, 1), PublishSource: value.PublishSource, SourceID: value.SourceID}, ids, "td_blog_diary_tag", nil
 	case request.Portfolio:
-		if !request.ValidID(value.Slug) {
-			return nil, nil, "", request.Field("slug", "Slug 不能为空，且长度不超过 128")
+		if value.Slug != "" && !request.ValidID(value.Slug) {
+			return nil, nil, "", request.Field("slug", "Slug 长度不能超过 128")
 		}
 		if strings.TrimSpace(value.Title) == "" {
 			return nil, nil, "", request.Field("title", "标题不能为空")
@@ -910,9 +927,6 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		}
 		return &blogmodel.Tool{Slug: value.Slug, Kind: value.Kind, Name: value.Name, Description: value.Description, URL: value.URL, Cover: value.Cover, DevelopmentStatus: value.DevelopmentStatus, Content: value.Content, PublishStatus: value.PublishStatus, PublishedAt: at, SortOrder: value.SortOrder, Version: max(value.Version, 1)}, nil, "", nil
 	case request.Bookmark:
-		if !request.ValidID(value.PublicID) {
-			return nil, nil, "", request.Field("publicId", "公开 ID 不能为空，且长度不超过 128")
-		}
 		if strings.TrimSpace(value.Title) == "" {
 			return nil, nil, "", request.Field("title", "标题不能为空")
 		}
@@ -929,7 +943,7 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		if err != nil {
 			return nil, nil, "", request.Field("tagIds", "标签 ID 不合法")
 		}
-		return &blogmodel.Bookmark{PublicID: value.PublicID, Title: value.Title, URL: value.URL, Description: value.Description, CategoryID: value.CategoryID, Icon: value.Icon, PublishStatus: value.PublishStatus, PublishedAt: at, SortOrder: value.SortOrder, Version: max(value.Version, 1)}, ids, "td_blog_bookmark_tag", nil
+		return &blogmodel.Bookmark{Title: value.Title, URL: value.URL, Description: value.Description, CategoryID: value.CategoryID, Icon: value.Icon, PublishStatus: value.PublishStatus, PublishedAt: at, SortOrder: value.SortOrder, Version: max(value.Version, 1)}, ids, "td_blog_bookmark_tag", nil
 	default:
 		return nil, nil, "", fmt.Errorf("%w: %s", ErrInvalid, resource)
 	}
@@ -948,7 +962,7 @@ func updateMap(item interface{}) map[string]interface{} {
 	case *blogmodel.Tool:
 		return map[string]interface{}{"slug": value.Slug, "kind": value.Kind, "name": value.Name, "description": value.Description, "url": value.URL, "cover": value.Cover, "development_status": value.DevelopmentStatus, "content": value.Content, "publish_status": value.PublishStatus, "published_at": value.PublishedAt, "sort_order": value.SortOrder}
 	case *blogmodel.Bookmark:
-		return map[string]interface{}{"public_id": value.PublicID, "title": value.Title, "url": value.URL, "description": value.Description, "category_id": value.CategoryID, "icon": value.Icon, "publish_status": value.PublishStatus, "published_at": value.PublishedAt, "sort_order": value.SortOrder}
+		return map[string]interface{}{"title": value.Title, "url": value.URL, "description": value.Description, "category_id": value.CategoryID, "icon": value.Icon, "publish_status": value.PublishStatus, "published_at": value.PublishedAt, "sort_order": value.SortOrder}
 	}
 	return map[string]interface{}{}
 }

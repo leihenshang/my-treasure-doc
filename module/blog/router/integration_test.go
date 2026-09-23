@@ -325,18 +325,18 @@ func TestPublicCatalogVisibility(t *testing.T) {
 	s.create("posts", fmt.Sprintf(`{"slug":"cat-post","title":"带分类的文章","publishStatus":"published","publishedOn":%q,"publishedAt":%q,"categoryId":"tech","tagIds":[%q]}`, pastDate, pastTime, tagID))
 	// 草稿文章：它的分类与标签不应出现在公开分类/标签里
 	s.create("posts", fmt.Sprintf(`{"slug":"draft-post","title":"草稿文章","publishStatus":"draft","categoryId":"draft-only","tagIds":[%q]}`, draftTagID))
-	// 公开 ID：日记/收藏集用 publicId，作品/利器用 slug
+	// 公开 ID：日记用 publicId，作品/利器用 slug；收藏集是纯外链列表，不提供公开 ID
 	const diary = "d1"
 	const work = "w1"
 	const ownTool = "t1"
 	const linkTool = "t2"
-	const bookmark = "b1"
+	const bookmarkTitle = "收藏一"
 	s.create("diaries", fmt.Sprintf(`{"publicId":%q,"title":"公开日记","publishStatus":"published","publishedOn":%q,"publishedAt":%q,"tagIds":[%q]}`, diary, pastDate, pastTime, tagID))
 	s.create("diaries", `{"publicId":"d2","title":"草稿日记","publishStatus":"draft"}`)
 	s.create("portfolio-items", fmt.Sprintf(`{"slug":%q,"title":"作品一","publishStatus":"published","publishedOn":%q,"publishedAt":%q,"categoryId":"web","techStack":["Go"],"gallery":["/files/blog/a.png"]}`, work, pastDate, pastTime))
 	s.create("tools", fmt.Sprintf(`{"slug":%q,"kind":"own","name":"自研工具","developmentStatus":"可用","publishStatus":"published","publishedAt":%q}`, ownTool, pastTime))
 	s.create("tools", fmt.Sprintf(`{"slug":%q,"kind":"link","name":"外部工具","url":"https://example.com","publishStatus":"published","publishedAt":%q}`, linkTool, pastTime))
-	s.create("bookmarks", fmt.Sprintf(`{"publicId":%q,"title":"收藏一","url":"https://example.com","publishStatus":"published","publishedAt":%q,"tagIds":[%q],"categoryId":"tools"}`, bookmark, pastTime, tagID))
+	s.create("bookmarks", fmt.Sprintf(`{"title":%q,"url":"https://example.com","publishStatus":"published","publishedAt":%q,"tagIds":[%q],"categoryId":"tools"}`, bookmarkTitle, pastTime, tagID))
 
 	// 日记：只出现公开的那条
 	_, env := s.do(http.MethodGet, "/api/blog/diaries", "")
@@ -395,10 +395,10 @@ func TestPublicCatalogVisibility(t *testing.T) {
 		t.Fatalf("列表里没有外链利器：%v", tools)
 	}
 
-	// 收藏集
+	// 收藏集（纯外链，公开 ID 已移除，校验标题即可）
 	_, env = s.do(http.MethodGet, "/api/blog/bookmarks", "")
 	bookmarks := list(t, env)
-	if len(bookmarks) != 1 || bookmarks[0]["id"] != bookmark {
+	if len(bookmarks) != 1 || bookmarks[0]["title"] != bookmarkTitle {
 		t.Fatalf("公开收藏集 = %v", bookmarks)
 	}
 

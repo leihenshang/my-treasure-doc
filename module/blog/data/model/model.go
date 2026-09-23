@@ -165,7 +165,6 @@ func (*Tool) TableName() string { return "td_blog_tool" }
 
 type Bookmark struct {
 	BaseModel
-	PublicID      string    `gorm:"column:public_id;type:varchar(128);not null;uniqueIndex"`
 	Title         string    `gorm:"column:title;type:varchar(200);not null"`
 	URL           string    `gorm:"column:url;type:varchar(1000);not null"`
 	Description   string    `gorm:"column:description;type:text;not null"`
