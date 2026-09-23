@@ -44,7 +44,9 @@ responses:
             - type: object
               properties:
                 data:
-                  $ref: '../components/schemas.yaml#/ManageUploadedImage'
+                  oneOf:
+                    - $ref: '../components/schemas.yaml#/ManageUploadedImage'
+                    - $ref: '../components/schemas.yaml#/EmptyData'
         examples:
           success:
             value:

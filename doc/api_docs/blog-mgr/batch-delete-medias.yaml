@@ -32,7 +32,9 @@ responses:
             - type: object
               properties:
                 data:
-                  $ref: '../components/schemas.yaml#/ManageMediaBatchDeleteResult'
+                  oneOf:
+                    - $ref: '../components/schemas.yaml#/ManageMediaBatchDeleteResult'
+                    - $ref: '../components/schemas.yaml#/EmptyData'
         examples:
           success:
             value:

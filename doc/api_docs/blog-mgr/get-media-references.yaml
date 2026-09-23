@@ -27,7 +27,9 @@ responses:
             - type: object
               properties:
                 data:
-                  $ref: '../components/schemas.yaml#/ManageMediaReferencesResult'
+                  oneOf:
+                    - $ref: '../components/schemas.yaml#/ManageMediaReferencesResult'
+                    - $ref: '../components/schemas.yaml#/EmptyData'
         examples:
           success:
             value:

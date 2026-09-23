@@ -28,9 +28,11 @@ responses:
             - type: object
               properties:
                 data:
-                  type: array
-                  items:
-                    $ref: '../components/schemas.yaml#/ManageMediaFile'
+                  oneOf:
+                    - type: array
+                      items:
+                        $ref: '../components/schemas.yaml#/ManageMediaFile'
+                    - $ref: '../components/schemas.yaml#/EmptyData'
         examples:
           success:
             value:

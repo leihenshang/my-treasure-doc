@@ -23,7 +23,9 @@ responses:
             - type: object
               properties:
                 data:
-                  $ref: '../components/schemas.yaml#/ManageBackupFile'
+                  oneOf:
+                    - $ref: '../components/schemas.yaml#/ManageBackupFile'
+                    - $ref: '../components/schemas.yaml#/EmptyData'
         examples:
           success:
             value:

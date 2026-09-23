@@ -50,7 +50,9 @@ responses:
             - type: object
               properties:
                 data:
-                  $ref: '../components/schemas.yaml#/ManageUploadMediaList'
+                  oneOf:
+                    - $ref: '../components/schemas.yaml#/ManageUploadMediaList'
+                    - $ref: '../components/schemas.yaml#/EmptyData'
         examples:
           success:
             value:

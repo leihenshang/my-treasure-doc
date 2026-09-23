@@ -35,7 +35,9 @@ responses:
             - type: object
               properties:
                 data:
-                  $ref: '../components/schemas.yaml#/UserLoginResult'
+                  oneOf:
+                    - $ref: '../components/schemas.yaml#/UserLoginResult'
+                    - $ref: '../components/schemas.yaml#/EmptyData'
         examples:
           success:
             value:

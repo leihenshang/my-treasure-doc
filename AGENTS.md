@@ -78,6 +78,36 @@ go run . -c config.toml
 4. 在 `api` 增加 Handler，沿用相邻模块的绑定、校验、认证用户读取和统一响应方式。
 5. 在 `router/router.go` 注册路由，并明确选择所需的 Auth 中间件（CORS 由反代处理，不在 Go 侧添加）。
 6. 为纯逻辑优先添加单元测试；涉及数据库（PostgreSQL/SQLite）的流程若无法自动测试，至少保证 `go test ./...` 和构建通过，并说明未做集成验证。
+7. **同步 API 规格**：在 `router/router.go` 注册路由后，必须按下面的「API 变更登记」补齐 `doc/api_docs/` 里的端点文件与根引用。
+
+## API 变更登记
+
+`doc/api_docs/` 是接口的**唯一权威契约**（OpenAPI 3.1）。它采用「**一个端点一个文件**」的组织方式，与 `module/user/router/router.go`、`module/blog/router/router.go`、`module/blog_mgr/router/router.go` 里实际注册的路由一一对应。
+
+目录结构：
+
+- [doc/api_docs/openapi.yaml](doc/api_docs/openapi.yaml) —— 聚合根，只声明 `info` / `servers` / `tags` / `securitySchemes` 与全部 `paths`；每个 operation 用操作级 `$ref` 指向端点文件（如 `get: {$ref: './blog/list-posts.yaml'}`）。
+- `doc/api_docs/blog/`（公开只读博客，21 个）、`blog-mgr/`（后台管理，80 个，资源 CRUD 在 `blog-mgr/<资源>/` 子目录）、`publish/`（机器令牌发布，12 个）、`user/`（鉴权与 `/ping`，5 个）、`backup/`（NAS 导出，1 个）—— 共 **119 个端点文件**。
+- `doc/api_docs/components/{schemas,responses,parameters}.yaml` —— 跨端点共享的模型、具名响应与参数。端点文件用相对路径引用（`../components/...`，资源子目录下是 `../../components/...`）。
+
+**任何新增、修改或删除 API 的改动，都必须同步这里的规格**（"每次修改和新增了 API 都要在这里登记"）：
+
+1. **新增端点**：在对应模块目录下新建端点文件（内容是一个 operation 对象，**不含** `openapi:` / `paths:` 包装；首行注释写明「方法 + 路径 + 所属模块 + 注册位置」），并在 `openapi.yaml` 的 `paths` 里加上该路径与该方法的 `$ref`。两处缺一不可——只加文件不会被聚合，只加引用会指向不存在的文件。
+2. **修改端点**：路径、方法、参数、请求体、data 结构、错误码或鉴权方式任一变化，都要改对应端点文件；新增/修改的字段结构优先加进 `components/schemas.yaml` 并以 `$ref` 复用，不要在端点文件里内联大段 schema。
+3. **删除端点**：删除端点文件，并移除 `openapi.yaml` 里对应的 operation 引用。
+4. **状态码只能用一次的键**：YAML 不允许同一状态码出现两次。同一 400 若有多个业务码（如参数错误与关联引用不存在），要在 `components/responses.yaml` 里定义一个合并响应对象（参考 `ManageBadRequest` / `ManageToolBadRequest`），而不是写两个 `'400'`。
+5. **响应约定要写准**：`module/blog` 与 `module/blog_mgr` 走真实 HTTP 状态码（400/404/409/500）；`module/user` 与上传/媒体/备份类 Handler **失败也返回 HTTP 200**，靠 `code` 区分（失败 `code: 1`、`data: {}`），这类端点的 `data` 要声明成「成功结构 或 `EmptyData`」的 `oneOf`。不要把两套约定混用。
+6. **YAML 书写陷阱**：纯文本标量里不能出现「**冒号 + 空格**」（如 `javascript: 这类`、`{"field": "x"}`），也不能以反引号/`@` 开头，否则解析直接失败；这类值要用单引号整体括起来。
+7. **落地前自检**：
+   ```bash
+   cd doc/api_docs
+   npx --yes @redocly/cli@latest lint openapi.yaml            # 应无 error
+   npx --yes @redocly/cli@latest bundle openapi.yaml -o /tmp/openapi.bundled.yaml
+   ```
+   另外确认 `openapi.yaml` 的 operation 数、`operationId` 唯一性，与端点文件数量三者一致（当前 119）。
+   `lint` 会固定报出一批 `operation-4xx-response` 警告（`/ping`、站点根三个文件与若干只读列表接口确实没有 4xx 分支），这是该规则的固有意见、不是缺陷；出现**其它**规则名的 error/warning 才需要处理。
+
+`doc/blog-api.md` 是面向人的接口说明，可能滞后于实现；契约不明确时以 `doc/api_docs/` 与路由源码为准。
 
 ## 已知差异
 

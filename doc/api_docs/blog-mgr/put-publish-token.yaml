@@ -27,7 +27,9 @@ responses:
             - type: object
               properties:
                 data:
-                  $ref: '../components/schemas.yaml#/ManageTokenResult'
+                  oneOf:
+                    - $ref: '../components/schemas.yaml#/ManageTokenResult'
+                    - $ref: '../components/schemas.yaml#/EmptyData'
         examples:
           success:
             value:

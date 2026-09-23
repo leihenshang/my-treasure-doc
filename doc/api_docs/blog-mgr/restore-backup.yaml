@@ -40,7 +40,9 @@ responses:
             - type: object
               properties:
                 data:
-                  $ref: '../components/schemas.yaml#/ManageRestoreArchiveResult'
+                  oneOf:
+                    - $ref: '../components/schemas.yaml#/ManageRestoreArchiveResult'
+                    - $ref: '../components/schemas.yaml#/EmptyData'
         examples:
           success:
             value:
