@@ -943,7 +943,7 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		if err != nil {
 			return nil, nil, "", request.Field("tagIds", "标签 ID 不合法")
 		}
-		return &blogmodel.Bookmark{Title: value.Title, URL: value.URL, Description: value.Description, CategoryID: value.CategoryID, Icon: value.Icon, PublishStatus: value.PublishStatus, PublishedAt: at, SortOrder: value.SortOrder, Version: max(value.Version, 1)}, ids, "td_blog_bookmark_tag", nil
+		return &blogmodel.Bookmark{Title: value.Title, URL: value.URL, Description: value.Description, CategoryID: value.CategoryID, Icon: value.Icon, PublishStatus: value.PublishStatus, PublishedAt: at, SortOrder: value.SortOrder, OpenInNewTab: value.OpenInNewTab, Version: max(value.Version, 1)}, ids, "td_blog_bookmark_tag", nil
 	default:
 		return nil, nil, "", fmt.Errorf("%w: %s", ErrInvalid, resource)
 	}
@@ -962,7 +962,7 @@ func updateMap(item interface{}) map[string]interface{} {
 	case *blogmodel.Tool:
 		return map[string]interface{}{"slug": value.Slug, "kind": value.Kind, "name": value.Name, "description": value.Description, "url": value.URL, "cover": value.Cover, "development_status": value.DevelopmentStatus, "content": value.Content, "publish_status": value.PublishStatus, "published_at": value.PublishedAt, "sort_order": value.SortOrder}
 	case *blogmodel.Bookmark:
-		return map[string]interface{}{"title": value.Title, "url": value.URL, "description": value.Description, "category_id": value.CategoryID, "icon": value.Icon, "publish_status": value.PublishStatus, "published_at": value.PublishedAt, "sort_order": value.SortOrder}
+		return map[string]interface{}{"title": value.Title, "url": value.URL, "description": value.Description, "category_id": value.CategoryID, "icon": value.Icon, "publish_status": value.PublishStatus, "published_at": value.PublishedAt, "sort_order": value.SortOrder, "open_in_new_tab": value.OpenInNewTab}
 	}
 	return map[string]interface{}{}
 }

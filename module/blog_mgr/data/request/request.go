@@ -174,6 +174,7 @@ type Bookmark struct {
 	PublishStatus string     `json:"publishStatus"`
 	PublishedAt   *time.Time `json:"publishedAt"`
 	SortOrder     int        `json:"sortOrder"`
+	OpenInNewTab  bool       `json:"openInNewTab"`
 	Version       int        `json:"version"`
 	TagIDs        []string   `json:"tagIds"`
 }

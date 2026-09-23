@@ -173,6 +173,7 @@ type Bookmark struct {
 	PublishStatus string    `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index"`
 	PublishedAt   time.Time `gorm:"column:published_at;type:timestamp;not null;index"`
 	SortOrder     int       `gorm:"column:sort_order;not null;default:0;index"`
+	OpenInNewTab  bool      `gorm:"column:open_in_new_tab;not null;default:true"`
 	Version       int       `gorm:"column:version;not null;default:1"`
 }
 

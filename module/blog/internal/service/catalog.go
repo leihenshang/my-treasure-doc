@@ -151,7 +151,7 @@ func (s *Service) ListBookmarks(ctx context.Context, query request.BookmarkQuery
 		if err != nil {
 			return nil, err
 		}
-		items = append(items, response.Bookmark{ID: record.ID, Title: record.Title, URL: record.URL, Desc: record.Description, Category: record.CategoryID, Tags: tags, Icon: record.Icon})
+		items = append(items, response.Bookmark{ID: record.ID, Title: record.Title, URL: record.URL, Desc: record.Description, Category: record.CategoryID, Tags: tags, Icon: record.Icon, OpenInNewTab: record.OpenInNewTab})
 	}
 	return items, nil
 }

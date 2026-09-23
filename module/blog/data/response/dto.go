@@ -74,7 +74,7 @@ type PortfolioSummary struct {
 
 type PortfolioItem struct {
 	PortfolioSummary
-	Links   []PortfolioLink `json:"links"`
+	Links []PortfolioLink `json:"links"`
 	// Gallery 为项目截图/效果图，DemoURL 与 RepoURL 为在线演示与仓库地址
 	Gallery []string `json:"gallery"`
 	DemoURL string   `json:"demoUrl"`
@@ -97,13 +97,14 @@ type Tool struct {
 }
 
 type Bookmark struct {
-	ID       string   `json:"id"`
-	Title    string   `json:"title"`
-	URL      string   `json:"url"`
-	Desc     string   `json:"desc"`
-	Category string   `json:"category"`
-	Tags     []string `json:"tags"`
-	Icon     string   `json:"icon"`
+	ID           string   `json:"id"`
+	Title        string   `json:"title"`
+	URL          string   `json:"url"`
+	Desc         string   `json:"desc"`
+	Category     string   `json:"category"`
+	Tags         []string `json:"tags"`
+	Icon         string   `json:"icon"`
+	OpenInNewTab bool     `json:"openInNewTab"`
 }
 
 type ProfileLink struct {
@@ -194,12 +195,12 @@ type SiteBanner struct {
 }
 
 type Site struct {
-	Name       string          `json:"name"`
-	Slogan     string          `json:"slogan"`
-	Intro      string          `json:"intro"`
-	TechStack  []string        `json:"techStack"`
-	Modules    []SiteModule    `json:"modules"`
-	Milestones []SiteMilestone `json:"milestones"`
+	Name            string          `json:"name"`
+	Slogan          string          `json:"slogan"`
+	Intro           string          `json:"intro"`
+	TechStack       []string        `json:"techStack"`
+	Modules         []SiteModule    `json:"modules"`
+	Milestones      []SiteMilestone `json:"milestones"`
 	Home            SiteHome        `json:"home"`
 	Footer          SiteFooter      `json:"footer"`
 	Banner          SiteBanner      `json:"banner"`
