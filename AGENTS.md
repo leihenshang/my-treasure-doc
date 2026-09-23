@@ -84,11 +84,11 @@ go run . -c config.toml
 
 `doc/api_docs/` 是接口的**唯一权威契约**（OpenAPI 3.1）。它采用「**一个端点一个文件**」的组织方式，与 `module/user/router/router.go`、`module/blog/router/router.go`、`module/blog_mgr/router/router.go` 里实际注册的路由一一对应。
 
-目录结构：
+目录结构、各模块的详细位置与完整端点清单见 [doc/api_docs/README.md](doc/api_docs/README.md)。要点：
 
 - [doc/api_docs/openapi.yaml](doc/api_docs/openapi.yaml) —— 聚合根，只声明 `info` / `servers` / `tags` / `securitySchemes` 与全部 `paths`；每个 operation 用操作级 `$ref` 指向端点文件（如 `get: {$ref: './blog/list-posts.yaml'}`）。
-- `doc/api_docs/blog/`（公开只读博客，21 个）、`blog-mgr/`（后台管理，80 个，资源 CRUD 在 `blog-mgr/<资源>/` 子目录）、`publish/`（机器令牌发布，12 个）、`user/`（鉴权与 `/ping`，5 个）、`backup/`（NAS 导出，1 个）—— 共 **119 个端点文件**。
-- `doc/api_docs/components/{schemas,responses,parameters}.yaml` —— 跨端点共享的模型、具名响应与参数。端点文件用相对路径引用（`../components/...`，资源子目录下是 `../../components/...`）。
+- `doc/api_docs/blog/`、`blog-mgr/`、`publish/`、`user/`、`backup/` 五个模块目录 + `components/` 共享目录；端点文件数量与分布、命名约定见 README 中的表格。
+- `components/{schemas,responses,parameters}.yaml` —— 跨端点共享的模型、具名响应与参数；端点文件用相对路径引用（`../components/...`，资源子目录下是 `../../components/...`）。
 
 **任何新增、修改或删除 API 的改动，都必须同步这里的规格**（"每次修改和新增了 API 都要在这里登记"）：
 
@@ -104,7 +104,7 @@ go run . -c config.toml
    npx --yes @redocly/cli@latest lint openapi.yaml            # 应无 error
    npx --yes @redocly/cli@latest bundle openapi.yaml -o /tmp/openapi.bundled.yaml
    ```
-   另外确认 `openapi.yaml` 的 operation 数、`operationId` 唯一性，与端点文件数量三者一致（当前 119）。
+   另外确认 `openapi.yaml` 的 operation 数、`operationId` 唯一性，与端点文件数量三者一致（端点总数见 `doc/api_docs/README.md`）。
    `lint` 会固定报出一批 `operation-4xx-response` 警告（`/ping`、站点根三个文件与若干只读列表接口确实没有 4xx 分支），这是该规则的固有意见、不是缺陷；出现**其它**规则名的 error/warning 才需要处理。
 
 `doc/blog-api.md` 是面向人的接口说明，可能滞后于实现；契约不明确时以 `doc/api_docs/` 与路由源码为准。
