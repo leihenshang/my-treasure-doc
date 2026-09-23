@@ -1,0 +1,1789 @@
+# 共享数据模型（OpenAPI components.schemas）
+#
+# 命名约定：
+#   - 无前缀        → 框架级/跨模块通用模型（Envelope、Pagination）
+#   - Public*       → 公开只读博客 API（/api/blog/*、站点根 robots/sitemap/rss）的响应模型
+#   - Manage*       → 后台管理 API（/api/blog-mgr/*）的请求/响应模型
+#   - Publish*      → 机器令牌发布 API（/api/publish/*）的模型
+#   - User*         → 用户/鉴权 API（/api/user/*）的模型
+#
+# 端点文件通过相对路径引用本文件，例如：
+#   $ref: '../components/schemas.yaml#/PublicPostPage'
+
+# ===========================================================================
+# 通用
+# ===========================================================================
+
+Envelope:
+  type: object
+  description: |
+    统一响应信封，所有接口（除 GET /ping 与 robots/sitemap/rss 外）都返回该结构。
+    业务结果由 code 表达：0 = 成功，其余为各模块业务码。失败时 data 通常为 null，
+    字段级校验失败时 data 为 `{"field": "..."}`（管理端）或 `{}`（用户模块）。
+  required: [code, msg, data]
+  properties:
+    code:
+      type: integer
+      description: 业务码，0 表示成功
+      example: 0
+    msg:
+      type: string
+      description: 提示信息；成功时为空字符串
+      example: ''
+    data:
+      description: |
+        业务数据；失败时通常为 null。各端点在此声明具体结构
+        （对象、数组或 null）；未声明的端点表示任意值。
+        此处不限定类型，以便端点用 allOf 追加自己的 data 结构。
+
+EmptyData:
+  type: object
+  maxProperties: 0
+  description: |
+    失败响应中的空对象 `data`。用户模块与上传/备份类端点沿用早期约定：
+    失败时 HTTP 仍为 200，`code: 1`、`msg` 为具体原因、`data` 固定为 `{}`。
+    这些端点的 `data` 声明为「成功结构 或 EmptyData」的 oneOf。
+
+Pagination:
+  type: object
+  description: 分页信息
+  required: [page, pageSize, total, orderBy]
+  properties:
+    page:
+      type: integer
+      description: 当前页码，从 1 开始
+      example: 1
+    pageSize:
+      type: integer
+      description: 每页条数
+      example: 20
+    total:
+      type: integer
+      format: int64
+      description: 满足条件的总条数
+      example: 42
+    orderBy:
+      type: string
+      description: 实际生效的排序表达式（服务端白名单校验后生成，非请求原值）
+      example: 'created_at desc'
+
+BaseModel:
+  type: object
+  description: 博客内容模型公共字段（响应键已由服务端归一化为小驼峰）
+  required: [id, createdAt, updatedAt]
+  properties:
+    id:
+      type: string
+      description: 雪花 ID
+      example: '1930526412345678901'
+    createdAt:
+      type: string
+      format: date-time
+      description: 创建时间（RFC3339）
+    updatedAt:
+      type: string
+      format: date-time
+      description: 最后更新时间（RFC3339）
+    deletedAt:
+      description: 软删除时间；未删除时为 null
+      oneOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+
+PublishStatus:
+  type: string
+  description: 发布状态
+  enum: [draft, published, archived]
+
+CategoryScope:
+  type: string
+  description: 分类适用范围
+  enum: [post, portfolio, bookmark]
+
+# ===========================================================================
+# 公开只读博客 API
+# ===========================================================================
+
+PublicCategory:
+  type: object
+  description: 公开分类（仅返回已启用分类）
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      description: 分类 slug，用作文章列表的 `categoryId` 过滤值与 `/Blog/Category/:slug` 路径
+      example: tech
+    name:
+      type: string
+      example: 技术
+
+PublicTag:
+  type: object
+  description: 公开标签
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      description: 标签 slug
+      example: go
+    name:
+      type: string
+      example: Go
+
+PublicPostSummary:
+  type: object
+  description: 文章摘要（列表项，不含正文）
+  required: [id, title, summary, category, tags, author, date, pinned, views]
+  properties:
+    id:
+      type: string
+      description: 文章 slug，文章详情路径参数
+      example: hello-treasure-doc
+    title:
+      type: string
+    summary:
+      type: string
+      description: 摘要
+    category:
+      type: string
+      description: 分类 slug；未分类时为空串
+    tags:
+      type: array
+      description: 标签 slug 数组；无标签时为空数组（绝不返回 null）
+      items:
+        type: string
+    author:
+      type: string
+    date:
+      type: string
+      description: 发布日（`YYYY-MM-DD`）
+      example: '2026-03-01'
+    pinned:
+      type: boolean
+      description: 是否置顶
+    views:
+      type: integer
+      format: int64
+      description: 浏览量
+
+PublicPost:
+  description: 文章详情（含正文，以及相邻与推荐文章）
+  allOf:
+    - $ref: '#/PublicPostSummary'
+    - type: object
+      required: [content, related]
+      properties:
+        content:
+          type: string
+          description: Markdown 正文
+        prev:
+          description: 上一篇（更早发布）；不存在时为 null
+          oneOf:
+            - $ref: '#/PublicPostSummary'
+            - type: 'null'
+        next:
+          description: 下一篇（更新发布）；不存在时为 null
+          oneOf:
+            - $ref: '#/PublicPostSummary'
+            - type: 'null'
+        related:
+          type: array
+          description: 同分类或同标签的推荐文章；无则为空数组
+          items:
+            $ref: '#/PublicPostSummary'
+
+PublicArchiveGroup:
+  type: object
+  description: 归档页按月份聚合的文章
+  required: [month, posts]
+  properties:
+    month:
+      type: string
+      description: 月份，`YYYY-MM`
+      example: '2026-03'
+    posts:
+      type: array
+      items:
+        $ref: '#/PublicPostSummary'
+
+PublicPostPage:
+  type: object
+  description: 文章分页结果
+  required: [list, pagination]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/PublicPostSummary'
+    pagination:
+      $ref: '#/Pagination'
+
+PublicDiarySummary:
+  type: object
+  description: 日记摘要（列表项，不含正文）
+  required: [id, title, summary, tags, date, mood, weather, pinned, views]
+  properties:
+    id:
+      type: string
+      description: 日记 publicId（对外可见标识），日记详情路径参数
+    title:
+      type: string
+    summary:
+      type: string
+    tags:
+      type: array
+      description: 标签 slug 数组；无标签时为空数组
+      items:
+        type: string
+    date:
+      type: string
+      description: 发布日（`YYYY-MM-DD`）
+    mood:
+      type: string
+      description: 心情
+    weather:
+      type: string
+      description: 天气
+    pinned:
+      type: boolean
+    views:
+      type: integer
+      format: int64
+
+PublicDiary:
+  description: 日记详情（含正文）
+  allOf:
+    - $ref: '#/PublicDiarySummary'
+    - type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          description: Markdown 正文
+
+PublicDiaryPage:
+  type: object
+  description: 日记分页结果
+  required: [list, pagination]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/PublicDiarySummary'
+    pagination:
+      $ref: '#/Pagination'
+
+PublicPortfolioLink:
+  type: object
+  description: 作品相关链接
+  required: [label, url]
+  properties:
+    label:
+      type: string
+      example: 在线演示
+    url:
+      type: string
+      example: https://example.com
+
+PublicPortfolioSummary:
+  type: object
+  description: 作品摘要（列表项，不含正文）
+  required: [id, title, summary, category, cover, techStack, status, date, views]
+  properties:
+    id:
+      type: string
+      description: 作品 slug，作品详情路径参数
+    title:
+      type: string
+    summary:
+      type: string
+    category:
+      type: string
+      description: 分类 slug；未分类时为空串
+    cover:
+      type: string
+      description: 封面；可能是 `/files/blog/...` 上传图或遗留 emoji 文字占位
+    techStack:
+      type: array
+      description: 技术栈；无则为空数组
+      items:
+        type: string
+    status:
+      type: string
+      description: 项目状态文案
+    date:
+      type: string
+      description: 发布日（`YYYY-MM-DD`）
+    views:
+      type: integer
+      format: int64
+
+PublicPortfolioItem:
+  description: 作品详情（含正文与图集）
+  allOf:
+    - $ref: '#/PublicPortfolioSummary'
+    - type: object
+      required: [links, gallery, demoUrl, repoUrl, role, metrics, content]
+      properties:
+        links:
+          type: array
+          description: 相关链接；无则为空数组
+          items:
+            $ref: '#/PublicPortfolioLink'
+        gallery:
+          type: array
+          description: 项目截图；无则为空数组
+          items:
+            type: string
+        demoUrl:
+          type: string
+        repoUrl:
+          type: string
+        role:
+          type: string
+          description: 本人角色
+        metrics:
+          type: array
+          description: 成果指标；无则为空数组
+          items:
+            type: string
+        content:
+          type: string
+          description: Markdown 正文
+
+PublicTool:
+  type: object
+  description: 利器/工具条目（列表不返回正文；详情仅对自研工具返回完整内容）
+  required: [id, type, name, desc]
+  properties:
+    id:
+      type: string
+      description: 工具 slug
+    type:
+      type: string
+      description: 工具类型，`own` 自研 / 其他为外链
+      example: own
+    name:
+      type: string
+    desc:
+      type: string
+      description: 描述
+    url:
+      type: string
+      description: 外链地址；自研工具通常为空
+    cover:
+      type: string
+    status:
+      type: string
+      description: 开发状态；外链工具为空
+    content:
+      type: string
+      description: Markdown 正文；仅自研工具详情返回
+
+PublicBookmark:
+  type: object
+  description: 收藏集条目
+  required: [id, title, url, desc, category, tags, icon, openInNewTab]
+  properties:
+    id:
+      type: string
+    title:
+      type: string
+    url:
+      type: string
+    desc:
+      type: string
+    category:
+      type: string
+      description: 分类 slug；未分类时为空串
+    tags:
+      type: array
+      description: 标签 slug 数组；无标签时为空数组
+      items:
+        type: string
+    icon:
+      type: string
+      description: 图标；可能是 `/files/blog/...` 上传图或遗留 emoji 文字占位
+    openInNewTab:
+      type: boolean
+
+PublicProfileLink:
+  type: object
+  description: 关于我页的联系方式
+  required: [id, label, value, icon]
+  properties:
+    id:
+      type: string
+    label:
+      type: string
+      example: GitHub
+    value:
+      type: string
+      description: 展示文案
+    url:
+      type: string
+      description: 跳转地址；无则为空
+    icon:
+      type: string
+      description: emoji 图标
+
+PublicProfileSkill:
+  type: object
+  description: 技能项
+  required: [name, level, group]
+  properties:
+    name:
+      type: string
+    level:
+      type: integer
+      description: 熟练度（0-100）
+    group:
+      type: string
+      description: 技能分组
+
+PublicProfile:
+  type: object
+  description: 关于我（个人资料）
+  required: [name, avatar, role, location, motto, bio, links, skills]
+  properties:
+    name:
+      type: string
+    avatar:
+      type: string
+      description: 头像；可能是 `/files/blog/...` 上传图或遗留 emoji 文字占位
+    role:
+      type: string
+    location:
+      type: string
+    motto:
+      type: string
+    bio:
+      type: string
+    links:
+      type: array
+      description: 联系方式；无则为空数组
+      items:
+        $ref: '#/PublicProfileLink'
+    skills:
+      type: array
+      description: 技能；无则为空数组
+      items:
+        $ref: '#/PublicProfileSkill'
+
+PublicSiteModule:
+  type: object
+  description: 站点模块（可见性由 visible 控制，前端据此隐藏入口）
+  required: [id, icon, name, title, desc, path, marker, visible]
+  properties:
+    id:
+      type: string
+      description: 模块标识（home/blog/diary/portfolio/tools/bookmark/about）
+      example: blog
+    icon:
+      type: string
+    name:
+      type: string
+    title:
+      type: string
+    desc:
+      type: string
+    path:
+      type: string
+      example: /Blog
+    marker:
+      type: string
+    visible:
+      type: boolean
+
+PublicSiteMilestone:
+  type: object
+  description: 站点里程碑
+  required: [date, title, desc]
+  properties:
+    date:
+      type: string
+      example: '2026-01-01'
+    title:
+      type: string
+    desc:
+      type: string
+
+PublicSiteHomeAI:
+  type: object
+  description: 首页 AI 宣传块
+  required: [eyebrow, title, description, linkText, linkUrl, imageUrl]
+  properties:
+    eyebrow:
+      type: string
+    title:
+      type: string
+    description:
+      type: string
+    linkText:
+      type: string
+    linkUrl:
+      type: string
+    imageUrl:
+      type: string
+
+PublicSiteHomeTerminal:
+  type: object
+  description: 首页终端卡片（未配置 AI 模块配图时展示）
+  required: [title, command, lines]
+  properties:
+    title:
+      type: string
+      example: creative-workspace
+    command:
+      type: string
+    lines:
+      type: array
+      items:
+        type: string
+
+PublicSiteHome:
+  type: object
+  description: 首页文案与配图
+  required: [title, subtitle, ai, terminal, portfolioImageUrl, bookmarkImageUrl]
+  properties:
+    title:
+      type: string
+    subtitle:
+      type: string
+    ai:
+      $ref: '#/PublicSiteHomeAI'
+    terminal:
+      $ref: '#/PublicSiteHomeTerminal'
+    portfolioImageUrl:
+      type: string
+    bookmarkImageUrl:
+      type: string
+
+PublicSiteFooter:
+  type: object
+  description: 页脚信息
+  required: [text, linkText, linkUrl, icpNumber, icpUrl, policeNumber, policeUrl]
+  properties:
+    text:
+      type: string
+    linkText:
+      type: string
+    linkUrl:
+      type: string
+    icpNumber:
+      type: string
+    icpUrl:
+      type: string
+    policeNumber:
+      type: string
+    policeUrl:
+      type: string
+
+PublicSiteBanner:
+  type: object
+  description: 顶部横幅
+  required: [enabled, text, backgroundColor, textColor]
+  properties:
+    enabled:
+      type: boolean
+    text:
+      type: string
+    backgroundColor:
+      type: string
+    textColor:
+      type: string
+
+PublicSite:
+  type: object
+  description: 站点设置（公开只读）
+  required: [name, slogan, intro, techStack, modules, milestones, home, footer, banner, maintenanceMode]
+  properties:
+    name:
+      type: string
+    slogan:
+      type: string
+    intro:
+      type: string
+    techStack:
+      type: array
+      items:
+        type: string
+    modules:
+      type: array
+      items:
+        $ref: '#/PublicSiteModule'
+    milestones:
+      type: array
+      items:
+        $ref: '#/PublicSiteMilestone'
+    home:
+      $ref: '#/PublicSiteHome'
+    footer:
+      $ref: '#/PublicSiteFooter'
+    banner:
+      $ref: '#/PublicSiteBanner'
+    maintenanceMode:
+      type: boolean
+      description: 维护模式；为 true 时前端只渲染维护页
+
+PublicStats:
+  type: object
+  description: 公开站点统计（仅统计已发布内容）
+  required: [posts, diaries, works]
+  properties:
+    posts:
+      type: integer
+      format: int64
+    diaries:
+      type: integer
+      format: int64
+    works:
+      type: integer
+      format: int64
+
+# ===========================================================================
+# 后台管理 API
+# ===========================================================================
+
+ManageCategory:
+  description: 分类
+  allOf:
+    - $ref: '#/BaseModel'
+    - type: object
+      required: [scope, slug, name, sortOrder, enabled]
+      properties:
+        scope:
+          $ref: '#/CategoryScope'
+        slug:
+          type: string
+          description: 唯一标识（同 scope 内唯一）
+        name:
+          type: string
+        sortOrder:
+          type: integer
+        enabled:
+          type: boolean
+          description: 是否启用；未启用的分类不会出现在公开博客
+
+ManageTag:
+  description: 标签
+  allOf:
+    - $ref: '#/BaseModel'
+    - type: object
+      required: [name, normalizedName]
+      properties:
+        name:
+          type: string
+        normalizedName:
+          type: string
+          description: 归一化名称，全局唯一（用于去重）
+
+ManagePost:
+  description: 文章（管理端详情）
+  allOf:
+    - $ref: '#/BaseModel'
+    - type: object
+      required: [slug, title, summary, categoryID, author, content, publishStatus, publishedOn, publishedAt, pinned, viewCount, version, publishSource, sourceID]
+      properties:
+        slug:
+          type: string
+          description: 文章标识；公开端详情路径使用该值
+        title:
+          type: string
+        summary:
+          type: string
+        categoryID:
+          type: string
+          description: 分类 slug（非数据库 ID）；空串表示未分类
+        author:
+          type: string
+        content:
+          type: string
+          description: Markdown 正文
+        publishStatus:
+          $ref: '#/PublishStatus'
+        publishedOn:
+          type: string
+          description: 发布日（`YYYY-MM-DD`）
+        publishedAt:
+          type: string
+          format: date-time
+          description: 发布时间；大于当前时间的已发布文章对公众不可见
+        pinned:
+          type: boolean
+        viewCount:
+          type: integer
+          format: int64
+        version:
+          type: integer
+          description: 乐观锁版本，更新时必须回传
+        publishSource:
+          type: string
+          description: 发布来源（default / siyuan …）
+        sourceID:
+          type: string
+          description: 该来源内的稳定标识，用于覆盖发布定位
+        tagIds:
+          type: array
+          description: 标签 ID 数组；无标签时为空数组
+          items:
+            type: string
+
+ManageDiary:
+  description: 日记（管理端详情）
+  allOf:
+    - $ref: '#/BaseModel'
+    - type: object
+      required: [publicId, title, summary, content, mood, weather, publishStatus, publishedOn, publishedAt, pinned, viewCount, version, publishSource, sourceID]
+      properties:
+        publicId:
+          type: string
+          description: 对外可见标识；公开端详情路径使用该值
+        title:
+          type: string
+        summary:
+          type: string
+        content:
+          type: string
+        mood:
+          type: string
+        weather:
+          type: string
+        publishStatus:
+          $ref: '#/PublishStatus'
+        publishedOn:
+          type: string
+          description: 发布日（`YYYY-MM-DD`）
+        publishedAt:
+          type: string
+          format: date-time
+        pinned:
+          type: boolean
+        viewCount:
+          type: integer
+          format: int64
+        version:
+          type: integer
+        publishSource:
+          type: string
+        sourceID:
+          type: string
+        tagIds:
+          type: array
+          items:
+            type: string
+
+ManagePortfolioItem:
+  description: 作品（管理端详情）
+  allOf:
+    - $ref: '#/BaseModel'
+    - type: object
+      required: [slug, title, summary, categoryID, cover, techStack, links, gallery, metrics, demoURL, repoURL, status, role, content, publishStatus, publishedOn, publishedAt, viewCount, version]
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        categoryID:
+          type: string
+          description: 分类 slug（scope 必须为 portfolio）
+        cover:
+          type: string
+        techStack:
+          type: array
+          items:
+            type: string
+        links:
+          type: array
+          items:
+            $ref: '#/PublicPortfolioLink'
+        gallery:
+          type: array
+          items:
+            type: string
+        metrics:
+          type: array
+          items:
+            type: string
+        demoURL:
+          type: string
+        repoURL:
+          type: string
+        status:
+          type: string
+        role:
+          type: string
+        content:
+          type: string
+        publishStatus:
+          $ref: '#/PublishStatus'
+        publishedOn:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        viewCount:
+          type: integer
+          format: int64
+        version:
+          type: integer
+
+ManageTool:
+  description: 利器/工具（管理端详情）
+  allOf:
+    - $ref: '#/BaseModel'
+    - type: object
+      required: [slug, kind, name, description, url, cover, developmentStatus, content, publishStatus, publishedAt, sortOrder, version]
+      properties:
+        slug:
+          type: string
+        kind:
+          type: string
+          description: 工具类型，`own` 自研 / `link` 外链
+          enum: [own, link]
+        name:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+          description: 外链工具必填
+        cover:
+          type: string
+        developmentStatus:
+          type: string
+          description: 开发状态；自研工具必填
+        content:
+          type: string
+        publishStatus:
+          $ref: '#/PublishStatus'
+        publishedAt:
+          type: string
+          format: date-time
+        sortOrder:
+          type: integer
+        version:
+          type: integer
+
+ManageBookmark:
+  description: 收藏集条目（管理端详情）
+  allOf:
+    - $ref: '#/BaseModel'
+    - type: object
+      required: [title, url, description, categoryID, icon, publishStatus, publishedAt, sortOrder, openInNewTab, version]
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+        description:
+          type: string
+        categoryID:
+          type: string
+          description: 分类 slug（scope 必须为 bookmark）
+        icon:
+          type: string
+        publishStatus:
+          $ref: '#/PublishStatus'
+        publishedAt:
+          type: string
+          format: date-time
+        sortOrder:
+          type: integer
+        openInNewTab:
+          type: boolean
+        version:
+          type: integer
+        tagIds:
+          type: array
+          items:
+            type: string
+
+ManageCategoryPage:
+  type: object
+  description: 分类分页结果
+  required: [list, pagination]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/ManageCategory'
+    pagination:
+      $ref: '#/Pagination'
+
+ManageTagPage:
+  type: object
+  description: 标签分页结果
+  required: [list, pagination]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/ManageTag'
+    pagination:
+      $ref: '#/Pagination'
+
+ManagePostPage:
+  type: object
+  description: 文章分页结果（含正文）
+  required: [list, pagination]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/ManagePost'
+    pagination:
+      $ref: '#/Pagination'
+
+ManageDiaryPage:
+  type: object
+  description: 日记分页结果（含正文）
+  required: [list, pagination]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/ManageDiary'
+    pagination:
+      $ref: '#/Pagination'
+
+ManagePortfolioItemPage:
+  type: object
+  description: 作品分页结果（含正文）
+  required: [list, pagination]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/ManagePortfolioItem'
+    pagination:
+      $ref: '#/Pagination'
+
+ManageToolPage:
+  type: object
+  description: 利器/工具分页结果（含正文）
+  required: [list, pagination]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/ManageTool'
+    pagination:
+      $ref: '#/Pagination'
+
+ManageBookmarkPage:
+  type: object
+  description: 收藏集分页结果
+  required: [list, pagination]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/ManageBookmark'
+    pagination:
+      $ref: '#/Pagination'
+
+ManageStatusCounts:
+  type: object
+  description: 单个资源的各状态计数
+  required: [total, draft, published, archived]
+  properties:
+    total:
+      type: integer
+      format: int64
+    draft:
+      type: integer
+      format: int64
+    published:
+      type: integer
+      format: int64
+    archived:
+      type: integer
+      format: int64
+
+ManageStats:
+  type: object
+  description: 后台仪表盘总览
+  required: [posts, diaries, portfolioItems, tools, bookmarks, categories, tags, totalViews]
+  properties:
+    posts:
+      $ref: '#/ManageStatusCounts'
+    diaries:
+      $ref: '#/ManageStatusCounts'
+    portfolioItems:
+      $ref: '#/ManageStatusCounts'
+    tools:
+      $ref: '#/ManageStatusCounts'
+    bookmarks:
+      $ref: '#/ManageStatusCounts'
+    categories:
+      type: integer
+      format: int64
+    tags:
+      type: integer
+      format: int64
+    totalViews:
+      type: integer
+      format: int64
+
+ManageVisitorStat:
+  type: object
+  description: 单个访客 IP 在时间范围内的聚合
+  required: [ip, count, firstSeen, lastSeen, categories]
+  properties:
+    ip:
+      type: string
+    count:
+      type: integer
+      format: int64
+      description: 访问次数
+    firstSeen:
+      type: string
+      format: date-time
+    lastSeen:
+      type: string
+      format: date-time
+    categories:
+      type: array
+      description: 访问过的去重内容分类标识（如 post、diary）
+      items:
+        type: string
+
+ManageVisitorStats:
+  type: object
+  description: 访客统计（时间范围内总量 + 按 IP 明细）
+  required: [days, totalCount, distinctIp, list]
+  properties:
+    days:
+      type: integer
+      format: int64
+    totalCount:
+      type: integer
+      format: int64
+    distinctIp:
+      type: integer
+      format: int64
+    list:
+      type: array
+      items:
+        $ref: '#/ManageVisitorStat'
+
+ManageEditHistoryMeta:
+  type: object
+  description: 历史版本摘要（不含快照）
+  required: [seq, version, createdAt, summary]
+  properties:
+    seq:
+      type: integer
+      description: 版本序号（同一资源内自增，从 1 开始）
+    version:
+      type: integer
+      description: 该快照对应的内容 version
+    createdAt:
+      type: string
+      description: 保存时间
+    summary:
+      type: string
+      description: 变更摘要
+
+ManageEditHistoryDetail:
+  description: 历史版本详情（含完整快照）
+  allOf:
+    - $ref: '#/ManageEditHistoryMeta'
+    - type: object
+      required: [snapshot]
+      properties:
+        snapshot:
+          description: 完整实体快照，结构与对应资源的管理端详情一致（含 tagIds）
+          type: object
+          additionalProperties: true
+
+ManageMediaReference:
+  type: object
+  description: 某资源字段对当前媒体文件的引用条数
+  required: [resource, field, count]
+  properties:
+    resource:
+      type: string
+      example: 文章
+    field:
+      type: string
+      example: 正文
+    count:
+      type: integer
+      format: int64
+
+ManageMediaFile:
+  type: object
+  description: 媒体库文件（/files/blog/ 下的上传文件）
+  required: [name, path, size, modTime, referenced, referenceCount, references, originName, ext, mime, width, height]
+  properties:
+    name:
+      type: string
+      description: 存储文件名 `<sha256>.<ext>`
+    path:
+      type: string
+      description: 可直接引用的公开路径
+      example: /files/blog/9f2c....png
+    size:
+      type: integer
+      format: int64
+    modTime:
+      type: string
+      description: 文件修改时间（RFC3339）
+    referenced:
+      type: boolean
+      description: 是否被任意内容引用（未引用的文件可安全删除）
+    referenceCount:
+      type: integer
+      format: int64
+      description: 引用它的内容记录条数
+    references:
+      type: array
+      description: 引用来源明细；未引用时为空数组
+      items:
+        $ref: '#/ManageMediaReference'
+    originName:
+      type: string
+      description: 上传时的原始文件名（元数据表登记值，未登记时为空）
+    ext:
+      type: string
+    mime:
+      type: string
+    width:
+      type: integer
+    height:
+      type: integer
+
+ManageProfile:
+  $ref: '#/PublicProfile'
+
+ManageSite:
+  $ref: '#/PublicSite'
+
+ManageBackupFile:
+  type: object
+  description: 备份文件
+  required: [name, size, modTime]
+  properties:
+    name:
+      type: string
+    size:
+      type: integer
+      format: int64
+    modTime:
+      type: string
+      description: 文件修改时间（RFC3339）
+
+# ===========================================================================
+# 后台管理 API —— 通用请求体与操作结果
+# ===========================================================================
+
+ManageCategoryInput:
+  type: object
+  description: 分类写入载荷（新增与更新共用）
+  properties:
+    scope:
+      $ref: '#/CategoryScope'
+    slug:
+      type: string
+      description: 唯一标识，同 scope 内唯一；留空时由服务端按名称生成
+    name:
+      type: string
+      description: 分类名称，不能为空
+    sortOrder:
+      type: integer
+      default: 0
+    enabled:
+      type: boolean
+      description: 是否启用；缺省视为 true
+
+ManageTagInput:
+  type: object
+  description: 标签写入载荷（新增与更新共用）
+  required: [name]
+  properties:
+    name:
+      type: string
+      description: 标签名，不能为空；服务端据此生成唯一 normalizedName，重复时返回 409 / code 40900
+
+ManagePostInput:
+  type: object
+  description: 文章写入载荷（新增与更新共用）
+  required: [slug, title, publishStatus, publishedOn]
+  properties:
+    slug:
+      type: string
+      description: 文章标识，全局唯一；留空时由标题推导
+    title:
+      type: string
+      description: 标题，不能为空
+    summary:
+      type: string
+    categoryId:
+      type: string
+      description: 分类 slug，必须是 `scope = post` 下已存在的分类；留空表示未分类
+    author:
+      type: string
+      description: 作者；留空时由服务端取当前登录用户
+    content:
+      type: string
+      description: Markdown 正文
+    publishStatus:
+      $ref: '#/PublishStatus'
+    publishedOn:
+      type: string
+      description: 发布日，格式 `YYYY-MM-DD`
+      example: '2026-03-01'
+    publishedAt:
+      type: [string, 'null']
+      format: date-time
+      description: 发布时间（RFC3339）；留空时由 `publishedOn` 推导。大于当前时间的已发布文章对公众不可见
+    pinned:
+      type: boolean
+      default: false
+    version:
+      type: integer
+      description: 乐观锁版本；更新时必填且必须等于当前版本，否则 409 / code 40900
+    tagIds:
+      type: array
+      description: 标签 ID 数组，必须全部已存在
+      items:
+        type: string
+    overwrite:
+      type: boolean
+      description: |
+        仅发布端（`/api/publish/posts`）使用：true 时按「publishSource + sourceId」定位已发布记录并覆盖，
+        未命中则返回 400；管理端忽略该字段。
+    publishSource:
+      type: string
+      description: 发布来源（如 siyuan）；缺省为 default
+    sourceId:
+      type: string
+      description: 该来源内的稳定标识，与 publishSource 一起用于覆盖发布定位
+
+ManageDiaryInput:
+  type: object
+  description: 日记写入载荷（新增与更新共用）
+  required: [title, publishStatus, publishedOn]
+  properties:
+    publicId:
+      type: string
+      description: 对外可见标识，全局唯一；留空时由服务端生成
+    title:
+      type: string
+      description: 标题，不能为空
+    summary:
+      type: string
+    content:
+      type: string
+    mood:
+      type: string
+    weather:
+      type: string
+    publishStatus:
+      $ref: '#/PublishStatus'
+    publishedOn:
+      type: string
+      description: 发布日，格式 `YYYY-MM-DD`
+    publishedAt:
+      type: [string, 'null']
+      format: date-time
+      description: 发布时间（RFC3339）；留空时由 `publishedOn` 推导
+    pinned:
+      type: boolean
+      default: false
+    version:
+      type: integer
+      description: 乐观锁版本；更新时必填
+    tagIds:
+      type: array
+      items:
+        type: string
+    overwrite:
+      type: boolean
+      description: 仅发布端使用，语义同文章
+    publishSource:
+      type: string
+    sourceId:
+      type: string
+
+ManagePortfolioItemInput:
+  type: object
+  description: 作品写入载荷（新增与更新共用）
+  required: [title, publishStatus, publishedOn]
+  properties:
+    slug:
+      type: string
+      description: 作品标识，全局唯一；留空时由标题推导
+    title:
+      type: string
+      description: 标题，不能为空
+    summary:
+      type: string
+    categoryId:
+      type: string
+      description: 分类 slug，必须是 `scope = portfolio` 下已存在的分类
+    cover:
+      type: string
+      description: 封面；填 `/files/blog/...` 上传图地址，或沿用遗留的 emoji 文字占位
+    techStack:
+      type: array
+      items:
+        type: string
+    links:
+      type: array
+      description: 相关链接
+      items:
+        $ref: '#/PublicPortfolioLink'
+    gallery:
+      type: array
+      items:
+        type: string
+    metrics:
+      type: array
+      items:
+        type: string
+    demoUrl:
+      type: string
+      description: 在线演示地址
+    repoUrl:
+      type: string
+      description: 仓库地址
+    status:
+      type: string
+      description: 项目状态文案
+    role:
+      type: string
+    content:
+      type: string
+    publishStatus:
+      $ref: '#/PublishStatus'
+    publishedOn:
+      type: string
+      description: 发布日，格式 `YYYY-MM-DD`
+    publishedAt:
+      type: [string, 'null']
+      format: date-time
+      description: 发布时间（RFC3339）；留空时由 `publishedOn` 推导
+    version:
+      type: integer
+      description: 乐观锁版本；更新时必填
+
+ManageToolInput:
+  type: object
+  description: 利器/工具写入载荷（新增与更新共用）
+  required: [name, kind, publishStatus]
+  properties:
+    slug:
+      type: string
+    kind:
+      type: string
+      description: '`own` 自研 / `link` 外链'
+      enum: [own, link]
+    name:
+      type: string
+      description: 名称，不能为空
+    description:
+      type: string
+    url:
+      type: string
+      description: '外链地址；`kind = link` 时必填且需为合法地址（http / https / mailto 等协议均可，但会拒绝 javascript、data 这类可执行脚本协议），否则 400 / code 40003'
+    cover:
+      type: string
+    developmentStatus:
+      type: string
+      description: 开发状态；`kind = own` 时必填，否则 400 / code 40004
+    content:
+      type: string
+    publishStatus:
+      $ref: '#/PublishStatus'
+    publishedAt:
+      type: [string, 'null']
+      format: date-time
+      description: 发布时间（RFC3339）；留空时由 `publishedOn` 推导
+    sortOrder:
+      type: integer
+      default: 0
+    version:
+      type: integer
+      description: 乐观锁版本；更新时必填
+
+ManageBookmarkInput:
+  type: object
+  description: 收藏集条目写入载荷（新增与更新共用）
+  required: [title, url, publishStatus]
+  properties:
+    title:
+      type: string
+      description: 标题，不能为空
+    url:
+      type: string
+      description: 目标地址，必须为合法地址
+    description:
+      type: string
+    categoryId:
+      type: string
+      description: 分类 slug，必须是 `scope = bookmark` 下已存在的分类
+    icon:
+      type: string
+    publishStatus:
+      $ref: '#/PublishStatus'
+    publishedAt:
+      type: [string, 'null']
+      format: date-time
+      description: 发布时间（RFC3339）；留空时由 `publishedOn` 推导
+    sortOrder:
+      type: integer
+      default: 0
+    openInNewTab:
+      type: boolean
+      default: true
+    version:
+      type: integer
+      description: 乐观锁版本；更新时必填
+    tagIds:
+      type: array
+      items:
+        type: string
+
+ManageProfileInput:
+  $ref: '#/PublicProfile'
+
+ManageSiteInput:
+  $ref: '#/PublicSite'
+
+ManageUpdateFieldsInput:
+  type: object
+  description: |
+    列表快捷修改载荷，只提交需要改的字段。白名单：
+    `pinned`（仅 posts / diaries）与 `publishStatus`（posts / diaries / portfolio-items / tools / bookmarks）。
+    categories / tags 不支持快捷修改；出现白名单之外的字段返回 400 / code 40001（data.field = `fields`）。
+    该接口不要求 `version`，成功后服务端自增 version。
+  properties:
+    pinned:
+      type: boolean
+      description: 是否置顶，仅 posts / diaries 支持
+    publishStatus:
+      $ref: '#/PublishStatus'
+  example:
+    pinned: true
+
+ManageBatchDeleteInput:
+  type: object
+  description: 批量软删除载荷；ID 会去重，空集合或超过 200 个返回 400 / code 40001
+  required: [ids]
+  properties:
+    ids:
+      type: array
+      maxItems: 200
+      items:
+        type: string
+  example:
+    ids: ['1930526412345678901', '1930526412345678902']
+
+ManageDeleteResult:
+  type: object
+  description: 单条删除结果（GORM 软删除）
+  required: [deleted]
+  properties:
+    deleted:
+      type: boolean
+      example: true
+
+ManageBatchDeleteResult:
+  type: object
+  description: 批量软删除结果
+  required: [deleted]
+  properties:
+    deleted:
+      type: integer
+      format: int64
+      description: 实际删除条数
+      example: 2
+
+ManageRestoreResult:
+  type: object
+  description: 回收站恢复结果
+  required: [restored]
+  properties:
+    restored:
+      type: boolean
+      example: true
+
+ManageTokenResult:
+  type: object
+  description: 机器令牌读写结果
+  required: [token]
+  properties:
+    token:
+      type: string
+      description: 当前生效的令牌；空串表示未配置（对应接口整体拒绝请求）
+
+ManageTokenInput:
+  type: object
+  description: 机器令牌写入载荷
+  required: [token]
+  properties:
+    token:
+      type: string
+      description: 新令牌；空串表示清除（禁用对应接口）
+
+ManageUploadedImage:
+  type: object
+  description: 单图上传结果
+  required: [path]
+  properties:
+    path:
+      type: string
+      description: 可直接引用的公开路径，形如 `/files/blog/<sha256>.<ext>`
+      example: /files/blog/9f2c8b1d....png
+
+ManageUploadedMedia:
+  type: object
+  description: 单个媒体文件上传结果
+  required: [path, name, size, existed]
+  properties:
+    path:
+      type: string
+      example: /files/blog/9f2c8b1d....png
+    name:
+      type: string
+      description: 存储文件名
+    size:
+      type: integer
+      format: int64
+    existed:
+      type: boolean
+      description: true 表示服务端已存在相同内容（sha256 相同），未重复写盘
+
+ManageUploadMediaList:
+  type: object
+  description: 多文件上传结果，顺序与提交顺序一致
+  required: [list]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/ManageUploadedMedia'
+
+ManageMediaReferencesResult:
+  type: object
+  description: 媒体文件引用统计
+  required: [total, references]
+  properties:
+    total:
+      type: integer
+      format: int64
+      description: 引用该文件的（未软删除）内容记录条数总和
+    references:
+      type: array
+      description: 按资源/字段拆分的明细；无引用时为空数组
+      items:
+        $ref: '#/ManageMediaReference'
+
+ManageMediaBatchDeleteInput:
+  type: object
+  description: 媒体库批量删除载荷；不存在的文件会被跳过（接口幂等），空集合或超过 200 个返回失败
+  required: [names]
+  properties:
+    names:
+      type: array
+      maxItems: 200
+      items:
+        type: string
+  example:
+    names: ['9f2c8b1d....png']
+
+ManageMediaBatchDeleteResult:
+  type: object
+  description: 媒体批量删除结果
+  required: [deleted]
+  properties:
+    deleted:
+      type: integer
+      format: int64
+      description: 实际删除的文件数
+
+ManageMediaDeleteResult:
+  type: object
+  required: [deleted]
+  properties:
+    deleted:
+      type: boolean
+
+ManageRestoreArchiveResult:
+  type: object
+  description: 备份包导入结果
+  required: [restored, createdAt]
+  properties:
+    restored:
+      type: boolean
+    createdAt:
+      type: string
+      description: 备份包生成时间（取自 manifest）
+      example: '2026-03-01T12:00:00+08:00'
+
+# ===========================================================================
+# 机器令牌发布 API
+# ===========================================================================
+
+PublishCategory:
+  type: object
+  description: 发布端可选分类
+  required: [id, name, slug, scope]
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    slug:
+      type: string
+      description: 写入内容时使用的 `categoryId` 值
+    scope:
+      $ref: '#/CategoryScope'
+
+PublishTag:
+  type: object
+  description: 发布端可选标签
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      description: 写入内容时使用的 `tagIds` 值
+    name:
+      type: string
+
+PublishLookupResult:
+  type: object
+  description: 发布状态查询结果
+  required: [exists, id, title, slug]
+  properties:
+    exists:
+      type: boolean
+      description: 是否存在（未删除的）同名内容
+    id:
+      type: string
+      description: 已存在时为内容 ID，否则为空串
+    title:
+      type: string
+      description: 已存在时为标题，否则为空串
+    slug:
+      type: string
+      description: 查询用的 slug 原样回显
+
+# ===========================================================================
+# 用户 / 鉴权 API
+# ===========================================================================
+
+UserLoginInput:
+  type: object
+  description: |
+    登录请求。`account` 字段同时支持账号与邮箱（均唯一）。
+    验证码是否必填取决于服务端 `captcha.enabled` 配置，因此 `captchaId` / `verifyCode`
+    在结构上没有 required 约束，由服务层按配置校验。
+  required: [account, password]
+  properties:
+    account:
+      type: string
+      minLength: 6
+      maxLength: 100
+      description: 账号或邮箱
+    password:
+      type: string
+      minLength: 6
+      maxLength: 100
+    captchaId:
+      type: string
+      maxLength: 100
+      description: 验证码 ID，取自 `GET /api/user/captcha` 的 `captchaId`
+    verifyCode:
+      type: string
+      maxLength: 100
+      description: 用户输入的验证码答案（算术题结果）
+
+UserChangePwdInput:
+  type: object
+  description: 修改当前登录用户的密码，需要校验原密码
+  required: [oldPassword, password, rePassword]
+  properties:
+    oldPassword:
+      type: string
+      description: 原密码
+    password:
+      type: string
+      minLength: 8
+      maxLength: 16
+      description: 新密码，8–16 位
+    rePassword:
+      type: string
+      minLength: 8
+      maxLength: 16
+      description: 重复新密码，必须与 password 一致
+
+UserCaptcha:
+  type: object
+  description: 图形验证码（算术题）
+  required: [captchaId, captcha]
+  properties:
+    captchaId:
+      type: string
+      description: 验证码 ID，登录时以 `captchaId` 回传
+    captcha:
+      type: string
+      description: base64 图片数据（可直接作为 `<img src>`）
+
+UserLoginResult:
+  type: object
+  description: 登录成功返回的当前用户
+  required: [id, nickname, account, email, userType, userStatus, token]
+  properties:
+    id:
+      type: string
+    nickname:
+      type: string
+    account:
+      type: string
+    email:
+      type: string
+    password:
+      type: string
+      description: 密码哈希（历史遗留字段，随模型一并返回）
+    userType:
+      type: integer
+      description: 1 普通用户、2 管理员、100 超级管理员
+      enum: [1, 2, 100]
+    userStatus:
+      type: integer
+      description: 1 可用、2 不可用、3 未激活
+    mobile:
+      type: string
+    avatar:
+      type: string
+    bio:
+      type: string
+    currentRoomId:
+      type: string
+    requirePwdReset:
+      type: boolean
+      description: 为 true 时前端登录后提醒一次修改密码（不拦截接口）
+    token:
+      type: string
+      description: 后续请求的 X-Token
+    createdAt:
+      type: string
+      format: date-time
+      description: 注意：用户模块 BaseModel 的字段名与列名互换，createdAt 实际取自 updated_at 列
+    updatedAt:
+      type: string
+      format: date-time
+      description: 注意：实际取自 created_at 列
+    deletedAt:
+      description: 软删除时间；未删除时为 null
+      oneOf:
+        - type: string
+          format: date-time
+        - type: 'null'

@@ -1,0 +1,26 @@
+# GET /api/blog/bookmark/categories —— 公开只读博客 API（书签分类列表）
+# 注册位置：module/blog/router/router.go → RegisterService → blog.GET("/bookmark/categories")
+operationId: listBlogBookmarkCategories
+tags: [public-blog]
+summary: 书签分类列表
+description: |
+  仅返回「已启用」且至少有一条已发布书签（scope = bookmark）的分类，按 `sortOrder` 升序。
+  `id` 即分类 slug，可直接用作书签列表的 `categoryId` 过滤值。
+security:
+  - {}
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas.yaml#/PublicCategory'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

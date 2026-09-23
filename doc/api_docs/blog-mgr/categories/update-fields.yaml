@@ -1,0 +1,42 @@
+# PATCH /api/blog-mgr/categories/{id}/fields —— 后台管理 API（快捷修改分类字段）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: updateManageCategoriesFields
+tags: [blog-manage]
+summary: 快捷修改分类字段
+description: |
+  分类**不支持**快捷修改：服务端对 `categories` / `tags` 直接返回 400 / code 40001
+  （快捷修改白名单 `pinned`、`publishStatus` 仅对 posts / diaries 生效），因此正常情况下不会返回 200。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../../components/parameters.yaml#/ManageID'
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../../components/schemas.yaml#/ManageUpdateFieldsInput'
+responses:
+  '200':
+    description: 修改成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManageCategory'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '404':
+    $ref: '../../components/responses.yaml#/ManageNotFound'
+  '409':
+    $ref: '../../components/responses.yaml#/ManageConflict'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

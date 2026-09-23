@@ -1,0 +1,432 @@
+# 共享响应对象（OpenAPI components.responses）
+#
+# 说明：
+#   - 端点文件只对「成功响应」内联声明 data 结构（allOf 组合 Envelope + data），
+#     失败响应统一引用本文件里的具名响应对象，避免同一错误码在 119 个文件里重复描述。
+#   - 业务成功与失败通常都返回 HTTP 200，仅靠响应体 code 区分；但认证/权限/限流
+#     中间件会返回真实的 401 / 403 / 429。
+#   - data 的取值规则：commonresponse.Error 恒为 null；字段级校验失败用
+#     ErrorWithData 带出 `{"field": "..."}`；用户模块的 FailWithMessage 为 `{}`。
+
+# ===========================================================================
+# 通用
+# ===========================================================================
+
+RateLimited:
+  description: |
+    触发限流（HTTP 429）。仅作用于 `/api/user/login`（0.1/s，容量 5）、
+    `/api/blog-mgr/uploads/`（0.5/s，容量 20）、`/api/publish`（0.2/s，容量 20），按客户端 IP 令牌桶计数。
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 42900
+        msg: 请求过于频繁，请稍后再试
+        data: null
+
+# ===========================================================================
+# 公开只读博客 API
+# ===========================================================================
+
+BlogInvalidQuery:
+  description: 查询参数格式错误（HTTP 400，code 40001）
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40001
+        msg: 查询参数格式错误
+        data: null
+
+BlogSortUnsupported:
+  description: 不支持的排序方式（HTTP 400，code 40002）；`sort` 只允许 `asc` / `desc`
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40002
+        msg: 不支持的排序方式
+        data: null
+
+BlogPostNotFound:
+  description: 文章不存在或已被删除（HTTP 404，code 40401）；草稿与定时发布文章同样返回此错误
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40401
+        msg: 文章不存在或已被删除
+        data: null
+
+BlogDiaryNotFound:
+  description: 日记不存在或已被删除（HTTP 404，code 40402）
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40402
+        msg: 日记不存在或已被删除
+        data: null
+
+BlogPortfolioNotFound:
+  description: 作品不存在或已移除（HTTP 404，code 40403）
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40403
+        msg: 作品不存在或已移除
+        data: null
+
+BlogToolNotFound:
+  description: 工具不存在，或该条目不是自研工具（HTTP 404，code 40404）
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40404
+        msg: 工具不存在，或该条目不是自研工具
+        data: null
+
+BlogInternal:
+  description: 服务内部错误（HTTP 500，code 50000）
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 50000
+        msg: 服务内部错误
+        data: null
+
+# ===========================================================================
+# 后台管理 API
+# ===========================================================================
+
+ManageUnauthorized:
+  description: 未登录或登录已失效（HTTP 401，code 40100）；`X-Token` 缺失或无效
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40100
+        msg: 未登录或登录已失效
+        data: null
+
+ManageForbidden:
+  description: 无管理权限（HTTP 403，code 40300）；要求 `userType` ∈ {2, 100}
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40300
+        msg: 无管理权限
+        data: null
+
+ManageInvalidRequest:
+  description: '请求参数格式错误（HTTP 400，code 40001）；字段级校验失败时 msg 为具体原因，且 data 为 {"field": "<字段名>"}'
+  content:
+    application/json:
+      schema:
+        allOf:
+          - $ref: './schemas.yaml#/Envelope'
+          - type: object
+            properties:
+              data:
+                type: [object, 'null']
+                description: '参数格式错误时为 null；字段级校验失败时为 {"field": "<字段名>"}'
+                properties:
+                  field:
+                    type: string
+                    description: 出错的 JSON 字段名，仅字段级校验失败时存在
+      examples:
+        invalid:
+          value:
+            code: 40001
+            msg: 请求参数格式错误
+            data: null
+        fieldError:
+          value:
+            code: 40001
+            msg: 名称不能为空
+            data:
+              field: name
+
+ManageReferenceAbsent:
+  description: 关联的分类或标签不存在（HTTP 400，code 40002）；data.field = `categoryId 或 tagIds`
+  content:
+    application/json:
+      schema:
+        allOf:
+          - $ref: './schemas.yaml#/Envelope'
+          - type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  field:
+                    type: string
+      example:
+        code: 40002
+        msg: 关联的分类或标签不存在，请先创建
+        data:
+          field: categoryId 或 tagIds
+
+ManageBadRequest:
+  description: |
+    请求参数错误（HTTP 400）。该端点的 400 有两种业务码：
+    - `40001` 参数格式错误；字段级校验失败时 msg 为具体原因，data 为 `{"field": "<字段名>"}`；
+    - `40002` 关联的分类或标签不存在，data 为 `{"field": "categoryId 或 tagIds"}`。
+  content:
+    application/json:
+      schema:
+        allOf:
+          - $ref: './schemas.yaml#/Envelope'
+          - type: object
+            properties:
+              data:
+                description: '40001 时为 {"field": "..."} 或 null，40002 时为 {"field": "categoryId 或 tagIds"}'
+                type: [object, 'null']
+                properties:
+                  field:
+                    type: string
+      examples:
+        invalid:
+          summary: 参数格式错误（40001）
+          value:
+            code: 40001
+            msg: 请求参数格式错误
+            data: null
+        fieldError:
+          summary: 字段级校验失败（40001）
+          value:
+            code: 40001
+            msg: 标题不能为空
+            data:
+              field: title
+        referenceAbsent:
+          summary: 关联的分类或标签不存在（40002）
+          value:
+            code: 40002
+            msg: 关联的分类或标签不存在，请先创建
+            data:
+              field: categoryId 或 tagIds
+
+ManageToolBadRequest:
+  description: |
+    请求参数错误（HTTP 400）。工具资源的 400 有三种业务码：
+    - `40001` 参数格式错误 / 字段级校验失败（data 为 `{"field": "<字段名>"}`）；
+    - `40003` 外链工具（`kind = link`）缺少有效地址，data.field = `url`；
+    - `40004` 自研工具（`kind = own`）缺少开发状态，data.field = `developmentStatus`。
+  content:
+    application/json:
+      schema:
+        allOf:
+          - $ref: './schemas.yaml#/Envelope'
+          - type: object
+            properties:
+              data:
+                type: [object, 'null']
+                description: '参数格式错误时为 null；字段级校验失败时为 {"field": "<字段名>"}'
+                properties:
+                  field:
+                    type: string
+      examples:
+        invalid:
+          summary: 参数格式错误（40001）
+          value:
+            code: 40001
+            msg: 请求参数格式错误
+            data: null
+        urlRequired:
+          summary: 外链工具缺少地址（40003）
+          value:
+            code: 40003
+            msg: '外链工具必须填写有效地址（支持 http/https 等协议，不支持 javascript 这类可执行协议的地址）'
+            data:
+              field: url
+        statusRequired:
+          summary: 自研工具缺少开发状态（40004）
+          value:
+            code: 40004
+            msg: 自研工具必须填写开发状态
+            data:
+              field: developmentStatus
+
+ManageToolURLRequired:
+  description: 外链工具必须填写有效地址（HTTP 400，code 40003）；data.field = `url`
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40003
+        msg: '外链工具必须填写有效地址（支持 http/https 等协议，不支持 javascript 这类可执行协议的地址）'
+        data:
+          field: url
+
+ManageToolStatusRequired:
+  description: 自研工具必须填写开发状态（HTTP 400，code 40004）；data.field = `developmentStatus`
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40004
+        msg: 自研工具必须填写开发状态
+        data:
+          field: developmentStatus
+
+ManageNotFound:
+  description: 资源不存在（HTTP 404，code 40410）
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40410
+        msg: 资源不存在
+        data: null
+
+ManageConflict:
+  description: 版本冲突或标识重复（HTTP 409，code 40900）；`version` 过期或 slug / 标签名等唯一标识已存在
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40900
+        msg: 数据已变更或标识重复
+        data: null
+
+ManageInternal:
+  description: 服务内部错误（HTTP 500，code 50000）
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 50000
+        msg: 服务内部错误
+        data: null
+
+# ===========================================================================
+# 机器令牌发布 API
+# ===========================================================================
+
+PublishUnauthorized:
+  description: 发布令牌未配置或无效（HTTP 401，code 40100）；请求头 `X-Publish-Token` 必须等于后台配置的发布令牌
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      examples:
+        missing:
+          value:
+            code: 40100
+            msg: 未配置发布令牌
+            data: null
+        invalid:
+          value:
+            code: 40100
+            msg: 发布令牌无效
+            data: null
+
+PublishIPForbidden:
+  description: 来源 IP 不在白名单内（HTTP 403，code 40300）；仅当配置了 `publish.allowIPs` 时校验
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40300
+        msg: 来源 IP 不在白名单内
+        data: null
+
+# ===========================================================================
+# 用户 / 鉴权 API
+# ===========================================================================
+
+UserFail:
+  description: |
+    业务失败（HTTP 200，code 1 或 40101），data 为 `{}`。
+    该模块沿用早期响应风格：失败也返回 HTTP 200，由 code 表达结果。
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 1
+        msg: 账号或密码错误
+        data: {}
+
+UserCaptchaInvalid:
+  description: 验证码缺失、错误或已失效（HTTP 200，code 40101）
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40101
+        msg: 验证码错误或已失效
+        data: {}
+
+UserUnauthorized:
+  description: 未登录或登录已失效（HTTP 401，code 1）；`X-Token` 缺失或已过期
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      examples:
+        missing:
+          value:
+            code: 1
+            msg: 请先登录
+            data: null
+        invalid:
+          value:
+            code: 1
+            msg: 认证失败，请重新登录
+            data: null
+
+# ===========================================================================
+# NAS 备份导出
+# ===========================================================================
+
+BackupUnauthorized:
+  description: NAS 备份令牌未配置或无效（HTTP 401，code 40100）；请求头 `X-Backup-Token` 必须等于后台配置的备份令牌（回退配置文件 `[backup].apiToken`）
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      examples:
+        missing:
+          value:
+            code: 40100
+            msg: 未配置 NAS 备份令牌
+            data: null
+        invalid:
+          value:
+            code: 40100
+            msg: NAS 备份令牌无效
+            data: null
+
+BackupIPForbidden:
+  description: 来源 IP 不在白名单内（HTTP 403，code 40300）；仅当配置了 `backup.allowIPs` 时校验
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Envelope'
+      example:
+        code: 40300
+        msg: 来源 IP 不在白名单内
+        data: null

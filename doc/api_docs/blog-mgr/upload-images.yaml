@@ -1,0 +1,65 @@
+# POST /api/blog-mgr/uploads/images —— 后台管理 API（上传单张图片，封面 / 宣传图）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService（Handler 实现在 module/user/api/）
+operationId: uploadManageImages
+tags: [blog-manage]
+summary: 上传单张图片（封面 / 宣传图）
+description: |
+  用于封面、主页宣传图等单图场景。表单字段名是 `file`，单个文件，**上限 8MB**。
+
+  允许的类型按**文件内容嗅探**判定：JPEG / PNG / GIF / WebP / BMP；内容完全无法识别
+  （`application/octet-stream`）时按文件名后缀兜底，兜底结果仍须命中上述白名单，其余情况返回
+  「不支持的文件格式」。
+
+  文件按内容 sha256 命名存入 `files/blog/`，返回 `/files/blog/<sha256>.<ext>`。相同内容重复上传会复用已有
+  文件（服务端不重复写盘），并把文件登记进媒体元数据表。
+
+  **限流**：该路径受令牌桶限流（0.5 次/秒，容量 20，按客户端 IP），超限返回 HTTP 429（见 429 响应）。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    multipart/form-data:
+      schema:
+        type: object
+        required: [file]
+        properties:
+          file:
+            type: string
+            format: binary
+            description: 待上传的图片文件（上限 8MB）
+      encoding:
+        file:
+          contentType: image/png, image/jpeg, image/gif, image/webp, image/bmp
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为上传结果；失败时 code 为 1、msg 为具体原因（如「请选择图片文件」「不支持的文件格式」
+      「文件大小不能超过 8MB」）、data 为 {}（该模块沿用「失败也返回 HTTP 200」的早期约定）。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageUploadedImage'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                path: /files/blog/9f2c8b1d6e4a0f3c5d7b9a1e2f4c6d8b0a2c4e6f8a1b3d5c7e9f0a2b4c6d8e1f.png
+          failure:
+            value:
+              code: 1
+              msg: 请选择图片文件
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'
+  '429':
+    $ref: '../components/responses.yaml#/RateLimited'

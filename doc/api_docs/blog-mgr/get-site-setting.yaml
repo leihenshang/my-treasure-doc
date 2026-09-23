@@ -1,0 +1,30 @@
+# GET /api/blog-mgr/site —— 后台管理 API（读取站点设置）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService
+operationId: getManageSiteSetting
+tags: [blog-manage]
+summary: 读取站点设置
+description: |
+  站点设置存储为单条记录的 JSON 字段；尚未保存过时返回默认对象（默认站名、固定的 7 个模块定义、
+  空数组的 `techStack` / `milestones`、默认 `home` / `footer` / `banner`），不会返回 404。
+
+  `modules` 的 `id` 是固定枚举，历史数据中缺失的模块会按默认配置补齐。
+security:
+  - XToken: []
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageSite'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

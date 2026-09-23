@@ -1,0 +1,40 @@
+# GET /api/blog-mgr/posts —— 后台管理 API（文章列表，分页）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: listManagePosts
+tags: [blog-manage]
+summary: 文章列表（分页）
+description: |
+  默认按 `created_at` 倒序，`sort=asc` 时正序；`keyword` 模糊匹配文章标题 `title`（大小写不敏感）。
+
+  `deleted` 控制回收站可见性：`exclude` 排除已删除（默认）、`only` 仅已删除、`all` 全部。
+  后台列表返回全部发布状态（含草稿、归档与软删除行），与公开 API 的可见性规则无关。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../../components/parameters.yaml#/ManagePage'
+  - $ref: '../../components/parameters.yaml#/ManagePageSize'
+  - $ref: '../../components/parameters.yaml#/ManageKeyword'
+  - $ref: '../../components/parameters.yaml#/ManageStatus'
+  - $ref: '../../components/parameters.yaml#/ManageDeleted'
+  - $ref: '../../components/parameters.yaml#/ManageCategoryFilter'
+  - $ref: '../../components/parameters.yaml#/ManageSort'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManagePostPage'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

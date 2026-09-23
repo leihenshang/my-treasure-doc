@@ -1,0 +1,26 @@
+# GET /api/blog/profile —— 公开只读博客 API（个人资料）
+# 注册位置：module/blog/router/router.go → RegisterService → blog.GET("/profile")
+operationId: getBlogProfile
+tags: [public-blog]
+summary: 个人资料（关于我）
+description: |
+  返回「关于我」页所需的个人资料：姓名、头像、角色、所在地、座右铭、简介、联系方式与技能。
+  未配置时返回空资料（`links` 与 `skills` 为空数组，绝不返回 null）。
+
+  注意：该端点位于公开博客路由组内，按相邻公开端点的约定标注为无鉴权访问。
+security:
+  - {}
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/PublicProfile'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

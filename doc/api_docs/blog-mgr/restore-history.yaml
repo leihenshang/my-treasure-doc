@@ -1,0 +1,41 @@
+# POST /api/blog-mgr/history/{resource}/{id}/{seq}/restore —— 后台管理 API（恢复历史版本）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService
+operationId: restoreManageHistory
+tags: [blog-manage]
+summary: 恢复历史版本为当前内容
+description: |
+  把指定历史版本的快照写回当前内容：覆盖对应字段、替换标签，`version` 自增，并会**记录一条新的历史快照**。
+
+  注意：该接口**不走乐观锁**，无需携带 `version`。仅 `posts` 与 `diaries` 有编辑历史；`resource` 传其他值、
+  `id` 非法或 `seq` 小于 1 返回 400，`seq` 非整数同样返回 400；该版本不存在返回 404。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/HistoryResource'
+  - $ref: '../components/parameters.yaml#/HistoryRefID'
+  - $ref: '../components/parameters.yaml#/HistorySeq'
+responses:
+  '200':
+    description: 恢复成功，返回写回后的内容（含递增后的 version）
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  oneOf:
+                    - $ref: '../components/schemas.yaml#/ManagePost'
+                    - $ref: '../components/schemas.yaml#/ManageDiary'
+                  description: '`resource = posts` 时返回文章对象，`resource = diaries` 时返回日记对象'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'
+  '404':
+    $ref: '../components/responses.yaml#/ManageNotFound'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

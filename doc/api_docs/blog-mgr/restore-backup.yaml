@@ -1,0 +1,60 @@
+# POST /api/blog-mgr/backups/restore —— 后台管理 API（导入备份包并恢复）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService（Handler 实现在 module/user/api/）
+operationId: restoreManageBackup
+tags: [blog-manage]
+summary: 导入备份包并恢复
+description: |
+  上传 `.tar.gz` 完整备份包并恢复，表单字段名是 `file`，**上限 1GB**。
+
+  流程：先解包并校验 manifest 与 SQLite 文件合法性，**任一校验失败即中止、不写任何数据**；校验通过后
+  先恢复数据库（带回滚保护）再合并 `files/` 图片。失败时 msg 会说明具体环节（如「恢复数据库失败：…」
+  「恢复图片失败：…」），此时数据可能已被部分修改。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    multipart/form-data:
+      schema:
+        type: object
+        required: [file]
+        properties:
+          file:
+            type: string
+            format: binary
+            description: 完整备份包（`.tar.gz`，上限 1GB）
+      encoding:
+        file:
+          contentType: application/gzip, application/x-gzip, application/octet-stream
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为恢复结果；失败时 code 为 1、msg 为具体原因（如「请选择备份文件(.tar.gz)」
+      「备份文件为空」「备份文件过大」「恢复数据库失败：…」「恢复图片失败：…」）、data 为 {}
+      （该模块沿用「失败也返回 HTTP 200」的早期约定）。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageRestoreArchiveResult'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                restored: true
+                createdAt: '2026-09-20T14:32:05+08:00'
+          failure:
+            value:
+              code: 1
+              msg: 备份文件过大
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'

@@ -1,0 +1,79 @@
+# POST /api/publish/uploads —— 机器令牌发布 API（发布时上传图片 / 附件）
+# 注册位置：module/user/router/router.go → registerAPI → publish 分组（blogmgrrouter.RegisterPublish / api.PublishUploadMedias）
+operationId: publishUploadMedias
+tags: [publish]
+summary: 发布时上传图片 / 附件
+description: |
+  用**发布令牌**鉴权（请求头 `X-Publish-Token`，不是管理员 `X-Token`），供发布插件在替换文章内图片/附件时上传文件。
+
+  单次最多 **30 个**文件、单文件**上限 100MB**。图片/视频按**内容嗅探**判定（防伪装），PDF 也按内容识别；
+  其余附件（docx / xlsx / zip / pptx / ppt / txt / md / csv 等）按原始后缀白名单保留语义。
+
+  仍按内容 sha256 命名去重，返回可直接替换引用的 `/files/blog/<sha256>.<ext>` 地址；相同内容重复上传会复用已有文件
+  （`existed: true`，服务端不重复写盘）。返回的 `list` **顺序与提交顺序一致**。
+
+  **任一文件失败则整体失败**，HTTP 仍为 200 但响应体 `code` 为 `1`、`msg` 会带上出错文件名（见失败示例）。
+security:
+  - XPublishToken: []
+requestBody:
+  required: true
+  content:
+    multipart/form-data:
+      schema:
+        type: object
+        required: [files]
+        properties:
+          files:
+            type: array
+            maxItems: 30
+            items:
+              type: string
+              format: binary
+            description: 待上传的图片 / 附件（单次最多 30 个，单个上限 100MB）
+          file:
+            type: string
+            format: binary
+            description: 兼容单数字段；`files` 为空时回退使用该字段（可选）
+      encoding:
+        files:
+          contentType: image/png, image/jpeg, image/gif, image/webp, image/bmp, video/mp4, video/webm, video/quicktime, video/x-msvideo, video/x-matroska, video/mpeg, application/pdf
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为 `{list:[...]}`（顺序与提交顺序一致）；失败时 code 为 1、msg 含文件名与原因、data 为 {}，
+      HTTP 仍为 200。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageUploadMediaList'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                list:
+                  - path: /files/blog/9f2c8b1d6e4a0f3c5d7b9a1e2f4c6d8b0a2c4e6f8a1b3d5c7e9f0a2b4c6d8e1f.png
+                    name: 9f2c8b1d6e4a0f3c5d7b9a1e2f4c6d8b0a2c4e6f8a1b3d5c7e9f0a2b4c6d8e1f.png
+                    size: 182734
+                    existed: false
+                  - path: /files/blog/1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809.pdf
+                    name: 1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809.pdf
+                    size: 5242880
+                    existed: true
+          failure:
+            value:
+              code: 1
+              msg: '[a.png]文件大小不能超过 100MB'
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/PublishUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/PublishIPForbidden'
+  '429':
+    $ref: '../components/responses.yaml#/RateLimited'

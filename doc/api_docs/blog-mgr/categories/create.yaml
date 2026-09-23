@@ -1,0 +1,39 @@
+# POST /api/blog-mgr/categories —— 后台管理 API（新增分类）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: createManageCategories
+tags: [blog-manage]
+summary: 新增分类
+description: |
+  创建成功返回 HTTP 201（`code = 0`），`data` 为新建分类。
+
+  `slug` 在同一个 `scope` 内唯一，重复时返回 409 / code 40900；留空时由服务端按名称推导。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../../components/schemas.yaml#/ManageCategoryInput'
+responses:
+  '201':
+    description: 创建成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManageCategory'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '409':
+    $ref: '../../components/responses.yaml#/ManageConflict'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

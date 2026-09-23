@@ -1,0 +1,34 @@
+# GET /api/blog-mgr/diaries/{id} —— 后台管理 API（日记详情）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: getManageDiaries
+tags: [blog-manage]
+summary: 日记详情
+description: |
+  返回日记完整详情（含 Markdown 正文与 `tagIds`）。回收站中的记录同样可查，`deletedAt` 不为空。
+  响应中的 `version` 是后续更新必须回传的乐观锁版本。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../../components/parameters.yaml#/ManageID'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManageDiary'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '404':
+    $ref: '../../components/responses.yaml#/ManageNotFound'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

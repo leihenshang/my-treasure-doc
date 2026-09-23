@@ -1,0 +1,27 @@
+# GET /api/blog/tools —— 公开只读博客 API（利器/工具列表）
+# 注册位置：module/blog/router/router.go → RegisterService → blog.GET("/tools")
+operationId: listBlogTools
+tags: [public-blog]
+summary: 利器/工具列表
+description: |
+  返回全部已发布工具，按 `sortOrder` 升序（同序按 slug 升序）。整表返回、无分页。
+  列表不返回正文：自研工具（`type = own`）只给 `cover` 与 `status`，
+  外链工具（`type = link`）只给 `url`。
+security:
+  - {}
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas.yaml#/PublicTool'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

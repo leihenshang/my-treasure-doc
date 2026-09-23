@@ -1,0 +1,43 @@
+# POST /api/blog-mgr/posts —— 后台管理 API（新增文章）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: createManagePosts
+tags: [blog-manage]
+summary: 新增文章
+description: |
+  创建成功返回 HTTP 201（`code = 0`），`data` 为新建文章（`version` 从 1 开始）。
+
+  关联校验：非空 `categoryId` 必须是 `scope = post` 下已存在的分类，`tagIds` 必须全部存在，
+  不满足时返回 400 / code 40002（`data.field` 为 `categoryId 或 tagIds`）。
+
+  `slug` 全局唯一，重复返回 409 / code 40900；`publishStatus = published` 而未给 `publishedAt` 时，
+  服务端以当前时间补齐，`publishedOn` 缺省取 `publishedAt`。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../../components/schemas.yaml#/ManagePostInput'
+responses:
+  '201':
+    description: 创建成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManagePost'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '409':
+    $ref: '../../components/responses.yaml#/ManageConflict'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

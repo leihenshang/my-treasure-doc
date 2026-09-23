@@ -1,0 +1,51 @@
+# POST /api/blog-mgr/medias/batch-delete —— 后台管理 API（批量删除媒体文件）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService（Handler 实现在 module/user/api/）
+operationId: batchDeleteManageMedias
+tags: [blog-manage]
+summary: 批量删除媒体文件
+description: |
+  **物理删除磁盘文件**（与内容资源的软删除不同，**不可恢复**），同时清理元数据表登记。
+
+  不存在的文件会被跳过，以保证批量删除**幂等**；文件名不合法（含路径分隔符、`.`、`..` 等）或单次超过
+  **200 个**返回失败。
+
+  **删除文件不会回写引用它的内容行**——那些内容里会保留失效的 `/files/...` 字符串，由前端降级为占位图，
+  所以前端需要在删除前用 `GET /api/blog-mgr/medias/{name}/references` 提示用户。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ManageMediaBatchDeleteInput'
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data.deleted 为实际删除的文件数；失败时 code 为 1、msg 为具体原因
+      （如「请求参数格式错误」「文件名不合法」「删除 xxx.png 失败」）、data 为 {}。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageMediaBatchDeleteResult'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                deleted: 2
+          failure:
+            value:
+              code: 1
+              msg: 文件名不合法
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'

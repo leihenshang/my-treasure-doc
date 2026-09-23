@@ -1,0 +1,44 @@
+# PATCH /api/blog-mgr/categories/{id} —— 后台管理 API（更新分类）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: updateManageCategories
+tags: [blog-manage]
+summary: 更新分类
+description: |
+  分类没有 `version` 字段，不使用乐观锁，请求体不需要携带 `version`。
+
+  修改 `slug` 时服务端会在同一事务内同步该 `scope` 下内容的 `categoryId`；
+  `slug` 在同一 `scope` 内唯一，重复返回 409 / code 40900。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../../components/parameters.yaml#/ManageID'
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../../components/schemas.yaml#/ManageCategoryInput'
+responses:
+  '200':
+    description: 更新成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManageCategory'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '404':
+    $ref: '../../components/responses.yaml#/ManageNotFound'
+  '409':
+    $ref: '../../components/responses.yaml#/ManageConflict'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

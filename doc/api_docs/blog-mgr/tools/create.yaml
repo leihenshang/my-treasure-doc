@@ -1,0 +1,42 @@
+# POST /api/blog-mgr/tools —— 后台管理 API（新增利器/工具）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: createManageTools
+tags: [blog-manage]
+summary: 新增利器/工具
+description: |
+  创建成功返回 HTTP 201（`code = 0`），`data` 为新建工具（`version` 从 1 开始）。
+
+  类型相关校验：`kind = link` 时必须填写合法的 `url`，否则返回 400 / code 40003（`data.field = url`）；
+  `kind = own`（自研）时必须填写 `developmentStatus`，否则返回 400 / code 40004（`data.field = developmentStatus`）。
+
+  `slug` 全局唯一，重复返回 409 / code 40900。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../../components/schemas.yaml#/ManageToolInput'
+responses:
+  '201':
+    description: 创建成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManageTool'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageToolBadRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '409':
+    $ref: '../../components/responses.yaml#/ManageConflict'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

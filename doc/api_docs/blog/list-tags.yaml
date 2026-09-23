@@ -1,0 +1,25 @@
+# GET /api/blog/tags —— 公开只读博客 API（文章标签列表）
+# 注册位置：module/blog/router/router.go → RegisterService → blog.GET("/tags")
+operationId: listBlogTags
+tags: [public-blog]
+summary: 文章标签列表
+description: |
+  仅返回被至少一篇已发布文章引用的标签，按标签名升序，用于文章列表页的标签筛选。
+security:
+  - {}
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas.yaml#/PublicTag'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

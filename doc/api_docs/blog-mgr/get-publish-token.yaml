@@ -1,0 +1,46 @@
+# GET /api/blog-mgr/publish/token —— 后台管理 API（读取内容发布令牌）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService（Handler 实现在 module/user/api/）
+operationId: getManagePublishToken
+tags: [blog-manage]
+summary: 读取内容发布令牌
+description: |
+  返回当前生效的发布令牌，用于 `/api/publish/*` 的 `X-Publish-Token` 请求头；未配置时返回空串，
+  此时所有发布接口返回 401。
+security:
+  - XToken: []
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为当前令牌（未配置时为空串）；失败时 code 为 1、msg 为具体原因、data 为 {}
+      （该模块沿用「失败也返回 HTTP 200」的早期约定）。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageTokenResult'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                token: pub_9a3e1c7d5b2f8046
+          empty:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                token: ''
+          failure:
+            value:
+              code: 1
+              msg: 保存失败
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'

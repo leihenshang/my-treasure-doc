@@ -1,0 +1,32 @@
+# GET /api/blog-mgr/backups/{name} —— 后台管理 API（下载指定备份文件）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService（Handler 实现在 module/user/api/）
+operationId: downloadManageBackup
+tags: [blog-manage]
+summary: 下载指定备份文件
+description: |
+  下载备份目录下的指定文件，响应头带 `Content-Disposition: attachment; filename="<name>"`。
+
+  `name` 必须是备份目录下的**普通文件名**（不含任何路径分隔符，且不能是 `.` / `..`），用于阻断
+  `../` 越权读取；不满足时返回失败（msg「备份文件名不合法」）。目标不存在或为目录时也是失败
+  （msg「备份文件不存在」）。仅 SQLite 驱动支持备份。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/BackupName'
+responses:
+  '200':
+    description: |
+      成功时返回备份文件字节流，响应头 `Content-Disposition: attachment; filename="<name>"`。
+      失败时返回 JSON 信封 `{code: 1, msg: "备份文件名不合法" | "备份文件不存在" | "仅 SQLite 驱动支持备份", data: {}}`。
+    content:
+      application/octet-stream:
+        schema:
+          type: string
+          format: binary
+      application/json:
+        schema:
+          $ref: '../components/schemas.yaml#/Envelope'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'

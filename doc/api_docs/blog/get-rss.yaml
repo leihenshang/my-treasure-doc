@@ -1,0 +1,20 @@
+# GET /rss.xml —— 公开只读博客 API（站点 RSS 订阅源）
+# 注册位置：module/blog/router/router.go → RegisterSiteFilesService → r.GET("/rss.xml")
+operationId: getRssFeed
+tags: [site-files]
+summary: 站点 RSS 订阅源
+description: |
+  返回 RSS 2.0 feed，最多包含 50 篇最新已发布文章（按发布日期倒序），
+  频道标题与描述取自站点设置（`name` 与 `intro`），条目链接指向前端文章详情页。
+
+  成功时直接输出 `application/xml`；服务内部错误时返回 JSON 信封
+  `{code: 50000, msg: "服务内部错误", data: null}`。
+responses:
+  '200':
+    description: RSS 2.0 feed
+    content:
+      application/xml:
+        schema:
+          type: string
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

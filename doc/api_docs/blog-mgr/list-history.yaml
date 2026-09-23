@@ -1,0 +1,38 @@
+# GET /api/blog-mgr/history/{resource}/{id} —— 后台管理 API（编辑历史列表）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService
+operationId: listManageHistory
+tags: [blog-manage]
+summary: 编辑历史列表
+description: |
+  仅 `posts` 与 `diaries` 有编辑历史：每次保存都会追加一条**完整快照**，超出上限（最近 30 条）时
+  裁剪掉更旧的记录。`resource` 传其他值返回 400。
+
+  列表按版本序号（`seq`）**倒序**返回（最新版本在前），**不含**快照内容；需要快照时再调用
+  `GET /api/blog-mgr/history/{resource}/{id}/{seq}`。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/HistoryResource'
+  - $ref: '../components/parameters.yaml#/HistoryRefID'
+responses:
+  '200':
+    description: 查询成功；无历史时 data 为空数组
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas.yaml#/ManageEditHistoryMeta'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

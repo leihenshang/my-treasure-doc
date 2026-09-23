@@ -1,0 +1,31 @@
+# GET /api/publish/tags —— 机器令牌发布 API（发布端可选标签列表）
+# 注册位置：module/user/router/router.go → registerAPI → publish 分组（blogmgrrouter.RegisterPublish / api.PublishUploadMedias）
+operationId: listPublishTags
+tags: [publish]
+summary: 发布端可选标签列表
+description: |
+  发布插件据此渲染标签下拉：写入内容时把返回的 `id` 放进 `tagIds`。
+security:
+  - XPublishToken: []
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas.yaml#/PublishTag'
+  '401':
+    $ref: '../components/responses.yaml#/PublishUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/PublishIPForbidden'
+  '429':
+    $ref: '../components/responses.yaml#/RateLimited'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

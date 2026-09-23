@@ -1,0 +1,39 @@
+# GET /api/blog-mgr/history/{resource}/{id}/{seq} —— 后台管理 API（历史版本详情）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService
+operationId: getManageHistory
+tags: [blog-manage]
+summary: 历史版本详情（含完整快照）
+description: |
+  读取指定历史版本的**完整快照**。`snapshot` 是当时保存的完整实体快照，结构与对应资源的管理端详情一致
+  （含 `tagIds`），可直接用于对比或恢复。
+
+  仅 `posts` 与 `diaries` 有编辑历史；`resource` 传其他值、`id` 非法或 `seq` 小于 1 返回 400，
+  `seq` 非整数同样返回 400；该版本不存在返回 404。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/HistoryResource'
+  - $ref: '../components/parameters.yaml#/HistoryRefID'
+  - $ref: '../components/parameters.yaml#/HistorySeq'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageEditHistoryDetail'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'
+  '404':
+    $ref: '../components/responses.yaml#/ManageNotFound'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

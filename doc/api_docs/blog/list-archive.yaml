@@ -1,0 +1,26 @@
+# GET /api/blog/archive —— 公开只读博客 API（文章归档）
+# 注册位置：module/blog/router/router.go → RegisterService → blog.GET("/archive")
+operationId: listBlogArchive
+tags: [public-blog]
+summary: 文章归档（按月份分组）
+description: |
+  仅统计已发布文章，按发布月份（`YYYY-MM`）聚合并按月份倒序返回，供归档页展示。
+  组内文章按发布日期倒序；每组 `posts` 与文章摘要一致，数组字段保证为空数组而非 null。
+security:
+  - {}
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas.yaml#/PublicArchiveGroup'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

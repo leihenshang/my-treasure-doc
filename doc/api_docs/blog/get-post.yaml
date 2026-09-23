@@ -1,0 +1,34 @@
+# GET /api/blog/posts/{id} —— 公开只读博客 API（文章详情）
+# 注册位置：module/blog/router/router.go → RegisterService → blog.GET("/posts/:id")
+operationId: getBlogPost
+tags: [public-blog]
+summary: 文章详情（路径参数为文章 slug）
+description: |
+  按文章 slug 返回详情，含 Markdown 正文、上下篇与同分类/同标签的推荐文章。
+  仅返回 `publishStatus = published` 且 `publishedAt <= 当前时间` 的文章，
+  草稿、归档、定时发布的文章一律按不存在处理（404）。
+
+  `id` 是文章 slug 而非数据库 ID；每次访问会自增浏览量。
+  响应中 `tags` / `related` 等数组字段保证为空数组而非 null。
+security:
+  - {}
+parameters:
+  - $ref: '../components/parameters.yaml#/PostID'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/PublicPost'
+  '400':
+    $ref: '../components/responses.yaml#/BlogInvalidQuery'
+  '404':
+    $ref: '../components/responses.yaml#/BlogPostNotFound'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

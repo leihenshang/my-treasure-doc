@@ -1,0 +1,34 @@
+# DELETE /api/blog-mgr/posts/{id} —— 后台管理 API（删除文章，软删除）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: deleteManagePosts
+tags: [blog-manage]
+summary: 删除文章（软删除）
+description: |
+  删除为 GORM 软删除，记录进入回收站（`deleted_at` 置位），不会物理删除，
+  可用 `POST /api/blog-mgr/posts/{id}/restore` 恢复。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../../components/parameters.yaml#/ManageID'
+responses:
+  '200':
+    description: 删除成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManageDeleteResult'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '404':
+    $ref: '../../components/responses.yaml#/ManageNotFound'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

@@ -1,0 +1,32 @@
+# GET /api/blog/tools/{id} —— 公开只读博客 API（自研工具详情）
+# 注册位置：module/blog/router/router.go → RegisterService → blog.GET("/tools/:id")
+operationId: getBlogTool
+tags: [public-blog]
+summary: 工具详情（路径参数为工具 slug，仅自研工具）
+description: |
+  按工具 slug 查询，且仅当该条目是自研工具（`kind = own`）且已发布时返回，
+  内容包含 Markdown 正文。外链工具（`kind = link`）没有详情页，同样返回 404。
+
+  仅返回 `publishStatus = published` 且 `publishedAt <= 当前时间` 的工具。
+security:
+  - {}
+parameters:
+  - $ref: '../components/parameters.yaml#/ToolID'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/PublicTool'
+  '400':
+    $ref: '../components/responses.yaml#/BlogInvalidQuery'
+  '404':
+    $ref: '../components/responses.yaml#/BlogToolNotFound'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

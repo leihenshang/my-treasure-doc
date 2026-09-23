@@ -1,0 +1,483 @@
+openapi: 3.1.0
+
+info:
+  title: Treasure Doc API
+  version: 1.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  description: |
+    Treasure Doc（个人博客 + 后台管理）的 HTTP API 规格。
+
+    ## 文件组织
+    本仓库的 API 规格采用「**一个端点一个文件**」的组织方式：
+
+    - `openapi.yaml`（本文件）：聚合根。只声明 `info` / `servers` / `tags` / `security` 与全部 `paths`，
+      每个 operation（`get` / `post` / `put` / `patch` / `delete`）通过 $ref 指向对应端点文件。
+    - `blog/`（21 个）：公开只读博客 API `/api/blog/*` 与站点根 `robots.txt` / `sitemap.xml` / `rss.xml`。
+    - `blog-mgr/`（80 个）：后台管理 API `/api/blog-mgr/*`（含 `/resources/<资源>/` 子目录、备份、媒体库、编辑历史）。
+    - `publish/`（12 个）：机器令牌发布 API `/api/publish/*`。
+    - `user/`（5 个）：鉴权 API `/api/user/*` 与健康检查 `/ping`。
+    - `backup/`（1 个）：NAS 机器令牌导出 `/api/backup/export`。
+    - `components/`：跨端点共享的 `schemas`、`responses`、`parameters`，端点文件用相对路径引用。
+
+    端点文件的内容是一个 **operation 对象**（不含 `openapi:` / `paths:` 包装），首行注释写明
+    「HTTP 方法 + 完整路径 + 所属模块 + 路由注册位置」。
+
+    ## 解析方式
+    这是「subdocuments」风格的多文件规格，**不能**被 Swagger UI 直接加载，需先打包：
+
+    ```bash
+    npx @redocly/cli bundle doc/api_docs/openapi.yaml -o /tmp/openapi.bundled.yaml
+    ```
+
+    然后即可用 Swagger UI / Redoc / `npx @redocly/cli preview-docs doc/api_docs/openapi.yaml` 浏览。
+
+    ## 统一响应约定
+    - 除 `GET /ping` 与站点根三个文件外，所有接口都返回 `{code, msg, data}` 信封。
+    - 业务成功与失败通常都返回 HTTP 200，靠 `code` 区分（`0` = 成功）；
+      认证/权限/限流中间件则返回真实的 401 / 403 / 429。
+    - 内容资源更新使用 `version` 乐观锁：PATCH/PUT 必须回传当前 `version`，过期返回 409 / code 40900。
+
+    ## 鉴权
+    | 请求头 | 适用接口 | 说明 |
+    | --- | --- | --- |
+    | `X-Token` | `/api/blog-mgr/*`、`POST /api/user/logout`、`POST /api/user/change-pwd` | 登录后签发；后台还要求 `userType` ∈ {2, 100} |
+    | `X-Publish-Token` | `/api/publish/*` | 机器令牌，后台配置；创建即发布 |
+    | `X-Backup-Token` | `/api/backup/export` | NAS 机器令牌，后台配置 |
+
+    跨域（CORS）由前置反向代理统一处理，Go 侧不设置任何 `Access-Control-*` 响应头。
+
+servers:
+  - url: http://127.0.0.1:2026
+    description: 本地开发（与 `module/user/config.example.toml` 的 `app.port` 一致）
+  - url: /
+    description: 同源部署（前端静态资源由同一进程托管）
+
+tags:
+  - name: public-blog
+    description: 公开只读博客 API（`/api/blog/*`）。仅返回 `publish_status = published` 且 `published_at <= now` 的内容，草稿与定时文章对公众 404。
+  - name: site-files
+    description: 站点根级机器可读文件（`robots.txt` / `sitemap.xml` / `rss.xml`），非 JSON 信封响应。
+  - name: blog-manage
+    description: 后台管理 API（`/api/blog-mgr/*`）。需 `X-Token` 且 `userType` ∈ {2, 100}（管理员 / 超级管理员）。
+  - name: publish
+    description: 机器令牌发布 API（`/api/publish/*`）。需 `X-Publish-Token`，创建即发布（强制 `publishStatus = published`），可叠加 IP 白名单。
+  - name: user
+    description: 用户鉴权 API（`/api/user/*`）与健康检查。
+  - name: backup
+    description: NAS 机器令牌备份导出（`/api/backup/export`），只读。
+
+security:
+  - {}
+
+paths:
+  # =========================================================================
+  # 站点文件
+  # =========================================================================
+
+  /ping:
+    get:
+      $ref: './user/ping.yaml'
+  /robots.txt:
+    get:
+      $ref: './blog/get-robots.yaml'
+  /sitemap.xml:
+    get:
+      $ref: './blog/get-sitemap.yaml'
+  /rss.xml:
+    get:
+      $ref: './blog/get-rss.yaml'
+
+  # =========================================================================
+  # 公开只读博客 API
+  # =========================================================================
+
+  /api/blog/categories:
+    get:
+      $ref: './blog/list-categories.yaml'
+  /api/blog/tags:
+    get:
+      $ref: './blog/list-tags.yaml'
+  /api/blog/posts:
+    get:
+      $ref: './blog/list-posts.yaml'
+  /api/blog/posts/{id}:
+    get:
+      $ref: './blog/get-post.yaml'
+  /api/blog/archive:
+    get:
+      $ref: './blog/list-archive.yaml'
+  /api/blog/diary/tags:
+    get:
+      $ref: './blog/list-diary-tags.yaml'
+  /api/blog/diaries:
+    get:
+      $ref: './blog/list-diaries.yaml'
+  /api/blog/diaries/{id}:
+    get:
+      $ref: './blog/get-diary.yaml'
+  /api/blog/portfolio/categories:
+    get:
+      $ref: './blog/list-portfolio-categories.yaml'
+  /api/blog/portfolio/items:
+    get:
+      $ref: './blog/list-portfolio-items.yaml'
+  /api/blog/portfolio/items/{id}:
+    get:
+      $ref: './blog/get-portfolio-item.yaml'
+  /api/blog/tools:
+    get:
+      $ref: './blog/list-tools.yaml'
+  /api/blog/tools/{id}:
+    get:
+      $ref: './blog/get-tool.yaml'
+  /api/blog/bookmark/categories:
+    get:
+      $ref: './blog/list-bookmark-categories.yaml'
+  /api/blog/bookmarks:
+    get:
+      $ref: './blog/list-bookmarks.yaml'
+  /api/blog/profile:
+    get:
+      $ref: './blog/get-profile.yaml'
+  /api/blog/site:
+    get:
+      $ref: './blog/get-site.yaml'
+  /api/blog/stats:
+    get:
+      $ref: './blog/get-stats.yaml'
+
+  # =========================================================================
+  # 后台管理 API —— 内容资源 CRUD（7 个资源 × 8 个端点）
+  # =========================================================================
+
+  /api/blog-mgr/categories:
+    get:
+      $ref: './blog-mgr/categories/list.yaml'
+    post:
+      $ref: './blog-mgr/categories/create.yaml'
+  /api/blog-mgr/categories/batch-delete:
+    post:
+      $ref: './blog-mgr/categories/batch-delete.yaml'
+  /api/blog-mgr/categories/{id}:
+    get:
+      $ref: './blog-mgr/categories/detail.yaml'
+    patch:
+      $ref: './blog-mgr/categories/update.yaml'
+    delete:
+      $ref: './blog-mgr/categories/delete.yaml'
+  /api/blog-mgr/categories/{id}/fields:
+    patch:
+      $ref: './blog-mgr/categories/update-fields.yaml'
+  /api/blog-mgr/categories/{id}/restore:
+    post:
+      $ref: './blog-mgr/categories/restore.yaml'
+
+  /api/blog-mgr/tags:
+    get:
+      $ref: './blog-mgr/tags/list.yaml'
+    post:
+      $ref: './blog-mgr/tags/create.yaml'
+  /api/blog-mgr/tags/batch-delete:
+    post:
+      $ref: './blog-mgr/tags/batch-delete.yaml'
+  /api/blog-mgr/tags/{id}:
+    get:
+      $ref: './blog-mgr/tags/detail.yaml'
+    patch:
+      $ref: './blog-mgr/tags/update.yaml'
+    delete:
+      $ref: './blog-mgr/tags/delete.yaml'
+  /api/blog-mgr/tags/{id}/fields:
+    patch:
+      $ref: './blog-mgr/tags/update-fields.yaml'
+  /api/blog-mgr/tags/{id}/restore:
+    post:
+      $ref: './blog-mgr/tags/restore.yaml'
+
+  /api/blog-mgr/posts:
+    get:
+      $ref: './blog-mgr/posts/list.yaml'
+    post:
+      $ref: './blog-mgr/posts/create.yaml'
+  /api/blog-mgr/posts/batch-delete:
+    post:
+      $ref: './blog-mgr/posts/batch-delete.yaml'
+  /api/blog-mgr/posts/{id}:
+    get:
+      $ref: './blog-mgr/posts/detail.yaml'
+    patch:
+      $ref: './blog-mgr/posts/update.yaml'
+    delete:
+      $ref: './blog-mgr/posts/delete.yaml'
+  /api/blog-mgr/posts/{id}/fields:
+    patch:
+      $ref: './blog-mgr/posts/update-fields.yaml'
+  /api/blog-mgr/posts/{id}/restore:
+    post:
+      $ref: './blog-mgr/posts/restore.yaml'
+
+  /api/blog-mgr/diaries:
+    get:
+      $ref: './blog-mgr/diaries/list.yaml'
+    post:
+      $ref: './blog-mgr/diaries/create.yaml'
+  /api/blog-mgr/diaries/batch-delete:
+    post:
+      $ref: './blog-mgr/diaries/batch-delete.yaml'
+  /api/blog-mgr/diaries/{id}:
+    get:
+      $ref: './blog-mgr/diaries/detail.yaml'
+    patch:
+      $ref: './blog-mgr/diaries/update.yaml'
+    delete:
+      $ref: './blog-mgr/diaries/delete.yaml'
+  /api/blog-mgr/diaries/{id}/fields:
+    patch:
+      $ref: './blog-mgr/diaries/update-fields.yaml'
+  /api/blog-mgr/diaries/{id}/restore:
+    post:
+      $ref: './blog-mgr/diaries/restore.yaml'
+
+  /api/blog-mgr/portfolio-items:
+    get:
+      $ref: './blog-mgr/portfolio-items/list.yaml'
+    post:
+      $ref: './blog-mgr/portfolio-items/create.yaml'
+  /api/blog-mgr/portfolio-items/batch-delete:
+    post:
+      $ref: './blog-mgr/portfolio-items/batch-delete.yaml'
+  /api/blog-mgr/portfolio-items/{id}:
+    get:
+      $ref: './blog-mgr/portfolio-items/detail.yaml'
+    patch:
+      $ref: './blog-mgr/portfolio-items/update.yaml'
+    delete:
+      $ref: './blog-mgr/portfolio-items/delete.yaml'
+  /api/blog-mgr/portfolio-items/{id}/fields:
+    patch:
+      $ref: './blog-mgr/portfolio-items/update-fields.yaml'
+  /api/blog-mgr/portfolio-items/{id}/restore:
+    post:
+      $ref: './blog-mgr/portfolio-items/restore.yaml'
+
+  /api/blog-mgr/tools:
+    get:
+      $ref: './blog-mgr/tools/list.yaml'
+    post:
+      $ref: './blog-mgr/tools/create.yaml'
+  /api/blog-mgr/tools/batch-delete:
+    post:
+      $ref: './blog-mgr/tools/batch-delete.yaml'
+  /api/blog-mgr/tools/{id}:
+    get:
+      $ref: './blog-mgr/tools/detail.yaml'
+    patch:
+      $ref: './blog-mgr/tools/update.yaml'
+    delete:
+      $ref: './blog-mgr/tools/delete.yaml'
+  /api/blog-mgr/tools/{id}/fields:
+    patch:
+      $ref: './blog-mgr/tools/update-fields.yaml'
+  /api/blog-mgr/tools/{id}/restore:
+    post:
+      $ref: './blog-mgr/tools/restore.yaml'
+
+  /api/blog-mgr/bookmarks:
+    get:
+      $ref: './blog-mgr/bookmarks/list.yaml'
+    post:
+      $ref: './blog-mgr/bookmarks/create.yaml'
+  /api/blog-mgr/bookmarks/batch-delete:
+    post:
+      $ref: './blog-mgr/bookmarks/batch-delete.yaml'
+  /api/blog-mgr/bookmarks/{id}:
+    get:
+      $ref: './blog-mgr/bookmarks/detail.yaml'
+    patch:
+      $ref: './blog-mgr/bookmarks/update.yaml'
+    delete:
+      $ref: './blog-mgr/bookmarks/delete.yaml'
+  /api/blog-mgr/bookmarks/{id}/fields:
+    patch:
+      $ref: './blog-mgr/bookmarks/update-fields.yaml'
+  /api/blog-mgr/bookmarks/{id}/restore:
+    post:
+      $ref: './blog-mgr/bookmarks/restore.yaml'
+
+  # =========================================================================
+  # 后台管理 API —— 统计与设置
+  # =========================================================================
+
+  /api/blog-mgr/stats:
+    get:
+      $ref: './blog-mgr/get-stats.yaml'
+  /api/blog-mgr/visitor-stats:
+    get:
+      $ref: './blog-mgr/get-visitor-stats.yaml'
+  /api/blog-mgr/profile:
+    get:
+      $ref: './blog-mgr/get-profile-setting.yaml'
+    put:
+      $ref: './blog-mgr/put-profile-setting.yaml'
+  /api/blog-mgr/site:
+    get:
+      $ref: './blog-mgr/get-site-setting.yaml'
+    put:
+      $ref: './blog-mgr/put-site-setting.yaml'
+
+  # =========================================================================
+  # 后台管理 API —— 上传与媒体库
+  # =========================================================================
+
+  /api/blog-mgr/uploads/images:
+    post:
+      $ref: './blog-mgr/upload-images.yaml'
+  /api/blog-mgr/uploads/medias:
+    post:
+      $ref: './blog-mgr/upload-medias.yaml'
+  /api/blog-mgr/medias:
+    get:
+      $ref: './blog-mgr/list-medias.yaml'
+  /api/blog-mgr/medias/batch-delete:
+    post:
+      $ref: './blog-mgr/batch-delete-medias.yaml'
+  /api/blog-mgr/medias/{name}:
+    delete:
+      $ref: './blog-mgr/delete-media.yaml'
+  /api/blog-mgr/medias/{name}/references:
+    get:
+      $ref: './blog-mgr/get-media-references.yaml'
+
+  # =========================================================================
+  # 后台管理 API —— 备份
+  # =========================================================================
+
+  /api/blog-mgr/backups:
+    get:
+      $ref: './blog-mgr/list-backups.yaml'
+    post:
+      $ref: './blog-mgr/create-backup.yaml'
+  /api/blog-mgr/backups/export:
+    post:
+      $ref: './blog-mgr/export-backup.yaml'
+  /api/blog-mgr/backups/restore:
+    post:
+      $ref: './blog-mgr/restore-backup.yaml'
+  /api/blog-mgr/backups/token:
+    get:
+      $ref: './blog-mgr/get-backup-token.yaml'
+    put:
+      $ref: './blog-mgr/put-backup-token.yaml'
+  /api/blog-mgr/backups/{name}:
+    get:
+      $ref: './blog-mgr/download-backup.yaml'
+
+  # =========================================================================
+  # 后台管理 API —— 机器令牌
+  # =========================================================================
+
+  /api/blog-mgr/publish/token:
+    get:
+      $ref: './blog-mgr/get-publish-token.yaml'
+    put:
+      $ref: './blog-mgr/put-publish-token.yaml'
+
+  # =========================================================================
+  # 后台管理 API —— 编辑历史
+  # =========================================================================
+
+  /api/blog-mgr/history/{resource}/{id}:
+    get:
+      $ref: './blog-mgr/list-history.yaml'
+  /api/blog-mgr/history/{resource}/{id}/{seq}:
+    get:
+      $ref: './blog-mgr/get-history.yaml'
+  /api/blog-mgr/history/{resource}/{id}/{seq}/restore:
+    post:
+      $ref: './blog-mgr/restore-history.yaml'
+
+  # =========================================================================
+  # 机器令牌发布 API
+  # =========================================================================
+
+  /api/publish/posts:
+    post:
+      $ref: './publish/create-post.yaml'
+  /api/publish/diaries:
+    post:
+      $ref: './publish/create-diary.yaml'
+  /api/publish/portfolio-items:
+    post:
+      $ref: './publish/create-portfolio-item.yaml'
+  /api/publish/tools:
+    post:
+      $ref: './publish/create-tool.yaml'
+  /api/publish/bookmarks:
+    post:
+      $ref: './publish/create-bookmark.yaml'
+  /api/publish/categories:
+    get:
+      $ref: './publish/list-categories.yaml'
+  /api/publish/tags:
+    get:
+      $ref: './publish/list-tags.yaml'
+  /api/publish/posts/by-slug/{slug}:
+    get:
+      $ref: './publish/lookup-post.yaml'
+  /api/publish/diaries/by-slug/{slug}:
+    get:
+      $ref: './publish/lookup-diary.yaml'
+  /api/publish/posts/{slug}:
+    put:
+      $ref: './publish/force-update-post.yaml'
+  /api/publish/diaries/{slug}:
+    put:
+      $ref: './publish/force-update-diary.yaml'
+  /api/publish/uploads:
+    post:
+      $ref: './publish/upload-medias.yaml'
+
+  # =========================================================================
+  # 用户鉴权 API
+  # =========================================================================
+
+  /api/user/captcha:
+    get:
+      $ref: './user/get-captcha.yaml'
+  /api/user/login:
+    post:
+      $ref: './user/login.yaml'
+  /api/user/logout:
+    post:
+      $ref: './user/logout.yaml'
+  /api/user/change-pwd:
+    post:
+      $ref: './user/change-password.yaml'
+
+  # =========================================================================
+  # NAS 备份导出
+  # =========================================================================
+
+  /api/backup/export:
+    get:
+      $ref: './backup/nas-export.yaml'
+
+components:
+  securitySchemes:
+    XToken:
+      type: apiKey
+      in: header
+      name: X-Token
+      description: 登录成功后签发的用户令牌；后台接口还要求 `userType` ∈ {2, 100}。
+    XPublishToken:
+      type: apiKey
+      in: header
+      name: X-Publish-Token
+      description: 机器令牌；取值为后台「站点设置 → 发布令牌」配置的值，未配置时所有 `/api/publish/*` 请求返回 401。
+    XBackupToken:
+      type: apiKey
+      in: header
+      name: X-Backup-Token
+      description: NAS 机器令牌；取值为后台配置的备份令牌（回退配置文件 `[backup].apiToken`）。

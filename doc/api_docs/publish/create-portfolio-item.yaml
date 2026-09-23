@@ -1,0 +1,43 @@
+# POST /api/publish/portfolio-items —— 机器令牌发布 API（发布作品）
+# 注册位置：module/user/router/router.go → registerAPI → publish 分组（blogmgrrouter.RegisterPublish / api.PublishUploadMedias）
+operationId: publishPortfolioItem
+tags: [publish]
+summary: 发布作品
+description: |
+  创建即发布：服务端强制把 `publishStatus` 置为 `published`，忽略请求体里的该字段值。
+
+  **只支持新建，不支持覆盖**（请求体没有 `overwrite` 字段语义）；重复提交会新建一条记录。
+
+  关联校验：`categoryId` 必须是 `scope = portfolio` 下已存在的分类，否则返回 400 / code 40002。
+security:
+  - XPublishToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ManagePortfolioItemInput'
+responses:
+  '201':
+    description: 创建成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManagePortfolioItem'
+  '400':
+    $ref: '../components/responses.yaml#/ManageBadRequest'
+  '401':
+    $ref: '../components/responses.yaml#/PublishUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/PublishIPForbidden'
+  '409':
+    $ref: '../components/responses.yaml#/ManageConflict'
+  '429':
+    $ref: '../components/responses.yaml#/RateLimited'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

@@ -1,0 +1,23 @@
+# GET /ping —— 用户鉴权 API（健康检查）
+# 注册位置：module/user/router/router.go → registerFrontend → r.GET("/ping")
+operationId: ping
+tags: [user]
+summary: 健康检查
+description: |
+  最轻量的存活探针：不查库、不走统一响应信封，直接返回 `{"msg":"pong!"}`。
+
+  适合负载均衡 / 容器健康检查的高频调用。
+security:
+  - {}
+responses:
+  '200':
+    description: 服务存活
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [msg]
+          properties:
+            msg:
+              type: string
+              example: pong!

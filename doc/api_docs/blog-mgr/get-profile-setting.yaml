@@ -1,0 +1,28 @@
+# GET /api/blog-mgr/profile —— 后台管理 API（读取个人资料设置）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService
+operationId: getManageProfileSetting
+tags: [blog-manage]
+summary: 读取个人资料设置
+description: |
+  尚未保存过个人资料时返回默认对象（`name` 有默认值，`links` / `skills` 为空数组），不会返回 404，
+  因此前端可以「读取 → 改一项 → 原样写回」而不必先判断记录是否存在。
+security:
+  - XToken: []
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageProfile'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

@@ -1,0 +1,40 @@
+# GET /api/user/captcha —— 用户鉴权 API（获取图形验证码）
+# 注册位置：module/user/router/router.go → registerAPI → user 分组（API: module/user/api/user_api.go UserCaptcha）
+operationId: getUserCaptcha
+tags: [user]
+summary: 获取图形验证码
+description: |
+  返回一张**算术题**验证码。`captcha` 是 base64 图片数据（可直接作为 `<img src>`），
+  `captchaId` 需在调用 `POST /api/user/login` 时回传。
+
+  验证码为**一次性消费**：校验通过后立即失效。
+
+  生成失败时 code 为 1、msg「验证码生成失败」、data 为 {}（该模块沿用「失败也返回 HTTP 200」的早期约定）。
+security:
+  - {}
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为验证码；失败时 code 为 1、msg 为具体原因（如「验证码生成失败」）、data 为 {}。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/UserCaptcha'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                captchaId: 9Xk2pQ7fLm3Tz1aB
+                captcha: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAA...
+          failure:
+            value:
+              code: 1
+              msg: 验证码生成失败
+              data: {}

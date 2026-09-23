@@ -1,0 +1,32 @@
+# POST /api/user/logout —— 用户鉴权 API（退出登录）
+# 注册位置：module/user/router/router.go → registerAPI → user 分组（API: module/user/api/user_api.go UserLogout）
+operationId: userLogout
+tags: [user]
+summary: 退出登录
+description: |
+  删除当前 `X-Token` 对应的登录令牌。
+
+  令牌无效或已过期时由鉴权中间件返回 HTTP 401；成功时服务端返回空对象，data 为 {}。
+security:
+  - XToken: []
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为 {}；失败时 code 为 1、msg 为具体原因、data 为 {}（该模块沿用「失败也返回 HTTP 200」的早期约定）。
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas.yaml#/Envelope'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data: {}
+          failure:
+            value:
+              code: 1
+              msg: 退出登录失败
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/UserUnauthorized'

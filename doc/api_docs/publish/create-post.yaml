@@ -1,0 +1,49 @@
+# POST /api/publish/posts —— 机器令牌发布 API（发布或覆盖发布文章）
+# 注册位置：module/user/router/router.go → registerAPI → publish 分组（blogmgrrouter.RegisterPublish / api.PublishUploadMedias）
+operationId: publishPost
+tags: [publish]
+summary: 发布（或覆盖发布）文章
+description: |
+  创建即发布：服务端强制把 `publishStatus` 置为 `published`，忽略请求体里的该字段值。
+
+  **覆盖逻辑**：请求体里的 `overwrite` 为 `true` 时，服务端按「`publishSource` + `sourceId`」精确定位
+  已发布记录并**覆盖更新**（不按标题猜测 slug）；未命中则返回 400 / code 40001，msg 为「该文档尚未发布，无法覆盖」。
+  `overwrite` 为 `false` 或未传时走新建链路。若 `publishSource` 为空或为 `default`、或 `sourceId` 为空，
+  则覆盖定位必然未命中、返回 400。
+
+  覆盖时**不要求 `version`**（发布端不做乐观锁），保留原创建时间与浏览量，`version` 自增并记录一条编辑历史快照。
+
+  关联校验：非空 `categoryId` 必须是 `scope = post` 下已存在的分类，`tagIds` 必须全部存在，
+  不满足时返回 400 / code 40002。
+security:
+  - XPublishToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ManagePostInput'
+responses:
+  '201':
+    description: 创建成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManagePost'
+  '400':
+    $ref: '../components/responses.yaml#/ManageBadRequest'
+  '401':
+    $ref: '../components/responses.yaml#/PublishUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/PublishIPForbidden'
+  '409':
+    $ref: '../components/responses.yaml#/ManageConflict'
+  '429':
+    $ref: '../components/responses.yaml#/RateLimited'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

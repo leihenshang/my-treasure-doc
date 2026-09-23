@@ -1,0 +1,34 @@
+# GET /api/blog-mgr/visitor-stats —— 后台管理 API（访客统计，按 IP）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService
+operationId: getManageVisitorStats
+tags: [blog-manage]
+summary: 访客统计（按 IP）
+description: |
+  统计最近 N 天（默认 7，允许 1–365）访问公开博客 API 的访客，返回访问总量、去重 IP 数，
+  以及按 IP 分组的明细（含首次 / 最近访问时间与访问过的内容分类）。
+
+  `days` 越界或非整数返回 400 / code 40001。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/VisitorDays'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageVisitorStats'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

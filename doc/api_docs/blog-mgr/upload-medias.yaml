@@ -1,0 +1,81 @@
+# POST /api/blog-mgr/uploads/medias —— 后台管理 API（批量上传图片 / 视频，Markdown 编辑器）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService（Handler 实现在 module/user/api/）
+operationId: uploadManageMedias
+tags: [blog-manage]
+summary: 批量上传图片 / 视频（Markdown 编辑器）
+description: |
+  供 Markdown 编辑器一次提交多个图片/视频。单次最多 **10 个**文件（超限返回「一次最多上传 10 个文件」），
+  单个文件**上限 50MB**。表单主字段是 `files`，同时兼容旧客户端的单数字段 `file`（可选，`files` 为空时回退使用）。
+
+  类型同样按**文件内容嗅探**判定（图片 JPEG / PNG / GIF / WebP / BMP，视频 MP4 / WebM / MOV / AVI / MKV / MPEG）；
+  内容完全无法识别时按文件名后缀兜底，兜底结果仍须命中白名单。
+
+  返回的 `list` **顺序与提交顺序一致**。文件按内容 sha256 命名存入 `files/blog/`，返回
+  `/files/blog/<sha256>.<ext>`；相同内容重复上传会复用已有文件（`existed: true`，服务端不重复写盘），
+  并登记进媒体元数据表。**任一文件失败则整体返回失败**，msg 会带上出错的文件名（形如 `[a.png]文件大小不能超过 50MB`）。
+
+  **限流**：该路径受令牌桶限流（0.5 次/秒，容量 20，按客户端 IP），超限返回 HTTP 429（见 429 响应）。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    multipart/form-data:
+      schema:
+        type: object
+        required: [files]
+        properties:
+          files:
+            type: array
+            maxItems: 10
+            items:
+              type: string
+              format: binary
+            description: 待上传的图片 / 视频文件（单次最多 10 个，单个上限 50MB）
+          file:
+            type: string
+            format: binary
+            description: 兼容旧客户端的单文件字段；`files` 为空时回退使用该字段（可选）
+      encoding:
+        files:
+          contentType: image/png, image/jpeg, image/gif, image/webp, image/bmp, video/mp4, video/webm, video/quicktime, video/x-msvideo, video/x-matroska, video/mpeg
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为 `{list:[...]}`（顺序与提交顺序一致）；失败时 code 为 1、msg 为具体原因
+      （如「请选择要上传的文件」「一次最多上传 10 个文件」「[文件名]不支持的文件格式」）、data 为 {}。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageUploadMediaList'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                list:
+                  - path: /files/blog/9f2c8b1d6e4a0f3c5d7b9a1e2f4c6d8b0a2c4e6f8a1b3d5c7e9f0a2b4c6d8e1f.png
+                    name: 9f2c8b1d6e4a0f3c5d7b9a1e2f4c6d8b0a2c4e6f8a1b3d5c7e9f0a2b4c6d8e1f.png
+                    size: 182734
+                    existed: false
+                  - path: /files/blog/1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809.mp4
+                    name: 1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809.mp4
+                    size: 5242880
+                    existed: true
+          failure:
+            value:
+              code: 1
+              msg: '[a.png]文件大小不能超过 50MB'
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'
+  '429':
+    $ref: '../components/responses.yaml#/RateLimited'

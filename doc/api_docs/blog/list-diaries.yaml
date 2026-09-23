@@ -1,0 +1,34 @@
+# GET /api/blog/diaries —— 公开只读博客 API（日记列表）
+# 注册位置：module/blog/router/router.go → RegisterService → blog.GET("/diaries")
+operationId: listBlogDiaries
+tags: [public-blog]
+summary: 日记列表（分页）
+description: |
+  公开日记列表，仅返回 `publishStatus = published` 且 `publishedAt <= 当前时间` 的日记；
+  置顶日记恒排在前面，其余按发布日期按 `sort` 方向排序。列表不返回正文。
+
+  响应 `list` 中 `tags` 数组保证为空数组而非 null。
+security:
+  - {}
+parameters:
+  - $ref: '../components/parameters.yaml#/PublicPage'
+  - $ref: '../components/parameters.yaml#/PublicPageSize'
+  - $ref: '../components/parameters.yaml#/PublicSort'
+  - $ref: '../components/parameters.yaml#/PublicTagFilter'
+  - $ref: '../components/parameters.yaml#/PublicKeyword'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/PublicDiaryPage'
+  '400':
+    $ref: '../components/responses.yaml#/BlogInvalidQuery'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

@@ -1,0 +1,20 @@
+# GET /robots.txt —— 公开只读博客 API（站点 robots.txt）
+# 注册位置：module/blog/router/router.go → RegisterSiteFilesService → r.GET("/robots.txt")
+operationId: getRobotsTxt
+tags: [site-files]
+summary: 站点 robots.txt
+description: |
+  返回 robots.txt 明文：允许全部爬虫抓取，并声明本站 sitemap 地址
+  （`Sitemap: <站点根>/sitemap.xml`，站点根按请求 Host 与 `X-Forwarded-Proto` 推断）。
+  该端点不返回 JSON 信封，直接输出 `text/plain`。
+responses:
+  '200':
+    description: robots.txt 明文，指向本站 sitemap
+    content:
+      text/plain:
+        schema:
+          type: string
+        example: |
+          User-agent: *
+          Allow: /
+          Sitemap: https://example.com/sitemap.xml

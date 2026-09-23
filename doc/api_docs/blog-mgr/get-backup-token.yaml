@@ -1,0 +1,47 @@
+# GET /api/blog-mgr/backups/token —— 后台管理 API（读取 NAS 备份令牌）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService（Handler 实现在 module/user/api/）
+operationId: getManageBackupToken
+tags: [blog-manage]
+summary: 读取 NAS 备份令牌
+description: |
+  返回当前生效的 NAS 备份令牌：优先取后台 DB 中配置的值，未配置时回退配置文件 `[backup].apiToken`。
+
+  该令牌用于 `GET /api/backup/export` 的 `X-Backup-Token` 请求头，未配置时该接口返回 401。
+security:
+  - XToken: []
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为当前令牌（未配置时为空串）；失败时 code 为 1、msg 为具体原因、data 为 {}
+      （该模块沿用「失败也返回 HTTP 200」的早期约定）。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageTokenResult'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                token: bkp_2f6c9d1a4e8b7c3f
+          empty:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                token: ''
+          failure:
+            value:
+              code: 1
+              msg: 保存失败
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'

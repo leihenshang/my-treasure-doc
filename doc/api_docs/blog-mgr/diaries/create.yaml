@@ -1,0 +1,42 @@
+# POST /api/blog-mgr/diaries —— 后台管理 API（新增日记）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: createManageDiaries
+tags: [blog-manage]
+summary: 新增日记
+description: |
+  创建成功返回 HTTP 201（`code = 0`），`data` 为新建日记（`version` 从 1 开始）。
+
+  关联校验：`tagIds` 必须全部为已存在的标签，否则返回 400 / code 40002（`data.field = tagIds`）。
+
+  `publicId` 全局唯一（留空时由服务端生成），重复返回 409 / code 40900；
+  `publishStatus = published` 而未给 `publishedAt` 时，服务端以当前时间补齐，`publishedOn` 缺省取 `publishedAt`。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../../components/schemas.yaml#/ManageDiaryInput'
+responses:
+  '201':
+    description: 创建成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManageDiary'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageBadRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '409':
+    $ref: '../../components/responses.yaml#/ManageConflict'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

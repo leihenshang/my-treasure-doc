@@ -1,0 +1,31 @@
+# GET /api/blog-mgr/categories/{id} —— 后台管理 API（分类详情）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: getManageCategories
+tags: [blog-manage]
+summary: 分类详情
+security:
+  - XToken: []
+parameters:
+  - $ref: '../../components/parameters.yaml#/ManageID'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManageCategory'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '404':
+    $ref: '../../components/responses.yaml#/ManageNotFound'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

@@ -1,0 +1,36 @@
+# GET /api/publish/categories —— 机器令牌发布 API（发布端可选分类列表）
+# 注册位置：module/user/router/router.go → registerAPI → publish 分组（blogmgrrouter.RegisterPublish / api.PublishUploadMedias）
+operationId: listPublishCategories
+tags: [publish]
+summary: 发布端可选分类列表
+description: |
+  发布插件据此渲染分类下拉：`scope` 留空返回全部，取值必须是 `post` / `portfolio` / `bookmark`，
+  否则返回 400 / code 40001。写入内容时把返回的 `slug` 作为 `categoryId`。
+security:
+  - XPublishToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/ManageScope'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas.yaml#/PublishCategory'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/PublishUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/PublishIPForbidden'
+  '429':
+    $ref: '../components/responses.yaml#/RateLimited'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

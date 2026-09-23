@@ -1,0 +1,47 @@
+# DELETE /api/blog-mgr/medias/{name} —— 后台管理 API（删除单个媒体文件）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService（Handler 实现在 module/user/api/）
+operationId: deleteManageMedia
+tags: [blog-manage]
+summary: 删除单个媒体文件
+description: |
+  **物理删除磁盘文件**（不可恢复），同时清理元数据表登记。
+
+  `name` 必须是上传目录下的普通文件名（不含路径分隔符，长度 ≤ 255），否则返回「文件名不合法」；
+  文件不存在（或不是普通文件）返回「文件不存在」。
+
+  与其他媒体删除接口一样，**删除文件不会回写引用它的内容行**——内容里会保留失效的 `/files/...` 字符串，
+  由前端降级为占位图；删除前可先用 `GET /api/blog-mgr/medias/{name}/references` 查看引用情况。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/MediaName'
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data.deleted 为 true；失败时 code 为 1、msg 为具体原因（如「文件名不合法」「文件不存在」
+      「删除失败」）、data 为 {}。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageMediaDeleteResult'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                deleted: true
+          failure:
+            value:
+              code: 1
+              msg: 文件不存在
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'

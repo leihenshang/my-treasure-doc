@@ -1,0 +1,44 @@
+# POST /api/blog-mgr/backups/export —— 后台管理 API（手动导出完整备份包）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService（Handler 实现在 module/user/api/）
+operationId: exportManageBackup
+tags: [blog-manage]
+summary: 手动导出完整备份包（db + files + manifest）
+description: |
+  现场打包一个 `.tar.gz` 完整备份包（含数据库、`files/` 上传文件与 manifest），并**存放进备份目录**，
+  因此该包会同时出现在备份列表中、可用下载接口 `GET /api/blog-mgr/backups/{name}` 取回。
+
+  仅 SQLite 驱动支持备份：其它驱动下返回失败（msg「仅 SQLite 驱动支持备份」）。
+security:
+  - XToken: []
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为生成的备份包文件信息；失败时 code 为 1、msg 为具体原因（如「仅 SQLite 驱动支持备份」
+      或打包过程返回的错误）、data 为 {}（该模块沿用「失败也返回 HTTP 200」的早期约定）。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageBackupFile'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                name: treasure-doc-archive-2026-09-24-101500.tar.gz
+                size: 8388608
+                modTime: '2026-09-24T10:15:00+08:00'
+          failure:
+            value:
+              code: 1
+              msg: 仅 SQLite 驱动支持备份
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'

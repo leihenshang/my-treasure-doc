@@ -1,0 +1,35 @@
+# GET /api/blog/posts —— 公开只读博客 API（文章列表）
+# 注册位置：module/blog/router/router.go → RegisterService → blog.GET("/posts")
+operationId: listBlogPosts
+tags: [public-blog]
+summary: 文章列表（分页）
+description: |
+  公开文章列表，仅返回 `publishStatus = published` 且 `publishedAt <= 当前时间` 的文章；
+  置顶文章恒排在前面，其余按发布日期按 `sort` 方向排序。列表不返回正文。
+
+  响应 `list` 中 `tags` 与 `related` 等数组字段保证为空数组而非 null。
+security:
+  - {}
+parameters:
+  - $ref: '../components/parameters.yaml#/PublicPage'
+  - $ref: '../components/parameters.yaml#/PublicPageSize'
+  - $ref: '../components/parameters.yaml#/PublicSort'
+  - $ref: '../components/parameters.yaml#/PublicCategoryFilter'
+  - $ref: '../components/parameters.yaml#/PublicTagFilter'
+  - $ref: '../components/parameters.yaml#/PublicKeyword'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/PublicPostPage'
+  '400':
+    $ref: '../components/responses.yaml#/BlogInvalidQuery'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

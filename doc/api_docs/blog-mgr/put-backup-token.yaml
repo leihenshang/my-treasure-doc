@@ -1,0 +1,52 @@
+# PUT /api/blog-mgr/backups/token —— 后台管理 API（更新 NAS 备份令牌）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService（Handler 实现在 module/user/api/）
+operationId: putManageBackupToken
+tags: [blog-manage]
+summary: 更新 NAS 备份令牌
+description: |
+  写入后台 DB 后**即时生效、无需重启**。`token` 为空字符串表示清除令牌，清除后
+  `GET /api/backup/export` 会因「未配置 NAS 备份令牌」返回 401。请求体解析失败返回 code 1 参数错误。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ManageTokenInput'
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为新令牌（清除时为空串）；失败时 code 为 1、msg 为具体原因（如「参数错误」
+      「保存失败」）、data 为 {}（该模块沿用「失败也返回 HTTP 200」的早期约定）。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageTokenResult'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                token: bkp_2f6c9d1a4e8b7c3f
+          cleared:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                token: ''
+          failure:
+            value:
+              code: 1
+              msg: 参数错误
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'

@@ -1,0 +1,39 @@
+# GET /api/backup/export —— NAS 备份导出（导出完整备份）
+# 注册位置：module/user/router/router.go → registerAPI → apiBase.GET("/backup/export")（API: module/user/api/backup_api.go NasExportArchive）
+operationId: nasExportBackup
+tags: [backup]
+summary: NAS 机器令牌导出完整备份
+description: |
+  **免登录**的机器令牌接口，用 `X-Backup-Token` 鉴权（令牌取值来源：后台「备份令牌」配置，
+  未配置时回退配置文件 `[backup].apiToken`；两者都为空则一律 401）。
+
+  **只读**：不提供导入/删除能力，适合定时任务拉取。
+
+  可叠加 IP 白名单（配置项 `backup.allowIPs`，支持精确 IP 与 CIDR，未配置时不做限制）。
+
+  仅 SQLite 驱动支持备份，其余驱动返回失败（msg「仅 SQLite 驱动支持备份」）。
+security:
+  - XBackupToken: []
+responses:
+  '200':
+    description: |
+      成功时现场打包出一个 `.tar.gz` 完整备份包（数据库 + `files/` 上传文件 + manifest）并流式返回，
+      响应头带 `Content-Disposition: attachment; filename="<name>"`，Content-Type 为 `application/gzip` 或 `application/octet-stream`。
+      失败时返回 JSON 信封 `{code: 1, msg: "..." , data: {}}`（如「仅 SQLite 驱动支持备份」「创建临时目录失败」）。
+    headers:
+      Content-Disposition:
+        schema:
+          type: string
+        description: 附件文件名，形如 `attachment; filename="treasure-backup-20260301.tar.gz"`
+    content:
+      application/gzip:
+        schema:
+          type: string
+          format: binary
+      application/json:
+        schema:
+          $ref: '../components/schemas.yaml#/Envelope'
+  '401':
+    $ref: '../components/responses.yaml#/BackupUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/BackupIPForbidden'

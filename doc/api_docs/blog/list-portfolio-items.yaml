@@ -1,0 +1,30 @@
+# GET /api/blog/portfolio/items —— 公开只读博客 API（作品列表）
+# 注册位置：module/blog/router/router.go → RegisterService → portfolio.GET("/items")
+operationId: listBlogPortfolioItems
+tags: [public-blog]
+summary: 作品列表
+description: |
+  公开作品列表，仅返回 `publishStatus = published` 且 `publishedAt <= 当前时间` 的作品，
+  按发布日期倒序（同日期按 slug 升序），不返回正文与图集。整表返回、无分页。
+
+  `techStack` 数组保证为空数组而非 null。
+security:
+  - {}
+parameters:
+  - $ref: '../components/parameters.yaml#/PublicCategoryFilter'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas.yaml#/PublicPortfolioSummary'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

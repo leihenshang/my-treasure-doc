@@ -1,0 +1,55 @@
+# GET /api/blog-mgr/backups —— 后台管理 API（备份文件列表）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService（Handler 实现在 module/user/api/）
+operationId: listManageBackups
+tags: [blog-manage]
+summary: 备份文件列表
+description: |
+  列出备份目录（配置项 `[backup].dir`，默认 `backup`）下的文件（跳过子目录），按文件修改时间**倒序**。
+
+  仅 SQLite 驱动支持备份：PostgreSQL 等其它驱动下返回失败（msg「仅 SQLite 驱动支持备份」）。
+  备份目录不存在时返回空数组而非报错。
+security:
+  - XToken: []
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为备份文件数组（目录不存在或无文件时为空数组）；失败时 code 为 1、
+      msg 为具体原因（如「仅 SQLite 驱动支持备份」「读取备份目录失败」）、data 为 {}（该模块沿用
+      「失败也返回 HTTP 200」的早期约定）。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas.yaml#/ManageBackupFile'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                - name: backup-2026-09-24-101500.db
+                  size: 524288
+                  modTime: '2026-09-24T10:15:00+08:00'
+                - name: backup-2026-09-19-030000.db.gz
+                  size: 118274
+                  modTime: '2026-09-19T03:00:00+08:00'
+          empty:
+            value:
+              code: 0
+              msg: 操作成功
+              data: []
+          failure:
+            value:
+              code: 1
+              msg: 仅 SQLite 驱动支持备份
+              data: {}
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'

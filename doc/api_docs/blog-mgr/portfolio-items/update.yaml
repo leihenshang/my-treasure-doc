@@ -1,0 +1,45 @@
+# PATCH /api/blog-mgr/portfolio-items/{id} —— 后台管理 API（更新作品）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: updateManagePortfolioItems
+tags: [blog-manage]
+summary: 更新作品
+description: |
+  乐观锁：请求体必须携带当前 `version`（取自详情响应），服务端按 `version` 匹配更新并自增，
+  缺失或版本过期返回 409 / code 40900；更新成功后须重新拉取详情以刷新 `version`。
+
+  关联校验：非空 `categoryId` 必须是 `scope = portfolio` 下已存在的分类，
+  不满足时返回 400 / code 40002（`data.field = categoryId`）；`slug` 冲突同样返回 409。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../../components/parameters.yaml#/ManageID'
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../../components/schemas.yaml#/ManagePortfolioItemInput'
+responses:
+  '200':
+    description: 更新成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManagePortfolioItem'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageBadRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '404':
+    $ref: '../../components/responses.yaml#/ManageNotFound'
+  '409':
+    $ref: '../../components/responses.yaml#/ManageConflict'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

@@ -1,0 +1,25 @@
+# GET /api/blog/site —— 公开只读博客 API（站点设置）
+# 注册位置：module/blog/router/router.go → RegisterService → blog.GET("/site")
+operationId: getBlogSite
+tags: [public-blog]
+summary: 站点设置
+description: |
+  返回公开站点配置：站名、slogan、简介、技术栈、模块可见性、里程碑、首页文案与配图、
+  页脚信息、顶部横幅与维护模式。历史数据缺失时补齐默认值，`visible = false` 的模块仍会返回
+  （由前端据此隐藏入口）。数组字段保证为空数组而非 null。
+security:
+  - {}
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/PublicSite'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

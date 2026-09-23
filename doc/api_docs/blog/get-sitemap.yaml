@@ -1,0 +1,21 @@
+# GET /sitemap.xml —— 公开只读博客 API（站点 sitemap.xml）
+# 注册位置：module/blog/router/router.go → RegisterSiteFilesService → r.GET("/sitemap.xml")
+operationId: getSitemapXml
+tags: [site-files]
+summary: 站点 sitemap.xml
+description: |
+  返回 sitemap urlset XML（命名空间 `http://www.sitemaps.org/schemas/sitemap/0.9`），
+  收录静态页面以及全部已发布文章、日记与作品（草稿、归档、定时发布的内容不收录），
+  条目 `loc` 由请求 Host 推断的站点根拼接。
+
+  成功时直接输出 `application/xml`；服务内部错误时返回 JSON 信封
+  `{code: 50000, msg: "服务内部错误", data: null}`。
+responses:
+  '200':
+    description: sitemap urlset XML
+    content:
+      application/xml:
+        schema:
+          type: string
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

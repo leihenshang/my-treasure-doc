@@ -1,0 +1,42 @@
+# POST /api/blog-mgr/bookmarks —— 后台管理 API（新增收藏集条目）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: createManageBookmarks
+tags: [blog-manage]
+summary: 新增收藏集条目
+description: |
+  创建成功返回 HTTP 201（`code = 0`），`data` 为新建条目（`version` 从 1 开始）。
+
+  关联校验：非空 `categoryId` 必须是 `scope = bookmark` 下已存在的分类，`tagIds` 必须全部存在，
+  不满足时返回 400 / code 40002（`data.field` 为 `categoryId 或 tagIds`）。
+
+  `url` 必须为合法地址；`publishStatus = published` 而未给 `publishedAt` 时，服务端以当前时间补齐。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../../components/schemas.yaml#/ManageBookmarkInput'
+responses:
+  '201':
+    description: 创建成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManageBookmark'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageBadRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '409':
+    $ref: '../../components/responses.yaml#/ManageConflict'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

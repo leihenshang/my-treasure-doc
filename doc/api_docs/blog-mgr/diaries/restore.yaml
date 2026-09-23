@@ -1,0 +1,33 @@
+# POST /api/blog-mgr/diaries/{id}/restore —— 后台管理 API（恢复日记，从回收站）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: restoreManageDiaries
+tags: [blog-manage]
+summary: 恢复日记（从回收站）
+description: |
+  清除记录的 `deleted_at`，把软删除的日记从回收站恢复。无请求体。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../../components/parameters.yaml#/ManageID'
+responses:
+  '200':
+    description: 恢复成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManageRestoreResult'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '404':
+    $ref: '../../components/responses.yaml#/ManageNotFound'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

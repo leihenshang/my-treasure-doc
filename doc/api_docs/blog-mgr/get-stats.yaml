@@ -1,0 +1,30 @@
+# GET /api/blog-mgr/stats —— 后台管理 API（后台仪表盘总览统计）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService
+operationId: getManageStats
+tags: [blog-manage]
+summary: 后台仪表盘总览统计
+description: |
+  统计各内容资源（文章 / 日记 / 作品 / 利器 / 收藏集）的总数与 draft / published / archived 分状态计数，
+  另含分类数、标签数与总浏览量。
+
+  总浏览量只累加文章、日记、作品三者的 `viewCount`，利器与收藏集不计入。
+security:
+  - XToken: []
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageStats'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/ManageForbidden'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

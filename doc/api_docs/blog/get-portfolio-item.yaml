@@ -1,0 +1,34 @@
+# GET /api/blog/portfolio/items/{id} —— 公开只读博客 API（作品详情）
+# 注册位置：module/blog/router/router.go → RegisterService → portfolio.GET("/items/:id")
+operationId: getBlogPortfolioItem
+tags: [public-blog]
+summary: 作品详情（路径参数为作品 slug）
+description: |
+  按作品 slug 返回详情，含 Markdown 正文、相关链接、图集与成果指标。
+  仅返回 `publishStatus = published` 且 `publishedAt <= 当前时间` 的作品，
+  草稿、归档、定时发布的作品一律按不存在处理（404）。
+
+  `id` 是作品 slug；每次访问会自增浏览量。
+  `techStack` / `links` / `gallery` / `metrics` 数组保证为空数组而非 null。
+security:
+  - {}
+parameters:
+  - $ref: '../components/parameters.yaml#/PortfolioItemID'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/PublicPortfolioItem'
+  '400':
+    $ref: '../components/responses.yaml#/BlogInvalidQuery'
+  '404':
+    $ref: '../components/responses.yaml#/BlogPortfolioNotFound'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

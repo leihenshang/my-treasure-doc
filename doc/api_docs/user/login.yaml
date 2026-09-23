@@ -1,0 +1,64 @@
+# POST /api/user/login —— 用户鉴权 API（用户登录）
+# 注册位置：module/user/router/router.go → registerAPI → user 分组（API: module/user/api/user_api.go UserLogin）
+operationId: userLogin
+tags: [user]
+summary: 用户登录
+description: |
+  `account` 支持账号或邮箱（大小写不敏感）。验证码是否必填取决于服务端配置 `captcha.enabled`，
+  开启时缺失或错误会返回验证码错误码 40101。
+
+  **同一账号最多保留 3 个登录令牌**，超出时最早的一个会被删除。
+
+  成功后返回的 `token` 用于后续请求的 `X-Token` 头。`requirePwdReset` 为 true 时前端提醒一次修改密码，
+  鉴权中间件**不再拦截**管理接口。
+
+  **限流**：该路径受令牌桶限流（0.1 次/秒，容量 5，按客户端 IP），超限返回 HTTP 429（见 429 响应）。
+security:
+  - {}
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/UserLoginInput'
+responses:
+  '200':
+    description: |
+      成功时 code 为 0、data 为登录用户信息；失败时 code 为 1（或验证码错误 40101）、
+      msg 为具体原因（如「密码或账号(邮箱)不能为空」「账号 xxx 没有找到」「账号不可用或未激活」「获取用户token失败」）、
+      data 为 {}（该模块沿用「失败也返回 HTTP 200」的早期约定）。
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/UserLoginResult'
+        examples:
+          success:
+            value:
+              code: 0
+              msg: 操作成功
+              data:
+                id: '1930526412345678901'
+                nickname: 管理员
+                account: admin
+                email: admin@example.com
+                userType: 100
+                userStatus: 1
+                token: 8f2c8b1d6e4a0f3c5d7b9a1e2f4c6d8b0a2c4e6f8a1b3d5c7e9f0a2b4c6d8e1f
+                requirePwdReset: false
+          failure:
+            value:
+              code: 1
+              msg: 账号或密码错误
+              data: {}
+          captchaFailure:
+            value:
+              code: 40101
+              msg: 验证码错误或已失效
+              data: {}
+  '429':
+    $ref: '../components/responses.yaml#/RateLimited'

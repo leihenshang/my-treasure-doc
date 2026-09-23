@@ -1,0 +1,34 @@
+# GET /api/publish/posts/by-slug/{slug} —— 机器令牌发布 API（按 slug 查询文章是否已发布）
+# 注册位置：module/user/router/router.go → registerAPI → publish 分组（blogmgrrouter.RegisterPublish / api.PublishUploadMedias）
+operationId: lookupPublishPost
+tags: [publish]
+summary: 按 slug 查询文章是否已发布
+description: |
+  **不存在时不返回 404**：返回 `exists: false`、`id` / `title` 为空串、`slug` 原样回显。
+  `exists: true` 表示已存在一条未软删除的同 slug 记录。该接口用于发布插件在覆盖发布前判断。
+security:
+  - XPublishToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/PublishSlug'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/PublishLookupResult'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/PublishUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/PublishIPForbidden'
+  '429':
+    $ref: '../components/responses.yaml#/RateLimited'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

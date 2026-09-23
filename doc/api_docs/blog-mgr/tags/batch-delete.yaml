@@ -1,0 +1,37 @@
+# POST /api/blog-mgr/tags/batch-delete —— 后台管理 API（批量删除标签，软删除）
+# 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
+operationId: batchDeleteManageTags
+tags: [blog-manage]
+summary: 批量删除标签（软删除）
+description: |
+  请求体中的 ID 会先去重；空集合或超过 200 个返回 400 / code 40001。
+
+  删除为 GORM 软删除，记录进入回收站，可用 `POST /api/blog-mgr/tags/{id}/restore` 恢复。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../../components/schemas.yaml#/ManageBatchDeleteInput'
+responses:
+  '200':
+    description: 删除成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../../components/schemas.yaml#/ManageBatchDeleteResult'
+  '400':
+    $ref: '../../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../../components/responses.yaml#/ManageUnauthorized'
+  '403':
+    $ref: '../../components/responses.yaml#/ManageForbidden'
+  '500':
+    $ref: '../../components/responses.yaml#/ManageInternal'

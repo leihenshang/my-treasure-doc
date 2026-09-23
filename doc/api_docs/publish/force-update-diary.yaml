@@ -1,0 +1,49 @@
+# PUT /api/publish/diaries/{slug} —— 机器令牌发布 API（按 publicId 强制覆盖日记并发布）
+# 注册位置：module/user/router/router.go → registerAPI → publish 分组（blogmgrrouter.RegisterPublish / api.PublishUploadMedias）
+operationId: forceUpdatePublishDiary
+tags: [publish]
+summary: 按 publicId 强制覆盖日记并发布
+description: |
+  这里的 `slug` 实际是日记的 **publicId**。以**路径上的 publicId 为准**定位并覆盖该日记
+  （请求体里的 `publicId` 会被路径值覆盖，避免覆盖时静默改名）。
+
+  **不要求 `version`**（发布端不做乐观锁），保留原创建时间与浏览量，强制 `published`、`version` 自增
+  并记录编辑历史快照。publicId 不存在返回 404 / code 40410。
+
+  创建即发布：服务端强制把 `publishStatus` 置为 `published`，忽略请求体里的该字段值。
+
+  关联校验：`tagIds` 必须全部存在，不满足时返回 400 / code 40002。
+security:
+  - XPublishToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/PublishSlug'
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ManageDiaryInput'
+responses:
+  '200':
+    description: 覆盖成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageDiary'
+  '400':
+    $ref: '../components/responses.yaml#/ManageBadRequest'
+  '401':
+    $ref: '../components/responses.yaml#/PublishUnauthorized'
+  '403':
+    $ref: '../components/responses.yaml#/PublishIPForbidden'
+  '404':
+    $ref: '../components/responses.yaml#/ManageNotFound'
+  '429':
+    $ref: '../components/responses.yaml#/RateLimited'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'
