@@ -87,6 +87,7 @@ go run . -c config.toml
 目录结构、各模块的详细位置与完整端点清单见 [doc/api_docs/README.md](doc/api_docs/README.md)。要点：
 
 - [doc/api_docs/openapi.yaml](doc/api_docs/openapi.yaml) —— 聚合根，只声明 `info` / `servers` / `tags` / `securitySchemes` 与全部 `paths`；每个 operation 用操作级 `$ref` 指向端点文件（如 `get: {$ref: './blog/list-posts.yaml'}`）。
+- [doc/api_docs/openapi.bundled.yaml](doc/api_docs/openapi.bundled.yaml) —— **生成产物**：由 `npx @redocly/cli bundle` 从拆分源展开的单文件（外部 `$ref` 已内联，仅剩 `#/components/...` 内部锚点），供 **AI/代码生成器/联调方一次读全所有接口**。改 API 后必须重跑 bundle 覆盖并一并提交。
 - `doc/api_docs/blog/`、`blog-mgr/`、`publish/`、`user/`、`backup/` 五个模块目录 + `components/` 共享目录；端点文件数量与分布、命名约定见 README 中的表格。
 - `components/{schemas,responses,parameters}.yaml` —— 跨端点共享的模型、具名响应与参数；端点文件用相对路径引用（`../components/...`，资源子目录下是 `../../components/...`）。
 

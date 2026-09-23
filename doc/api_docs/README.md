@@ -8,6 +8,8 @@
 
 > 想了解某个接口的最快方式：看下面「模块一览」找到对应子目录 → 打开端点文件（首行注释即「方法 + 完整路径 + 模块 + 注册位置」）→ 顺着 `$ref` 跳转 `components/` 拿到参数与字段。嫌逐文件太慢，就 bundle 后用 Redoc 整页浏览（见「渲染浏览」）。
 
+> **给 AI / 代码生成器（对接方）：** 直接读 [openapi.bundled.yaml](openapi.bundled.yaml) 这一个文件即可——所有外部 `$ref` 已展开，93 条路径、119 个接口、全部字段集中在单文件内，无需跳转。它由下面的 `bundle` 命令从拆分源生成，改 API 后重跑覆盖。
+
 ---
 
 ## 目录结构
@@ -15,6 +17,7 @@
 ```
 api_docs/
 ├── openapi.yaml                     # 聚合根：info / servers / tags / security + 全部 paths（$ref）
+├── openapi.bundled.yaml             # 【生成产物】外部 $ref 已展开的单文件，AI/代码生成器对接入口
 ├── README.md                        # 本文件
 ├── components/                      # 跨端点共享（用相对路径被端点文件引用）
 │   ├── schemas.yaml                 #   模型、请求/响应 DTO、分页、错误信封
@@ -88,8 +91,8 @@ api_docs/
 这是 subdocuments 风格，不能直接被 Swagger UI 加载，需先打包：
 
 ```bash
-# 打包成单文件
-npx --yes @redocly/cli@latest bundle doc/api_docs/openapi.yaml -o /tmp/openapi.bundled.yaml
+# 打包成单文件（入库为 AI/对接方入口，改 API 后重跑覆盖）
+npx --yes @redocly/cli@latest bundle doc/api_docs/openapi.yaml -o doc/api_docs/openapi.bundled.yaml
 
 # 本地预览（Redoc 渲染，可搜索接口）
 cd doc/api_docs
@@ -123,4 +126,4 @@ npx --yes @redocly/cli@latest lint openapi.yaml      # 应无 error（operation-
 1. **新增端点**：在对应模块目录新建端点文件（内容是 operation 对象，**不含** `openapi:`/`paths:` 包装；首行注释「方法 + 路径 + 模块 + 注册位置」），并在 `openapi.yaml` 的 `paths` 加对应 `$ref`。两者缺一不可。
 2. **修改端点**：路径 / 方法 / 参数 / 请求体 / data 结构 / 错误码 / 鉴权任一变化，改对应端点文件；新增字段优先进 `components/schemas.yaml` 并以 `$ref` 复用。
 3. **删除端点**：删端点文件，并移除 `openapi.yaml` 里对应引用。
-4. **提交前自检**：上面「渲染浏览」的 `lint` + `bundle` 跑通；`openapi.yaml` 的 operation 数、`operationId` 唯一性、端点文件总数三者一致（当前 119）。改完记得同步更新本 README 的「模块一览」与计数。
+4. **提交前自检**：上面「渲染浏览」的 `lint` + `bundle` 跑通（bundle 会覆盖入库的 `openapi.bundled.yaml`，它作为 AI/对接方入口应一并提交）；`openapi.yaml` 的 operation 数、`operationId` 唯一性、端点文件总数三者一致（当前 119）。改完记得同步更新本 README 的「模块一览」与计数。
