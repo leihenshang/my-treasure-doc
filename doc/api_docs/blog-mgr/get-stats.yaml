@@ -4,10 +4,10 @@ operationId: getManageStats
 tags: [blog-manage]
 summary: 后台仪表盘总览统计
 description: |
-  统计各内容资源（文章 / 日记 / 作品 / 利器 / 收藏集）的总数与 draft / published / archived 分状态计数，
+  统计各内容资源（文章 / 日记 / 作品 / 工具 / 收藏集）的总数与 draft / published / archived 分状态计数，
   另含分类数、标签数与总浏览量。
 
-  总浏览量只累加文章、日记、作品三者的 `viewCount`，利器与收藏集不计入。
+  总浏览量只累加文章、日记、作品三者的 `viewCount`，工具与收藏集不计入。
 security:
   - XToken: []
 responses:

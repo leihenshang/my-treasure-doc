@@ -1,6 +1,7 @@
 package global
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -149,5 +150,53 @@ func migrateDbTable() error {
 		}
 	}
 
+	// 兼容旧库：模块「工具」曾命名为「利器」。seed 只增不改、服务端对非空 title 原样返回，
+	// 因此改 seed/默认值不会让既有站点自愈，这里对存量的 title 做一次性幂等回写。
+	if err := migrateSiteModuleTitle(); err != nil {
+		return fmt.Errorf("failed to migrate site module title: %v", err)
+	}
+
+	return nil
+}
+
+// migrateSiteModuleTitle 把站点模块集合里 tools.title 旧的「利器」重写为「工具」。
+// 用 Go + encoding/json 而非原生 SQL：JSONB/文本改写在 SQLite 与 Postgres 语法不同，
+// Go 方案跨驱动、幂等（无命中则跳过），并与 seed/默认配置保持一致。
+func migrateSiteModuleTitle() error {
+	var sites []blogmodel.Site
+	if err := Db.Find(&sites).Error; err != nil {
+		return err
+	}
+	for _, site := range sites {
+		if len(site.Modules) == 0 {
+			continue
+		}
+		type moduleLike struct {
+			ID    string `json:"id"`
+			Title string `json:"title"`
+		}
+		var modules []moduleLike
+		if err := json.Unmarshal(site.Modules, &modules); err != nil {
+			// 非严格解析失败（结构非法）时跳过，避免回写破坏异常数据。
+			continue
+		}
+		changed := false
+		for i := range modules {
+			if modules[i].ID == "tools" && modules[i].Title == "利器" {
+				modules[i].Title = "工具"
+				changed = true
+			}
+		}
+		if !changed {
+			continue
+		}
+		data, err := json.Marshal(modules)
+		if err != nil {
+			return err
+		}
+		if err := Db.Model(&blogmodel.Site{}).Where("id = ?", site.ID).Update("modules", data).Error; err != nil {
+			return err
+		}
+	}
 	return nil
 }

@@ -1,8 +1,8 @@
-# POST /api/publish/tools —— 机器令牌发布 API（发布利器/工具）
+# POST /api/publish/tools —— 机器令牌发布 API（发布工具）
 # 注册位置：module/user/router/router.go → registerAPI → publish 分组（blogmgrrouter.RegisterPublish / api.PublishUploadMedias）
 operationId: publishTool
 tags: [publish]
-summary: 发布利器/工具
+summary: 发布工具
 description: |
   创建即发布：服务端强制把 `publishStatus` 置为 `published`，忽略请求体里的该字段值。
 

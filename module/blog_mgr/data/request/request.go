@@ -242,7 +242,7 @@ var unsafeSchemes = map[string]struct{}{
 
 var schemePrefix = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.-]*:`)
 
-// NormalizeLinkURL 归一化「地址」类字段（收藏集/利器的地址、作品演示与仓库地址、站点链接等）：
+// NormalizeLinkURL 归一化「地址」类字段（收藏集/工具的地址、作品演示与仓库地址、站点链接等）：
 // 不限制协议；没写协议时按 https 补全（`example.com` → `https://example.com`）；
 // 拒绝 javascript: / data: 这类可执行脚本的协议，以及无法解析的地址。
 func NormalizeLinkURL(value string) (string, bool) {

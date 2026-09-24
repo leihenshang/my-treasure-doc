@@ -1,8 +1,8 @@
-# PATCH /api/blog-mgr/tools/{id} —— 后台管理 API（更新利器/工具）
+# PATCH /api/blog-mgr/tools/{id} —— 后台管理 API（更新工具）
 # 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
 operationId: updateManageTools
 tags: [blog-manage]
-summary: 更新利器/工具
+summary: 更新工具
 description: |
   乐观锁：请求体必须携带当前 `version`（取自详情响应），服务端按 `version` 匹配更新并自增，
   缺失或版本过期返回 409 / code 40900；更新成功后须重新拉取详情以刷新 `version`。

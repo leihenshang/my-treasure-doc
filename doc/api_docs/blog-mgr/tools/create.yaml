@@ -1,8 +1,8 @@
-# POST /api/blog-mgr/tools —— 后台管理 API（新增利器/工具）
+# POST /api/blog-mgr/tools —— 后台管理 API（新增工具）
 # 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
 operationId: createManageTools
 tags: [blog-manage]
-summary: 新增利器/工具
+summary: 新增工具
 description: |
   创建成功返回 HTTP 201（`code = 0`），`data` 为新建工具（`version` 从 1 开始）。
 

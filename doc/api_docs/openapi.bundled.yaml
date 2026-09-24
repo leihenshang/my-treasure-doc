@@ -501,7 +501,7 @@ paths:
       operationId: listBlogTools
       tags:
         - public-blog
-      summary: 利器/工具列表
+      summary: 工具列表
       description: |
         返回全部已发布工具，按 `sortOrder` 升序（同序按 slug 升序）。整表返回、无分页。
         列表不返回正文：自研工具（`type = own`）只给 `cover` 与 `status`，
@@ -2243,7 +2243,7 @@ paths:
       operationId: listManageTools
       tags:
         - blog-manage
-      summary: 利器/工具列表（分页）
+      summary: 工具列表（分页）
       description: |
         默认按 `created_at` 倒序，`sort=asc` 时正序；`keyword` 模糊匹配工具名称 `name`（大小写不敏感）。
 
@@ -2282,7 +2282,7 @@ paths:
       operationId: createManageTools
       tags:
         - blog-manage
-      summary: 新增利器/工具
+      summary: 新增工具
       description: |
         创建成功返回 HTTP 201（`code = 0`），`data` 为新建工具（`version` 从 1 开始）。
 
@@ -2325,7 +2325,7 @@ paths:
       operationId: batchDeleteManageTools
       tags:
         - blog-manage
-      summary: 批量删除利器/工具（软删除）
+      summary: 批量删除工具（软删除）
       description: |
         请求体中的 ID 会先去重；空集合或超过 200 个返回 400 / code 40001。
 
@@ -2363,7 +2363,7 @@ paths:
       operationId: getManageTools
       tags:
         - blog-manage
-      summary: 利器/工具详情
+      summary: 工具详情
       description: |
         返回工具完整详情（含 Markdown 正文）。回收站中的记录同样可查，`deletedAt` 不为空。
         响应中的 `version` 是后续更新必须回传的乐观锁版本。
@@ -2397,7 +2397,7 @@ paths:
       operationId: updateManageTools
       tags:
         - blog-manage
-      summary: 更新利器/工具
+      summary: 更新工具
       description: |
         乐观锁：请求体必须携带当前 `version`（取自详情响应），服务端按 `version` 匹配更新并自增，
         缺失或版本过期返回 409 / code 40900；更新成功后须重新拉取详情以刷新 `version`。
@@ -2443,7 +2443,7 @@ paths:
       operationId: deleteManageTools
       tags:
         - blog-manage
-      summary: 删除利器/工具（软删除）
+      summary: 删除工具（软删除）
       description: |
         删除为 GORM 软删除，记录进入回收站（`deleted_at` 置位），不会物理删除，
         可用 `POST /api/blog-mgr/tools/{id}/restore` 恢复。
@@ -2478,7 +2478,7 @@ paths:
       operationId: updateManageToolsFields
       tags:
         - blog-manage
-      summary: 快捷修改利器/工具字段
+      summary: 快捷修改工具字段
       description: |
         列表快捷修改，白名单字段只有 `publishStatus`；提交 `pinned` 或其他白名单之外的字段返回 400 / code 40001
         （`data.field` 为 `pinned` 或 `fields`）。
@@ -2521,7 +2521,7 @@ paths:
       operationId: restoreManageTools
       tags:
         - blog-manage
-      summary: 恢复利器/工具（从回收站）
+      summary: 恢复工具（从回收站）
       description: |
         清除记录的 `deleted_at`，把软删除的工具从回收站恢复。无请求体。
       security:
@@ -2869,10 +2869,10 @@ paths:
         - blog-manage
       summary: 后台仪表盘总览统计
       description: |
-        统计各内容资源（文章 / 日记 / 作品 / 利器 / 收藏集）的总数与 draft / published / archived 分状态计数，
+        统计各内容资源（文章 / 日记 / 作品 / 工具 / 收藏集）的总数与 draft / published / archived 分状态计数，
         另含分类数、标签数与总浏览量。
 
-        总浏览量只累加文章、日记、作品三者的 `viewCount`，利器与收藏集不计入。
+        总浏览量只累加文章、日记、作品三者的 `viewCount`，工具与收藏集不计入。
       security:
         - XToken: []
       responses:
@@ -4184,7 +4184,7 @@ paths:
       operationId: publishTool
       tags:
         - publish
-      summary: 发布利器/工具
+      summary: 发布工具
       description: |
         创建即发布：服务端强制把 `publishStatus` 置为 `published`，忽略请求体里的该字段值。
 
@@ -5183,7 +5183,7 @@ components:
               description: Markdown 正文
     PublicTool:
       type: object
-      description: 利器/工具条目（列表不返回正文；详情仅对自研工具返回完整内容）
+      description: 工具条目（列表不返回正文；详情仅对自研工具返回完整内容）
       required:
         - id
         - type
@@ -6133,7 +6133,7 @@ components:
           type: integer
           description: 乐观锁版本；更新时必填
     ManageTool:
-      description: 利器/工具（管理端详情）
+      description: 工具（管理端详情）
       allOf:
         - $ref: '#/components/schemas/BaseModel'
         - type: object
@@ -6184,7 +6184,7 @@ components:
               type: integer
     ManageToolPage:
       type: object
-      description: 利器/工具分页结果（含正文）
+      description: 工具分页结果（含正文）
       required:
         - list
         - pagination
@@ -6197,7 +6197,7 @@ components:
           $ref: '#/components/schemas/Pagination'
     ManageToolInput:
       type: object
-      description: 利器/工具写入载荷（新增与更新共用）
+      description: 工具写入载荷（新增与更新共用）
       required:
         - name
         - kind

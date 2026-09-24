@@ -1,8 +1,8 @@
-# GET /api/blog-mgr/tools/{id} —— 后台管理 API（利器/工具详情）
+# GET /api/blog-mgr/tools/{id} —— 后台管理 API（工具详情）
 # 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
 operationId: getManageTools
 tags: [blog-manage]
-summary: 利器/工具详情
+summary: 工具详情
 description: |
   返回工具完整详情（含 Markdown 正文）。回收站中的记录同样可查，`deletedAt` 不为空。
   响应中的 `version` 是后续更新必须回传的乐观锁版本。

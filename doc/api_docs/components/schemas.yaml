@@ -354,7 +354,7 @@ PublicPortfolioItem:
 
 PublicTool:
   type: object
-  description: 利器/工具条目（列表不返回正文；详情仅对自研工具返回完整内容）
+  description: 工具条目（列表不返回正文；详情仅对自研工具返回完整内容）
   required: [id, type, name, desc]
   properties:
     id:
@@ -830,7 +830,7 @@ ManagePortfolioItem:
           type: integer
 
 ManageTool:
-  description: 利器/工具（管理端详情）
+  description: 工具（管理端详情）
   allOf:
     - $ref: '#/BaseModel'
     - type: object
@@ -962,7 +962,7 @@ ManagePortfolioItemPage:
 
 ManageToolPage:
   type: object
-  description: 利器/工具分页结果（含正文）
+  description: 工具分页结果（含正文）
   required: [list, pagination]
   properties:
     list:
@@ -1373,7 +1373,7 @@ ManagePortfolioItemInput:
 
 ManageToolInput:
   type: object
-  description: 利器/工具写入载荷（新增与更新共用）
+  description: 工具写入载荷（新增与更新共用）
   required: [name, kind, publishStatus]
   properties:
     slug:

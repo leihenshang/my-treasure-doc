@@ -71,7 +71,7 @@ func TestPublishApi(t *testing.T) {
 		t.Fatalf("重复 slug = %d/%d，想要 409/40900", status, env.Code)
 	}
 
-	// 外链利器缺地址 → 40003
+	// 外链工具缺地址 → 40003
 	if status, env = publish(s, "publish-secret", "/api/publish/tools", `{"slug":"tool-x","kind":"link","name":"外链","publishStatus":"published"}`); status != http.StatusBadRequest || env.Code != 40003 {
 		t.Fatalf("外链缺地址 = %d/%d，想要 400/40003", status, env.Code)
 	}

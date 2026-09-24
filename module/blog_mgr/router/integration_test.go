@@ -602,7 +602,7 @@ func TestTagRelationReplacement(t *testing.T) {
 	}
 }
 
-// TestToolValidationCodes 对应 M-API-12：利器两类形态的必填分支与细分业务码
+// TestToolValidationCodes 对应 M-API-12：工具两类形态的必填分支与细分业务码
 func TestToolValidationCodes(t *testing.T) {
 	s := newTestServer(t)
 	tests := map[string]struct {

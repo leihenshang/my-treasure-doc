@@ -325,7 +325,7 @@ func TestPublicCatalogVisibility(t *testing.T) {
 	s.create("posts", fmt.Sprintf(`{"slug":"cat-post","title":"带分类的文章","publishStatus":"published","publishedOn":%q,"publishedAt":%q,"categoryId":"tech","tagIds":[%q]}`, pastDate, pastTime, tagID))
 	// 草稿文章：它的分类与标签不应出现在公开分类/标签里
 	s.create("posts", fmt.Sprintf(`{"slug":"draft-post","title":"草稿文章","publishStatus":"draft","categoryId":"draft-only","tagIds":[%q]}`, draftTagID))
-	// 公开 ID：日记用 publicId，作品/利器用 slug；收藏集是纯外链列表，不提供公开 ID
+	// 公开 ID：日记用 publicId，作品/工具用 slug；收藏集是纯外链列表，不提供公开 ID
 	const diary = "d1"
 	const work = "w1"
 	const ownTool = "t1"
@@ -363,36 +363,36 @@ func TestPublicCatalogVisibility(t *testing.T) {
 		}
 	}
 
-	// 利器：自研走详情、外链带 url
+	// 工具：自研走详情、外链带 url
 	_, env = s.do(http.MethodGet, "/api/blog/tools", "")
 	tools := list(t, env)
 	if len(tools) != 2 {
-		t.Fatalf("公开利器数 = %d，想要 2", len(tools))
+		t.Fatalf("公开工具数 = %d，想要 2", len(tools))
 	}
 	status, env := s.do(http.MethodGet, "/api/blog/tools/"+ownTool, "")
 	if status != http.StatusOK {
-		t.Fatalf("自研利器详情 = %d", status)
+		t.Fatalf("自研工具详情 = %d", status)
 	}
 	if object(t, env)["type"] != "own" {
-		t.Fatalf("自研利器 type 不是 own：%s", string(env.Data))
+		t.Fatalf("自研工具 type 不是 own：%s", string(env.Data))
 	}
 	// 外链型没有详情页：后端只对 kind=own 提供详情（sitemap 也只收录自研），
 	// 它的 url 在列表里返回，前端直接把整卡片渲染成外链。
 	status, _ = s.do(http.MethodGet, "/api/blog/tools/"+linkTool, "")
 	if status != http.StatusNotFound {
-		t.Fatalf("外链利器详情 = %d，想要 404", status)
+		t.Fatalf("外链工具详情 = %d，想要 404", status)
 	}
 	foundLink := false
 	for _, tool := range tools {
 		if tool["id"] == linkTool {
 			foundLink = true
 			if tool["url"] != "https://example.com" || tool["type"] != "link" {
-				t.Fatalf("外链利器列表项不符合预期：%v", tool)
+				t.Fatalf("外链工具列表项不符合预期：%v", tool)
 			}
 		}
 	}
 	if !foundLink {
-		t.Fatalf("列表里没有外链利器：%v", tools)
+		t.Fatalf("列表里没有外链工具：%v", tools)
 	}
 
 	// 收藏集（纯外链，公开 ID 已移除，校验标题即可）

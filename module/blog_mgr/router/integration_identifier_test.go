@@ -39,11 +39,11 @@ func TestIdentifierAutoGenerate(t *testing.T) {
 		t.Fatalf("作品自动生成 slug = %q", got)
 	}
 
-	// 利器省略 slug → 按名称自动生成
-	toolID := s.create("tools", `{"kind":"own","name":"我的利器","developmentStatus":"开发中","publishStatus":"published"}`)
+	// 工具省略 slug → 按名称自动生成
+	toolID := s.create("tools", `{"kind":"own","name":"我的工具","developmentStatus":"开发中","publishStatus":"published"}`)
 	_, env = s.do(http.MethodGet, "/api/blog-mgr/tools/"+toolID, "")
-	if got, _ := dataObject(t, env)["slug"].(string); got != "我的利器" {
-		t.Fatalf("利器自动生成 slug = %q", got)
+	if got, _ := dataObject(t, env)["slug"].(string); got != "我的工具" {
+		t.Fatalf("工具自动生成 slug = %q", got)
 	}
 
 	// 更新时省略 slug → 沿用原值

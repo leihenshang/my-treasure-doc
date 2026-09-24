@@ -1,8 +1,8 @@
-# GET /api/blog-mgr/tools —— 后台管理 API（利器/工具列表，分页）
+# GET /api/blog-mgr/tools —— 后台管理 API（工具列表，分页）
 # 注册位置：module/blog_mgr/router/router.go → RegisterService → 循环注册同一套泛化 Handler
 operationId: listManageTools
 tags: [blog-manage]
-summary: 利器/工具列表（分页）
+summary: 工具列表（分页）
 description: |
   默认按 `created_at` 倒序，`sort=asc` 时正序；`keyword` 模糊匹配工具名称 `name`（大小写不敏感）。
 
