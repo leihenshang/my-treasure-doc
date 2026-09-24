@@ -1,0 +1,33 @@
+# POST /api/memo/memos/batch-delete —— 前台速记本（批量删除，软删除）
+# 注册位置：module/user/router/router.go → registerAPI → 仅 Auth()（登录即博主本人）
+operationId: deleteMemos
+tags: [memo-manage]
+summary: 批量删除速记（软删除）
+description: |
+  按 ID 批量软删除速记（`deleted_at` 置位）。ID 会去重，空集合或超过 200 个返回 400 / code 40001。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ManageBatchDeleteInput'
+responses:
+  '200':
+    description: 删除成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/ManageBatchDeleteResult'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

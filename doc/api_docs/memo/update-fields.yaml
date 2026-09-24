@@ -1,0 +1,38 @@
+# PATCH /api/memo/memos/{id}/fields —— 前台速记本（快捷修改置顶/可见性）
+# 注册位置：module/user/router/router.go → registerAPI → 仅 Auth()（登录即博主本人）
+operationId: patchMemoFields
+tags: [memo-manage]
+summary: 快捷修改速记字段
+description: |
+  黑名单外的单个字段快捷修改，白名单：`pinned` / `public`。不要求 `version`，成功后自动自增。
+  修改 `public` 时同样维护 `publicAt`。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/ManageID'
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/MemoUpdateFieldsInput'
+responses:
+  '200':
+    description: 修改成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/MemoRecord'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '404':
+    $ref: '../components/responses.yaml#/ManageNotFound'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

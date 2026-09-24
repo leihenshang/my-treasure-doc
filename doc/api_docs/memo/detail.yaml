@@ -1,0 +1,31 @@
+# GET /api/memo/memos/{id} —— 前台速记本（单条速记详情）
+# 注册位置：module/user/router/router.go → registerAPI → 仅 Auth()（登录即博主本人）
+operationId: getMemo
+tags: [memo-manage]
+summary: 单条速记详情
+description: |
+  返回单条速记（含正文与私有信息）。仅博主本人可访问。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/ManageID'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/MemoRecord'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '404':
+    $ref: '../components/responses.yaml#/ManageNotFound'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

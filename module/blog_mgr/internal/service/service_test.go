@@ -94,8 +94,8 @@ func TestNormalizeSiteModules(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(modules) != 7 {
-		t.Fatalf("expected seven modules, got %d", len(modules))
+	if len(modules) != 8 {
+		t.Fatalf("expected eight modules, got %d", len(modules))
 	}
 	if modules[0].ID != "home" || modules[1].ID != "blog" || modules[2].ID != "diary" {
 		t.Fatalf("modules are not in fixed order: %#v", modules)

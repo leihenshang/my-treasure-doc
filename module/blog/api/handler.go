@@ -26,6 +26,7 @@ type PublicService interface {
 	ListTools(context.Context) ([]response.Tool, error)
 	GetTool(context.Context, string) (response.Tool, error)
 	ListBookmarks(context.Context, request.BookmarkQuery) ([]response.Bookmark, error)
+	ListMemos(context.Context, request.MemoQuery) (response.Page, error)
 	Profile(context.Context) (response.Profile, error)
 	Site(context.Context) (response.Site, error)
 	Stats(context.Context) (response.Stats, error)
@@ -145,6 +146,20 @@ func (h *Handler) Bookmarks(c *gin.Context) {
 	}
 	query.Normalize()
 	data, err := h.service.ListBookmarks(c.Request.Context(), query)
+	h.write(c, data, err)
+}
+
+func (h *Handler) Memos(c *gin.Context) {
+	var query request.MemoQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		invalidQuery(c)
+		return
+	}
+	if err := query.Normalize(); err != nil {
+		writeQueryError(c, err)
+		return
+	}
+	data, err := h.service.ListMemos(c.Request.Context(), query)
 	h.write(c, data, err)
 }
 

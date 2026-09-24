@@ -438,8 +438,8 @@ func TestPublicSiteProfileStats(t *testing.T) {
 	_, env = s.do(http.MethodGet, "/api/blog/site", "")
 	site := object(t, env)
 	modules, ok := site["modules"].([]any)
-	if !ok || len(modules) != 7 {
-		t.Fatalf("空库 site.modules 应为 7 个固定模块，实际 %#v", site["modules"])
+	if !ok || len(modules) != 8 {
+		t.Fatalf("空库 site.modules 应为 8 个固定模块，实际 %#v", site["modules"])
 	}
 	for _, field := range []string{"techStack", "milestones"} {
 		if _, ok := site[field].([]any); !ok {
@@ -456,14 +456,18 @@ func TestPublicSiteProfileStats(t *testing.T) {
 	_, env = s.do(http.MethodGet, "/api/blog/site", "")
 	site = object(t, env)
 	modules, _ = site["modules"].([]any)
-	if len(modules) != 7 {
-		t.Fatalf("含未知模块的站点记录归一化后有 %d 个模块，想要 7", len(modules))
+	if len(modules) != 8 {
+		t.Fatalf("含未知模块的站点记录归一化后有 %d 个模块，想要 8", len(modules))
 	}
 	for _, module := range modules {
 		item, _ := module.(map[string]any)
 		if item["id"] == "unknown" {
 			t.Fatalf("未知模块未被丢弃：%s", string(env.Data))
 		}
+	}
+	// memoPublicEnabled 默认关闭
+	if _, ok := site["memoPublicEnabled"]; !ok {
+		t.Fatalf("site 应暴露 memoPublicEnabled 字段：%s", string(env.Data))
 	}
 
 	// 统计：只统计已发布内容

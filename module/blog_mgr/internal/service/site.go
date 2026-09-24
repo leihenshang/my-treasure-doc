@@ -34,7 +34,7 @@ const (
 
 // defaultSite 返回尚未保存站点配置时使用的默认对象，数组字段为空数组而不是 null。
 func defaultSite() blogresponse.Site {
-	return blogresponse.Site{Name: defaultSiteName, TechStack: []string{}, Modules: defaultSiteModules(), Milestones: []blogresponse.SiteMilestone{}, Home: blogresponse.DefaultSiteHome(), Footer: blogresponse.DefaultSiteFooter(), Banner: blogresponse.DefaultSiteBanner()}
+	return blogresponse.Site{Name: defaultSiteName, TechStack: []string{}, Modules: defaultSiteModules(), Milestones: []blogresponse.SiteMilestone{}, Home: blogresponse.DefaultSiteHome(), Footer: blogresponse.DefaultSiteFooter(), Banner: blogresponse.DefaultSiteBanner(), MemoPublicEnabled: false}
 }
 
 // Stats 汇总后台仪表盘需要的资源数量与总浏览量。

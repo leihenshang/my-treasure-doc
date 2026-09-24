@@ -323,6 +323,70 @@ func (s *Service) tagsFor(ctx context.Context, relationTable, ownerColumn, owner
 	return tags, err
 }
 
+// memoPublicEnabled 读取站点总开关：memoPublicEnabled=false（默认）时公开 memo 列表恒为空。
+func (s *Service) memoPublicEnabled(db *gorm.DB) (bool, error) {
+	var record model.Site
+	if err := db.Where("site_key = ?", "default").First(&record).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return record.MemoPublicEnabled, nil
+}
+
+// ListMemos 返回公开 memo 列表：受「站点总开关 + 单条 public=true」双重约束。
+// 排序为 pinned DESC + updated_at DESC（置顶优先），支持按标题/内容关键词搜索。
+func (s *Service) ListMemos(ctx context.Context, query request.MemoQuery) (response.Page, error) {
+	db, err := s.database(ctx)
+	if err != nil {
+		return response.Page{}, err
+	}
+	enabled, err := s.memoPublicEnabled(db)
+	if err != nil {
+		return response.Page{}, err
+	}
+	if !enabled {
+		return response.Page{List: []response.MemoSummary{}, Pagination: response.Pagination{Page: query.Page, PageSize: query.PageSize, Total: 0, OrderBy: "date_" + query.Sort}}, nil
+	}
+	q := db.Model(&model.Memo{}).Where("public = ?", true)
+	if query.Keyword != "" {
+		pattern := likePattern(query.Keyword)
+		q = q.Where("LOWER(title) LIKE ? ESCAPE '\\' OR LOWER(content) LIKE ? ESCAPE '\\'", pattern, pattern)
+	}
+	var total int64
+	if err := q.Count(&total).Error; err != nil {
+		return response.Page{}, err
+	}
+	var memos []model.Memo
+	if err := q.Order("pinned DESC").Order("updated_at DESC, id ASC").Offset(query.Offset()).Limit(query.PageSize).Find(&memos).Error; err != nil {
+		return response.Page{}, err
+	}
+	items := make([]response.MemoSummary, 0, len(memos))
+	for _, memo := range memos {
+		items = append(items, memoSummary(memo))
+	}
+	return response.Page{List: items, Pagination: response.Pagination{Page: query.Page, PageSize: query.PageSize, Total: total, OrderBy: "date_" + query.Sort}}, nil
+}
+
+func memoSummary(memo model.Memo) response.MemoSummary {
+	tags, _ := decodeJSON[string](memo.Tags)
+	images, _ := decodeJSON[string](memo.Images)
+	summary := summaryFromContent(memo.Content)
+	return response.MemoSummary{ID: memo.ID, Title: memo.Title, Summary: summary, Tags: tags, Images: images, Pinned: memo.Pinned, Date: memo.UpdatedAt.Format("2006-01-02")}
+}
+
+// summaryFromContent 截取 Markdown 正文前若干字符作为列表摘要；空标题时也可回退用。
+func summaryFromContent(content string) string {
+	trimmed := strings.TrimSpace(content)
+	const maxSummary = 120
+	runes := []rune(trimmed)
+	if len(runes) <= maxSummary {
+		return trimmed
+	}
+	return string(runes[:maxSummary]) + "…"
+}
+
 func decodeJSON[T any](value model.JSON) ([]T, error) {
 	result := make([]T, 0)
 	if len(value) == 0 {

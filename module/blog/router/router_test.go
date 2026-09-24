@@ -51,6 +51,9 @@ func (fakeService) GetTool(context.Context, string) (response.Tool, error) {
 func (fakeService) ListBookmarks(context.Context, request.BookmarkQuery) ([]response.Bookmark, error) {
 	return []response.Bookmark{}, nil
 }
+func (fakeService) ListMemos(_ context.Context, query request.MemoQuery) (response.Page, error) {
+	return response.Page{List: []response.MemoSummary{}, Pagination: response.Pagination{Page: query.Page, PageSize: query.PageSize, OrderBy: "date_" + query.Sort}}, nil
+}
 func (fakeService) Profile(context.Context) (response.Profile, error) {
 	return response.Profile{Links: []response.ProfileLink{}, Skills: []response.ProfileSkill{}}, nil
 }

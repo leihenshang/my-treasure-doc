@@ -31,6 +31,7 @@ var fixedSiteModules = []SiteModule{
 	{ID: "portfolio", Icon: "🎨", Name: "作品", Title: "作品集", Desc: "网站、应用与开源项目", Path: "/Blog/Portfolio", Marker: "PORTFOLIO"},
 	{ID: "tools", Icon: "🧰", Name: "工具", Title: "工具", Desc: "自研工具与常用链接", Path: "/Blog/Tools", Marker: "TOOLS"},
 	{ID: "bookmark", Icon: "🔖", Name: "书签", Title: "收藏集", Desc: "值得反复访问的资源", Path: "/Blog/Bookmark", Marker: "BOOKMARK"},
+	{ID: "memo", Icon: "📌", Name: "速记", Title: "速记本", Desc: "碎片灵感与随手记录，默认仅自己可见，可单独公开", Path: "/Blog/Memo", Marker: "MEMO"},
 	{ID: "about", Icon: "👤", Name: "关于", Title: "关于我", Desc: "个人资料与站点记录", Path: "/Blog/About", Marker: "ABOUT"},
 }
 

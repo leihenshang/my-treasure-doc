@@ -274,6 +274,53 @@ PublicDiaryPage:
     pagination:
       $ref: '#/Pagination'
 
+PublicMemoSummary:
+  type: object
+  description: 公开速记摘要（列表项，不含完整正文与私有信息）。`title` 为空时列表用正文首句代替。
+  required: [id, title, summary, tags, images, pinned, date]
+  properties:
+    id:
+      type: string
+      description: 速记雪花 ID（详情/管理端点使用）
+      example: '1930526412345678901'
+    title:
+      type: string
+      description: 速记标题，可留空
+      example: 灵感笔记
+    summary:
+      type: string
+      description: 由正文截取的摘要（最多 120 字符，超出加省略号）
+    tags:
+      type: array
+      items:
+        type: string
+      description: 标签名数组；保证为空数组而非 null
+    images:
+      type: array
+      items:
+        type: string
+      description: 图片路径数组（`/files/blog/...`）；保证为空数组而非 null
+    pinned:
+      type: boolean
+      description: 是否置顶（置顶速记恒排在前）
+    date:
+      type: string
+      format: date
+      description: 列表展示日期（最新更新时间，YYYY-MM-DD）
+      example: '2026-09-24'
+
+PublicMemoPage:
+  type: object
+  description: 公开速记分页结果
+  required: [list, pagination]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/PublicMemoSummary'
+    pagination:
+      $ref: '#/Pagination'
+
 PublicPortfolioLink:
   type: object
   description: 作品相关链接
@@ -595,7 +642,7 @@ PublicSiteBanner:
 PublicSite:
   type: object
   description: 站点设置（公开只读）
-  required: [name, slogan, intro, techStack, modules, milestones, home, footer, banner, maintenanceMode]
+  required: [name, slogan, intro, techStack, modules, milestones, home, footer, banner, maintenanceMode, memoPublicEnabled]
   properties:
     name:
       type: string
@@ -624,6 +671,9 @@ PublicSite:
     maintenanceMode:
       type: boolean
       description: 维护模式；为 true 时前端只渲染维护页
+    memoPublicEnabled:
+      type: boolean
+      description: 站点速记总开关；true 时公开（public=true）的速记才对访客可见，false 则仅博主本人可见
 
 PublicStats:
   type: object
@@ -1453,6 +1503,115 @@ ManageProfileInput:
 
 ManageSiteInput:
   $ref: '#/PublicSite'
+
+# ---------------------------------------------------------------------------
+# 前台速记本（/api/memo/*，仅 X-Token，登录即博主本人）
+# ---------------------------------------------------------------------------
+
+MemoRecord:
+  type: object
+  description: 速记记录（博主管理端返回，含正文、图片与私有信息）
+  required: [id, title, content, images, pinned, public, tags, sortOrder, version, createdAt, updatedAt]
+  properties:
+    id:
+      type: string
+      description: 雪花 ID
+      example: '1930526412345678901'
+    title:
+      type: string
+      description: 速记标题，可留空（列表用正文首句代替）
+      example: 灵感笔记
+    content:
+      type: string
+      description: 正文（纯文本，非 Markdown）
+    images:
+      type: array
+      items:
+        type: string
+      description: 图片路径数组（`/files/blog/...`）；保证为空数组而非 null
+    pinned:
+      type: boolean
+      description: 是否置顶
+    public:
+      type: boolean
+      description: 是否对访客公开（默认私有）
+    tags:
+      type: array
+      items:
+        type: string
+      description: 标签名数组；保证为空数组而非 null
+    sortOrder:
+      type: integer
+      description: 自定义排序权值（预留，暂未参与排序）
+    version:
+      type: integer
+      description: 乐观锁版本；更新时必填且必须等于当前版本
+    createdAt:
+      type: string
+      format: date-time
+      description: 创建时间（RFC3339）
+    updatedAt:
+      type: string
+      format: date-time
+      description: 最后更新时间（RFC3339）
+
+MemoPage:
+  type: object
+  description: 速记管理列表分页结果
+  required: [list, pagination]
+  properties:
+    list:
+      type: array
+      items:
+        $ref: '#/MemoRecord'
+    pagination:
+      $ref: '#/Pagination'
+
+MemoInput:
+  type: object
+  description: 速记写入载荷（新建与更新共用；新建默认私有 public=false，更新需带 version）。正文必填（不支持 Markdown）。
+  required: [content]
+  properties:
+    title:
+      type: string
+      description: 速记标题，可留空
+    content:
+      type: string
+      description: 正文（纯文本），不能为空
+    images:
+      type: array
+      items:
+        type: string
+      description: 图片路径数组（`/files/blog/...`）
+    pinned:
+      type: boolean
+      default: false
+    public:
+      type: boolean
+      default: false
+      description: 是否对访客公开；受站点总开关 `memoPublicEnabled` 约束
+    tags:
+      type: array
+      items:
+        type: string
+      description: 标签名数组
+    sortOrder:
+      type: integer
+      default: 0
+    version:
+      type: integer
+      description: 乐观锁版本；更新时必填且必须等于当前版本，否则 409 / code 40900
+
+MemoUpdateFieldsInput:
+  type: object
+  description: 速记快捷修改载荷，白名单 `pinned` / `public`；成功后服务端自增 version
+  properties:
+    pinned:
+      type: boolean
+    public:
+      type: boolean
+  example:
+    pinned: true
 
 ManageUpdateFieldsInput:
   type: object

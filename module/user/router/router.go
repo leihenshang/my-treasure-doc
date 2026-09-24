@@ -132,6 +132,11 @@ func registerAPI(r *gin.Engine) {
 	user.Use(middleware.Auth())
 	user.POST("/logout", userAPI.UserLogout)
 	user.POST("/change-pwd", userAPI.UserChangePwd)
+
+	// 前台速记本管理：登录即博主本人，仅 Auth()（不叠加 RequireAdmin）。
+	memo := apiBase.Group("memo")
+	memo.Use(middleware.Auth())
+	blogmgrrouter.RegisterMemo(memo)
 }
 
 // serveSpaIndex 返回前端单页应用入口。

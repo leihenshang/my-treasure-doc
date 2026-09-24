@@ -230,7 +230,7 @@ func (s *Service) Site(ctx context.Context) (response.Site, error) {
 			return response.Site{}, err
 		}
 	}
-	return response.Site{Name: record.Name, Slogan: record.Slogan, Intro: record.Intro, TechStack: techStack, Modules: normalized, Milestones: milestones, Home: home, Footer: footer, Banner: banner, MaintenanceMode: record.MaintenanceMode}, nil
+	return response.Site{Name: record.Name, Slogan: record.Slogan, Intro: record.Intro, TechStack: techStack, Modules: normalized, Milestones: milestones, Home: home, Footer: footer, Banner: banner, MaintenanceMode: record.MaintenanceMode, MemoPublicEnabled: record.MemoPublicEnabled}, nil
 }
 
 func (s *Service) Stats(ctx context.Context) (response.Stats, error) {

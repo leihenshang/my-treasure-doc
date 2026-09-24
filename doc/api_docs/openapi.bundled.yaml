@@ -13,8 +13,9 @@ info:
 
     - `openapi.yaml`（本文件）：聚合根。只声明 `info` / `servers` / `tags` / `security` 与全部 `paths`，
       每个 operation（`get` / `post` / `put` / `patch` / `delete`）通过 $ref 指向对应端点文件。
-    - `blog/`（21 个）：公开只读博客 API `/api/blog/*` 与站点根 `robots.txt` / `sitemap.xml` / `rss.xml`。
+    - `blog/`（22 个）：公开只读博客 API `/api/blog/*` 与站点根 `robots.txt` / `sitemap.xml` / `rss.xml`。
     - `blog-mgr/`（80 个）：后台管理 API `/api/blog-mgr/*`（含 `/resources/<资源>/` 子目录、备份、媒体库、编辑历史）。
+    - `memo/`（7 个）：前台速记本 API `/api/memo/*`（登录即博主本人）。
     - `publish/`（12 个）：机器令牌发布 API `/api/publish/*`。
     - `user/`（5 个）：鉴权 API `/api/user/*` 与健康检查 `/ping`。
     - `backup/`（1 个）：NAS 机器令牌导出 `/api/backup/export`。
@@ -41,7 +42,7 @@ info:
     ## 鉴权
     | 请求头 | 适用接口 | 说明 |
     | --- | --- | --- |
-    | `X-Token` | `/api/blog-mgr/*`、`POST /api/user/logout`、`POST /api/user/change-pwd` | 登录后签发；后台还要求 `userType` ∈ {2, 100} |
+    | `X-Token` | `/api/blog-mgr/*`、`/api/memo/*`、`POST /api/user/logout`、`POST /api/user/change-pwd` | 登录后签发；后台还要求 `userType` ∈ {2, 100} |
     | `X-Publish-Token` | `/api/publish/*` | 机器令牌，后台配置；创建即发布 |
     | `X-Backup-Token` | `/api/backup/export` | NAS 机器令牌，后台配置 |
 
@@ -60,6 +61,8 @@ tags:
     description: 站点根级机器可读文件（`robots.txt` / `sitemap.xml` / `rss.xml`），非 JSON 信封响应。
   - name: blog-manage
     description: 后台管理 API（`/api/blog-mgr/*`）。需 `X-Token` 且 `userType` ∈ {2, 100}（管理员 / 超级管理员）。
+  - name: memo-manage
+    description: 前台速记本 API（`/api/memo/*`）。需 `X-Token`，登录即博主本人（不要求管理员权限）。
   - name: publish
     description: 机器令牌发布 API（`/api/publish/*`）。需 `X-Publish-Token`，创建即发布（强制 `publishStatus = published`），可叠加 IP 白名单。
   - name: user
@@ -692,6 +695,39 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/PublicStats'
+        '500':
+          $ref: '#/components/responses/BlogInternal'
+  /api/blog/memos:
+    get:
+      operationId: listBlogMemos
+      tags:
+        - public-blog
+      summary: 速记公开列表（分页）
+      description: |
+        公开速记列表。仅当「站点总开关 `memoPublicEnabled` 开启」时返回 `public = true` 的速记；
+        总开关关闭时恒返回空列表。排序为 `pinned DESC` + `updated_at DESC`（置顶优先）。
+        列表项不含正文与私有信息。
+      security:
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/PublicPage'
+        - $ref: '#/components/parameters/PublicPageSize'
+        - $ref: '#/components/parameters/PublicSort'
+        - $ref: '#/components/parameters/PublicKeyword'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PublicMemoPage'
+        '400':
+          $ref: '#/components/responses/BlogInvalidQuery'
         '500':
           $ref: '#/components/responses/BlogInternal'
   /api/blog-mgr/categories:
@@ -4789,6 +4825,248 @@ paths:
                     data: {}
         '401':
           $ref: '#/components/responses/UserUnauthorized'
+  /api/memo/memos:
+    get:
+      operationId: listMemos
+      tags:
+        - memo-manage
+      summary: 我的速记列表（分页，含私有）
+      description: |
+        返回博主本人的全部速记（含私有与公开）。排序为 `pinned DESC` + `updated_at DESC`；
+        `keyword` 模糊匹配标题与正文。登录即博主本人，不要求管理员权限。
+      security:
+        - XToken: []
+      parameters:
+        - $ref: '#/components/parameters/ManagePage'
+        - $ref: '#/components/parameters/ManagePageSize'
+        - $ref: '#/components/parameters/ManageKeyword'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MemoPage'
+        '400':
+          $ref: '#/components/responses/ManageInvalidRequest'
+        '401':
+          $ref: '#/components/responses/ManageUnauthorized'
+        '500':
+          $ref: '#/components/responses/ManageInternal'
+    post:
+      operationId: createMemo
+      tags:
+        - memo-manage
+      summary: 新建速记
+      description: |
+        新建一条速记。`public` 缺省为 false（仅自己可见）；新建不校验 `version`。
+      security:
+        - XToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoInput'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MemoRecord'
+        '400':
+          $ref: '#/components/responses/ManageInvalidRequest'
+        '401':
+          $ref: '#/components/responses/ManageUnauthorized'
+        '500':
+          $ref: '#/components/responses/ManageInternal'
+  /api/memo/memos/batch-delete:
+    post:
+      operationId: deleteMemos
+      tags:
+        - memo-manage
+      summary: 批量删除速记（软删除）
+      description: |
+        按 ID 批量软删除速记（`deleted_at` 置位）。ID 会去重，空集合或超过 200 个返回 400 / code 40001。
+      security:
+        - XToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManageBatchDeleteInput'
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ManageBatchDeleteResult'
+        '400':
+          $ref: '#/components/responses/ManageInvalidRequest'
+        '401':
+          $ref: '#/components/responses/ManageUnauthorized'
+        '500':
+          $ref: '#/components/responses/ManageInternal'
+  /api/memo/memos/{id}:
+    get:
+      operationId: getMemo
+      tags:
+        - memo-manage
+      summary: 单条速记详情
+      description: |
+        返回单条速记（含正文与私有信息）。仅博主本人可访问。
+      security:
+        - XToken: []
+      parameters:
+        - $ref: '#/components/parameters/ManageID'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MemoRecord'
+        '400':
+          $ref: '#/components/responses/ManageInvalidRequest'
+        '401':
+          $ref: '#/components/responses/ManageUnauthorized'
+        '404':
+          $ref: '#/components/responses/ManageNotFound'
+        '500':
+          $ref: '#/components/responses/ManageInternal'
+    put:
+      operationId: updateMemo
+      tags:
+        - memo-manage
+      summary: 更新速记
+      description: |
+        更新单条速记，必须携带当前 `version`（乐观锁）；版本过期返回 409 / code 40900。
+        更新会维护 `publicAt`：首次公开时写入当前时间，取消公开则清零。
+      security:
+        - XToken: []
+      parameters:
+        - $ref: '#/components/parameters/ManageID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoInput'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MemoRecord'
+        '400':
+          $ref: '#/components/responses/ManageInvalidRequest'
+        '401':
+          $ref: '#/components/responses/ManageUnauthorized'
+        '404':
+          $ref: '#/components/responses/ManageNotFound'
+        '409':
+          $ref: '#/components/responses/ManageConflict'
+        '500':
+          $ref: '#/components/responses/ManageInternal'
+    delete:
+      operationId: deleteMemo
+      tags:
+        - memo-manage
+      summary: 删除速记（软删除）
+      description: |
+        删除为 GORM 软删除（`deleted_at` 置位），不提供前端恢复入口。
+      security:
+        - XToken: []
+      parameters:
+        - $ref: '#/components/parameters/ManageID'
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ManageDeleteResult'
+        '400':
+          $ref: '#/components/responses/ManageInvalidRequest'
+        '401':
+          $ref: '#/components/responses/ManageUnauthorized'
+        '404':
+          $ref: '#/components/responses/ManageNotFound'
+        '500':
+          $ref: '#/components/responses/ManageInternal'
+  /api/memo/memos/{id}/fields:
+    patch:
+      operationId: patchMemoFields
+      tags:
+        - memo-manage
+      summary: 快捷修改速记字段
+      description: |
+        黑名单外的单个字段快捷修改，白名单：`pinned` / `public`。不要求 `version`，成功后自动自增。
+        修改 `public` 时同样维护 `publicAt`。
+      security:
+        - XToken: []
+      parameters:
+        - $ref: '#/components/parameters/ManageID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoUpdateFieldsInput'
+      responses:
+        '200':
+          description: 修改成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MemoRecord'
+        '400':
+          $ref: '#/components/responses/ManageInvalidRequest'
+        '401':
+          $ref: '#/components/responses/ManageUnauthorized'
+        '404':
+          $ref: '#/components/responses/ManageNotFound'
+        '500':
+          $ref: '#/components/responses/ManageInternal'
   /api/backup/export:
     get:
       operationId: nasExportBackup
@@ -5486,6 +5764,7 @@ components:
         - footer
         - banner
         - maintenanceMode
+        - memoPublicEnabled
       properties:
         name:
           type: string
@@ -5514,6 +5793,9 @@ components:
         maintenanceMode:
           type: boolean
           description: 维护模式；为 true 时前端只渲染维护页
+        memoPublicEnabled:
+          type: boolean
+          description: 站点速记总开关；true 时公开（public=true）的速记才对访客可见，false 则仅博主本人可见
     PublicStats:
       type: object
       description: 公开站点统计（仅统计已发布内容）
@@ -5531,6 +5813,60 @@ components:
         works:
           type: integer
           format: int64
+    PublicMemoSummary:
+      type: object
+      description: 公开速记摘要（列表项，不含完整正文与私有信息）。`title` 为空时列表用正文首句代替。
+      required:
+        - id
+        - title
+        - summary
+        - tags
+        - images
+        - pinned
+        - date
+      properties:
+        id:
+          type: string
+          description: 速记雪花 ID（详情/管理端点使用）
+          example: '1930526412345678901'
+        title:
+          type: string
+          description: 速记标题，可留空
+          example: 灵感笔记
+        summary:
+          type: string
+          description: 由正文截取的摘要（最多 120 字符，超出加省略号）
+        tags:
+          type: array
+          items:
+            type: string
+          description: 标签名数组；保证为空数组而非 null
+        images:
+          type: array
+          items:
+            type: string
+          description: 图片路径数组（`/files/blog/...`）；保证为空数组而非 null
+        pinned:
+          type: boolean
+          description: 是否置顶（置顶速记恒排在前）
+        date:
+          type: string
+          format: date
+          description: 列表展示日期（最新更新时间，YYYY-MM-DD）
+          example: '2026-09-24'
+    PublicMemoPage:
+      type: object
+      description: 公开速记分页结果
+      required:
+        - list
+        - pagination
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicMemoSummary'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
     BaseModel:
       type: object
       description: 博客内容模型公共字段（响应键已由服务端归一化为小驼峰）
@@ -6858,6 +7194,121 @@ components:
           minLength: 8
           maxLength: 16
           description: 重复新密码，必须与 password 一致
+    MemoRecord:
+      type: object
+      description: 速记记录（博主管理端返回，含正文、图片与私有信息）
+      required:
+        - id
+        - title
+        - content
+        - images
+        - pinned
+        - public
+        - tags
+        - sortOrder
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          description: 雪花 ID
+          example: '1930526412345678901'
+        title:
+          type: string
+          description: 速记标题，可留空（列表用正文首句代替）
+          example: 灵感笔记
+        content:
+          type: string
+          description: 正文（纯文本，非 Markdown）
+        images:
+          type: array
+          items:
+            type: string
+          description: 图片路径数组（`/files/blog/...`）；保证为空数组而非 null
+        pinned:
+          type: boolean
+          description: 是否置顶
+        public:
+          type: boolean
+          description: 是否对访客公开（默认私有）
+        tags:
+          type: array
+          items:
+            type: string
+          description: 标签名数组；保证为空数组而非 null
+        sortOrder:
+          type: integer
+          description: 自定义排序权值（预留，暂未参与排序）
+        version:
+          type: integer
+          description: 乐观锁版本；更新时必填且必须等于当前版本
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间（RFC3339）
+        updatedAt:
+          type: string
+          format: date-time
+          description: 最后更新时间（RFC3339）
+    MemoPage:
+      type: object
+      description: 速记管理列表分页结果
+      required:
+        - list
+        - pagination
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemoRecord'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    MemoInput:
+      type: object
+      description: 速记写入载荷（新建与更新共用；新建默认私有 public=false，更新需带 version）。正文必填（不支持 Markdown）。
+      required:
+        - content
+      properties:
+        title:
+          type: string
+          description: 速记标题，可留空
+        content:
+          type: string
+          description: 正文（纯文本），不能为空
+        images:
+          type: array
+          items:
+            type: string
+          description: 图片路径数组（`/files/blog/...`）
+        pinned:
+          type: boolean
+          default: false
+        public:
+          type: boolean
+          default: false
+          description: 是否对访客公开；受站点总开关 `memoPublicEnabled` 约束
+        tags:
+          type: array
+          items:
+            type: string
+          description: 标签名数组
+        sortOrder:
+          type: integer
+          default: 0
+        version:
+          type: integer
+          description: 乐观锁版本；更新时必填且必须等于当前版本，否则 409 / code 40900
+    MemoUpdateFieldsInput:
+      type: object
+      description: 速记快捷修改载荷，白名单 `pinned` / `public`；成功后服务端自增 version
+      properties:
+        pinned:
+          type: boolean
+        public:
+          type: boolean
+      example:
+        pinned: true
   responses:
     BlogInternal:
       description: 服务内部错误（HTTP 500，code 50000）

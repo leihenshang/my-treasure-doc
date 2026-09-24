@@ -80,6 +80,16 @@ func (q *PortfolioQuery) Normalize() {
 	q.CategoryID = strings.TrimSpace(q.CategoryID)
 }
 
+type MemoQuery struct {
+	PageQuery
+	Keyword string `form:"keyword"`
+}
+
+func (q *MemoQuery) Normalize() error {
+	q.Keyword = strings.TrimSpace(q.Keyword)
+	return q.PageQuery.Normalize()
+}
+
 type BookmarkQuery struct {
 	CategoryID string `form:"categoryId"`
 	Keyword    string `form:"keyword"`

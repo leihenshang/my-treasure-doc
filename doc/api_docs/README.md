@@ -23,18 +23,19 @@ api_docs/
 │   ├── schemas.yaml                 #   模型、请求/响应 DTO、分页、错误信封
 │   ├── responses.yaml               #   具名失败响应（按错误码聚合，避免重复）
 │   └── parameters.yaml              #   分页/排序/筛选等共享 query/path 参数
-├── blog/        (21)                # 公开只读　/api/blog/*　＋ 站点根文件
-├── blog-mgr/    (80)                # 后台管理　/api/blog-mgr/*
+├── blog/        (22)            # 公开只读　/api/blog/*　＋ 站点根文件
+├── blog-mgr/    (80)            # 后台管理　/api/blog-mgr/*
 │   ├── categories/  tags/  posts/  diaries/  portfolio-items/  tools/  bookmarks/
-│   │                                #   7 个资源，各 8 个端点（list/create/batch-delete/
-│   │                                #   detail/update/update-fields/delete/restore）
+│   │                            #   7 个资源，各 8 个端点（list/create/batch-delete/
+│   │                            #   detail/update/update-fields/delete/restore）
 │   └── （其余 24 个一层文件：统计/设置/上传/媒体/备份/令牌/历史）
-├── publish/     (12)                # 机器令牌发布　/api/publish/*
-├── user/        (5)                 # 鉴权　/api/user/*　＋　/ping
-└── backup/      (1)                 # NAS 导出　/api/backup/export
+├── memo/        (7)             # 前台速记本　/api/memo/*（登录即博主本人）
+├── publish/     (12)            # 机器令牌发布　/api/publish/*
+├── user/        (5)             # 鉴权　/api/user/*　＋　/ping
+└── backup/      (1)             # NAS 导出　/api/backup/export
 ```
 
-端点文件共 **119** 个（`blog 21` + `blog-mgr 80` + `publish 12` + `user 5` + `backup 1`）。
+端点文件共 **127** 个（`blog 22` + `blog-mgr 80` + `memo 7` + `publish 12` + `user 5` + `backup 1`）。
 
 ---
 
@@ -52,6 +53,7 @@ api_docs/
 | 编辑历史 | `blog-mgr/` 一层 | `/api/blog-mgr/history/*` | 3 | 同上 | `X-Token` + 管理员 | `blog-manage` |
 | 机器令牌发布 | `publish/` | `/api/publish/*` | 12 | `blog_mgr/router/router.go` 的 `RegisterPublishRoutes` | `X-Publish-Token`（可叠加 IP 白名单） | `publish` |
 | 用户鉴权 | `user/` | `/api/user/*` 与 `/ping` | 5 | `module/user/router/router.go`（`registerAPI`） | `login`/`captcha`/`ping` 匿名；`logout`/`change-pwd` 需 `X-Token` | `user` |
+| 前台速记本 | `memo/` | `/api/memo/*` | 7 | `module/user/router/router.go`（`registerAPI` → `blogmgrrouter.RegisterMemo`） | `X-Token`（登录即博主本人，不要求管理员） | `memo-manage` |
 | NAS 备份导出 | `backup/nas-export.yaml` | `/api/backup/export` | 1 | `module/user/router/router.go` | `X-Backup-Token` | `backup` |
 
 > 鉴权细节：`X-Token` 由登录签发，后台接口还要求 `userType ∈ {2, 100}`；`X-Publish-Token` / `X-Backup-Token` 为后台配置的机器令牌（`/api/publish/*` 创建即发布）。三种 scheme 定义在 `openapi.yaml` 的 `components.securitySchemes`。

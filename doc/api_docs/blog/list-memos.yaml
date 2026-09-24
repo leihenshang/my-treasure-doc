@@ -1,0 +1,32 @@
+# GET /api/blog/memos —— 公开只读博客 API（速记公开列表）
+# 注册位置：module/blog/router/router.go → RegisterService → blog.GET("/memos")
+operationId: listBlogMemos
+tags: [public-blog]
+summary: 速记公开列表（分页）
+description: |
+  公开速记列表。仅当「站点总开关 `memoPublicEnabled` 开启」时返回 `public = true` 的速记；
+  总开关关闭时恒返回空列表。排序为 `pinned DESC` + `updated_at DESC`（置顶优先）。
+  列表项不含正文与私有信息。
+security:
+  - {}
+parameters:
+  - $ref: '../components/parameters.yaml#/PublicPage'
+  - $ref: '../components/parameters.yaml#/PublicPageSize'
+  - $ref: '../components/parameters.yaml#/PublicSort'
+  - $ref: '../components/parameters.yaml#/PublicKeyword'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/PublicMemoPage'
+  '400':
+    $ref: '../components/responses.yaml#/BlogInvalidQuery'
+  '500':
+    $ref: '../components/responses.yaml#/BlogInternal'

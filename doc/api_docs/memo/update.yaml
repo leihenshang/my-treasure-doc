@@ -1,0 +1,40 @@
+# PUT /api/memo/memos/{id} —— 前台速记本（更新速记）
+# 注册位置：module/user/router/router.go → registerAPI → 仅 Auth()（登录即博主本人）
+operationId: updateMemo
+tags: [memo-manage]
+summary: 更新速记
+description: |
+  更新单条速记，必须携带当前 `version`（乐观锁）；版本过期返回 409 / code 40900。
+  更新会维护 `publicAt`：首次公开时写入当前时间，取消公开则清零。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/ManageID'
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/MemoInput'
+responses:
+  '200':
+    description: 更新成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/MemoRecord'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '404':
+    $ref: '../components/responses.yaml#/ManageNotFound'
+  '409':
+    $ref: '../components/responses.yaml#/ManageConflict'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

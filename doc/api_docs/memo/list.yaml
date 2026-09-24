@@ -1,0 +1,32 @@
+# GET /api/memo/memos —— 前台速记本（博主自己的速记列表，含私有）
+# 注册位置：module/user/router/router.go → registerAPI → 仅 Auth()（登录即博主本人）
+operationId: listMemos
+tags: [memo-manage]
+summary: 我的速记列表（分页，含私有）
+description: |
+  返回博主本人的全部速记（含私有与公开）。排序为 `pinned DESC` + `updated_at DESC`；
+  `keyword` 模糊匹配标题与正文。登录即博主本人，不要求管理员权限。
+security:
+  - XToken: []
+parameters:
+  - $ref: '../components/parameters.yaml#/ManagePage'
+  - $ref: '../components/parameters.yaml#/ManagePageSize'
+  - $ref: '../components/parameters.yaml#/ManageKeyword'
+responses:
+  '200':
+    description: 查询成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/MemoPage'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

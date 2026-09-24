@@ -1,0 +1,33 @@
+# POST /api/memo/memos —— 前台速记本（新建速记，默认私有）
+# 注册位置：module/user/router/router.go → registerAPI → 仅 Auth()（登录即博主本人）
+operationId: createMemo
+tags: [memo-manage]
+summary: 新建速记
+description: |
+  新建一条速记。`public` 缺省为 false（仅自己可见）；新建不校验 `version`。
+security:
+  - XToken: []
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/MemoInput'
+responses:
+  '201':
+    description: 创建成功
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '../components/schemas.yaml#/Envelope'
+            - type: object
+              properties:
+                data:
+                  $ref: '../components/schemas.yaml#/MemoRecord'
+  '400':
+    $ref: '../components/responses.yaml#/ManageInvalidRequest'
+  '401':
+    $ref: '../components/responses.yaml#/ManageUnauthorized'
+  '500':
+    $ref: '../components/responses.yaml#/ManageInternal'

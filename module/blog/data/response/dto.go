@@ -204,10 +204,23 @@ type Site struct {
 	Footer          SiteFooter      `json:"footer"`
 	Banner          SiteBanner      `json:"banner"`
 	MaintenanceMode bool            `json:"maintenanceMode"`
+	// MemoPublicEnabled 站点总开关：为 true 时公开 memo（public=true）才对访客可见。
+	MemoPublicEnabled bool `json:"memoPublicEnabled"`
 }
 
 type Stats struct {
 	Posts   int64 `json:"posts"`
 	Diaries int64 `json:"diaries"`
 	Works   int64 `json:"works"`
+}
+
+// MemoSummary 是公开 memo 列表项：Summary 由正文截取，不含完整 Content。
+type MemoSummary struct {
+	ID      string   `json:"id"`
+	Title   string   `json:"title"`
+	Summary string   `json:"summary"`
+	Tags    []string `json:"tags"`
+	Images  []string `json:"images"`
+	Pinned  bool     `json:"pinned"`
+	Date    string   `json:"date"`
 }

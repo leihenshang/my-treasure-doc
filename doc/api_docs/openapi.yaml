@@ -14,8 +14,9 @@ info:
 
     - `openapi.yaml`（本文件）：聚合根。只声明 `info` / `servers` / `tags` / `security` 与全部 `paths`，
       每个 operation（`get` / `post` / `put` / `patch` / `delete`）通过 $ref 指向对应端点文件。
-    - `blog/`（21 个）：公开只读博客 API `/api/blog/*` 与站点根 `robots.txt` / `sitemap.xml` / `rss.xml`。
+    - `blog/`（22 个）：公开只读博客 API `/api/blog/*` 与站点根 `robots.txt` / `sitemap.xml` / `rss.xml`。
     - `blog-mgr/`（80 个）：后台管理 API `/api/blog-mgr/*`（含 `/resources/<资源>/` 子目录、备份、媒体库、编辑历史）。
+    - `memo/`（7 个）：前台速记本 API `/api/memo/*`（登录即博主本人）。
     - `publish/`（12 个）：机器令牌发布 API `/api/publish/*`。
     - `user/`（5 个）：鉴权 API `/api/user/*` 与健康检查 `/ping`。
     - `backup/`（1 个）：NAS 机器令牌导出 `/api/backup/export`。
@@ -42,7 +43,7 @@ info:
     ## 鉴权
     | 请求头 | 适用接口 | 说明 |
     | --- | --- | --- |
-    | `X-Token` | `/api/blog-mgr/*`、`POST /api/user/logout`、`POST /api/user/change-pwd` | 登录后签发；后台还要求 `userType` ∈ {2, 100} |
+    | `X-Token` | `/api/blog-mgr/*`、`/api/memo/*`、`POST /api/user/logout`、`POST /api/user/change-pwd` | 登录后签发；后台还要求 `userType` ∈ {2, 100} |
     | `X-Publish-Token` | `/api/publish/*` | 机器令牌，后台配置；创建即发布 |
     | `X-Backup-Token` | `/api/backup/export` | NAS 机器令牌，后台配置 |
 
@@ -61,6 +62,8 @@ tags:
     description: 站点根级机器可读文件（`robots.txt` / `sitemap.xml` / `rss.xml`），非 JSON 信封响应。
   - name: blog-manage
     description: 后台管理 API（`/api/blog-mgr/*`）。需 `X-Token` 且 `userType` ∈ {2, 100}（管理员 / 超级管理员）。
+  - name: memo-manage
+    description: 前台速记本 API（`/api/memo/*`）。需 `X-Token`，登录即博主本人（不要求管理员权限）。
   - name: publish
     description: 机器令牌发布 API（`/api/publish/*`）。需 `X-Publish-Token`，创建即发布（强制 `publishStatus = published`），可叠加 IP 白名单。
   - name: user
@@ -147,6 +150,9 @@ paths:
   /api/blog/stats:
     get:
       $ref: './blog/get-stats.yaml'
+  /api/blog/memos:
+    get:
+      $ref: './blog/list-memos.yaml'
 
   # =========================================================================
   # 后台管理 API —— 内容资源 CRUD（7 个资源 × 8 个端点）
@@ -455,6 +461,29 @@ paths:
   /api/user/change-pwd:
     post:
       $ref: './user/change-password.yaml'
+
+  # =========================================================================
+  # 前台速记本 API（仅 X-Token，登录即博主本人）
+  # =========================================================================
+
+  /api/memo/memos:
+    get:
+      $ref: './memo/list.yaml'
+    post:
+      $ref: './memo/create.yaml'
+  /api/memo/memos/batch-delete:
+    post:
+      $ref: './memo/batch-delete.yaml'
+  /api/memo/memos/{id}:
+    get:
+      $ref: './memo/detail.yaml'
+    put:
+      $ref: './memo/update.yaml'
+    delete:
+      $ref: './memo/delete.yaml'
+  /api/memo/memos/{id}/fields:
+    patch:
+      $ref: './memo/update-fields.yaml'
 
   # =========================================================================
   # NAS 备份导出

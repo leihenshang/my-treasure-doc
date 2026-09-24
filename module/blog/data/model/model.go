@@ -215,9 +215,37 @@ type Site struct {
 	Footer          JSON   `gorm:"column:footer;not null;default:'{}'"`
 	Banner          JSON   `gorm:"column:banner;not null;default:'{}'"`
 	MaintenanceMode bool   `gorm:"column:maintenance_mode;not null;default:false"`
+	// MemoPublicEnabled 站点总开关：为 true 时公开 memo（public=true）才对访客可见。
+	MemoPublicEnabled bool `gorm:"column:memo_public_enabled;not null;default:false"`
 }
 
 func (*Site) TableName() string { return "td_blog_site" }
+
+// Memo 前台速记本：博主登录后记录碎片内容，默认私有，可单独公开。
+// public=false 仅博主可见；public=true 在「站点总开关 memoPublicEnabled」开启时对访客公开。
+type Memo struct {
+	BaseModel
+	Title     string    `gorm:"column:title;type:varchar(200);not null;default:''"`
+	Content   string    `gorm:"column:content;type:text;not null"`
+	Images    JSON      `gorm:"column:images;not null;default:'[]'"`
+	Pinned    bool      `gorm:"column:pinned;not null;default:false;index"`
+	Public    bool      `gorm:"column:public;not null;default:false;index"`
+	PublicAt  time.Time `gorm:"column:public_at;type:timestamp;index"`
+	Tags      JSON      `gorm:"column:tags;not null;default:'[]'"`
+	SortOrder int       `gorm:"column:sort_order;not null;default:0;index"`
+	Version   int       `gorm:"column:version;not null;default:1"`
+}
+
+func (*Memo) TableName() string { return "td_blog_memo" }
+
+// MemoTag 速记标签关联（复用 td_blog_tag 的标签字典，与文章/日记一致）。
+type MemoTag struct {
+	MemoID    string    `gorm:"column:memo_id;type:varchar(100);primaryKey"`
+	TagID     string    `gorm:"column:tag_id;type:varchar(100);primaryKey;index"`
+	CreatedAt time.Time `gorm:"column:created_at;type:timestamp;not null"`
+}
+
+func (*MemoTag) TableName() string { return "td_blog_memo_tag" }
 
 // EditHistory 文章/日记的编辑历史：每次保存记录一条完整快照，支持查看与恢复。
 // 每个 ref（resource+ref_id）保留最近 maxEditHistory 条。
@@ -238,6 +266,6 @@ func Tables() []interface{} {
 	return []interface{}{
 		&Category{}, &Tag{}, &Post{}, &PostTag{}, &Diary{}, &DiaryTag{},
 		&PortfolioItem{}, &Tool{}, &Bookmark{}, &BookmarkTag{}, &Profile{}, &Site{},
-		&Media{}, &VisitorLog{}, &EditHistory{},
+		&Memo{}, &MemoTag{}, &Media{}, &VisitorLog{}, &EditHistory{},
 	}
 }

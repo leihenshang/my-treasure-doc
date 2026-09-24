@@ -1066,7 +1066,7 @@ func (s *Service) PutSetting(ctx context.Context, name string, payload interface
 	if e1 != nil || e2 != nil || e3 != nil || e4 != nil || e5 != nil || e6 != nil {
 		return nil, ErrInvalid
 	}
-	item := &blogmodel.Site{SiteKey: "default", Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: modulesJSON, Milestones: milestones, Home: home, Footer: footer, Banner: banner, MaintenanceMode: value.MaintenanceMode}
+	item := &blogmodel.Site{SiteKey: "default", Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: modulesJSON, Milestones: milestones, Home: home, Footer: footer, Banner: banner, MaintenanceMode: value.MaintenanceMode, MemoPublicEnabled: value.MemoPublicEnabled}
 	// 必须显式指定列：GORM 用结构体更新会跳过零值字段，导致关闭维护模式（false）写不进库
 	if err = upsertSettingColumns(db, &blogmodel.Site{}, "site_key", "default", item, siteUpdateColumns); err != nil {
 		return nil, err
@@ -1159,7 +1159,7 @@ func siteFromModel(value *blogmodel.Site) (blogresponse.Site, error) {
 	if len(value.Banner) > 0 && string(value.Banner) != "{}" && json.Unmarshal(value.Banner, &banner) != nil {
 		return blogresponse.Site{}, ErrInvalid
 	}
-	return blogresponse.Site{Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: normalized, Milestones: milestones, Home: home, Footer: footer, Banner: banner, MaintenanceMode: value.MaintenanceMode}, nil
+	return blogresponse.Site{Name: value.Name, Slogan: value.Slogan, Intro: value.Intro, TechStack: tech, Modules: normalized, Milestones: milestones, Home: home, Footer: footer, Banner: banner, MaintenanceMode: value.MaintenanceMode, MemoPublicEnabled: value.MemoPublicEnabled}, nil
 }
 
 func validateSite(value blogresponse.Site) error {
@@ -1239,7 +1239,7 @@ func validateHomeTerminal(terminal blogresponse.SiteHomeTerminal) error {
 }
 
 // siteUpdateColumns 站点配置允许写入的列，包含开关类字段（零值也需要写入）
-var siteUpdateColumns = []string{"name", "slogan", "intro", "tech_stack", "modules", "milestones", "home", "footer", "banner", "maintenance_mode"}
+var siteUpdateColumns = []string{"name", "slogan", "intro", "tech_stack", "modules", "milestones", "home", "footer", "banner", "maintenance_mode", "memo_public_enabled"}
 
 // upsertSettingColumns 与 upsertSetting 相同，但只更新指定列且允许写入零值。
 func upsertSettingColumns(db *gorm.DB, existing interface{}, keyColumn, keyValue string, values interface{}, columns []string) error {
