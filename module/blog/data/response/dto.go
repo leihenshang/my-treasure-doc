@@ -221,6 +221,8 @@ type MemoSummary struct {
 	Summary string   `json:"summary"`
 	Tags    []string `json:"tags"`
 	Images  []string `json:"images"`
+	Weather string   `json:"weather"`
+	Mood    string   `json:"mood"`
 	Pinned  bool     `json:"pinned"`
 	Date    string   `json:"date"`
 }

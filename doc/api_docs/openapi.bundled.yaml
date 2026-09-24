@@ -5846,6 +5846,14 @@ components:
           items:
             type: string
           description: 图片路径数组（`/files/blog/...`）；保证为空数组而非 null
+        weather:
+          type: string
+          description: 天气 emoji（可空）
+          example: ☀️
+        mood:
+          type: string
+          description: 心情 emoji（可空）
+          example: 😊
         pinned:
           type: boolean
           description: 是否置顶（置顶速记恒排在前）
@@ -7226,6 +7234,14 @@ components:
           items:
             type: string
           description: 图片路径数组（`/files/blog/...`）；保证为空数组而非 null
+        weather:
+          type: string
+          description: 天气 emoji（可空）
+          example: ☀️
+        mood:
+          type: string
+          description: 心情 emoji（可空）
+          example: 😊
         pinned:
           type: boolean
           description: 是否置顶
@@ -7281,6 +7297,14 @@ components:
           items:
             type: string
           description: 图片路径数组（`/files/blog/...`）
+        weather:
+          type: string
+          description: 天气 emoji（可空，单字符）
+          example: ☀️
+        mood:
+          type: string
+          description: 心情 emoji（可空，单字符）
+          example: 😊
         pinned:
           type: boolean
           default: false

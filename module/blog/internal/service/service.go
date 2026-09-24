@@ -373,7 +373,7 @@ func memoSummary(memo model.Memo) response.MemoSummary {
 	tags, _ := decodeJSON[string](memo.Tags)
 	images, _ := decodeJSON[string](memo.Images)
 	summary := summaryFromContent(memo.Content)
-	return response.MemoSummary{ID: memo.ID, Title: memo.Title, Summary: summary, Tags: tags, Images: images, Pinned: memo.Pinned, Date: memo.UpdatedAt.Format("2006-01-02")}
+	return response.MemoSummary{ID: memo.ID, Title: memo.Title, Summary: summary, Tags: tags, Images: images, Weather: memo.Weather, Mood: memo.Mood, Pinned: memo.Pinned, Date: memo.UpdatedAt.Format("2006-01-02")}
 }
 
 // summaryFromContent 截取 Markdown 正文前若干字符作为列表摘要；空标题时也可回退用。

@@ -228,6 +228,8 @@ type Memo struct {
 	Title     string    `gorm:"column:title;type:varchar(200);not null;default:''"`
 	Content   string    `gorm:"column:content;type:text;not null"`
 	Images    JSON      `gorm:"column:images;not null;default:'[]'"`
+	Weather   string    `gorm:"column:weather;type:varchar(10);not null;default:''"`
+	Mood      string    `gorm:"column:mood;type:varchar(10);not null;default:''"`
 	Pinned    bool      `gorm:"column:pinned;not null;default:false;index"`
 	Public    bool      `gorm:"column:public;not null;default:false;index"`
 	PublicAt  time.Time `gorm:"column:public_at;type:timestamp;index"`

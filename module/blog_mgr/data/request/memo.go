@@ -5,6 +5,8 @@ type Memo struct {
 	Title     string   `json:"title"`
 	Content   string   `json:"content"`
 	Images    []string `json:"images"`
+	Weather   string   `json:"weather"`
+	Mood      string   `json:"mood"`
 	Pinned    bool     `json:"pinned"`
 	Public    bool     `json:"public"`
 	Tags      []string `json:"tags"`

@@ -19,6 +19,8 @@ type MemoResult struct {
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	Images    []string  `json:"images"`
+	Weather   string    `json:"weather"`
+	Mood      string    `json:"mood"`
 	Pinned    bool      `json:"pinned"`
 	Public    bool      `json:"public"`
 	Tags      []string  `json:"tags"`
@@ -44,7 +46,8 @@ func memoResult(memo blogmodel.Memo) MemoResult {
 		}
 	}
 	return MemoResult{
-		ID: memo.ID, Title: memo.Title, Content: memo.Content, Images: images, Pinned: memo.Pinned,
+		ID: memo.ID, Title: memo.Title, Content: memo.Content, Images: images,
+		Weather: memo.Weather, Mood: memo.Mood, Pinned: memo.Pinned,
 		Public: memo.Public, Tags: tags, SortOrder: memo.SortOrder,
 		Version: memo.Version, CreatedAt: memo.CreatedAt, UpdatedAt: memo.UpdatedAt,
 	}
@@ -113,6 +116,7 @@ func memoFromPayload(payload request.Memo) blogmodel.Memo {
 	imagesJSON := blogmodel.NewJSON(payload.Images)
 	return blogmodel.Memo{
 		Title: strings.TrimSpace(payload.Title), Content: payload.Content, Images: imagesJSON,
+		Weather: strings.TrimSpace(payload.Weather), Mood: strings.TrimSpace(payload.Mood),
 		Pinned: payload.Pinned, Public: payload.Public, Tags: tagsJSON, SortOrder: payload.SortOrder,
 	}
 }
@@ -167,6 +171,8 @@ func (s *Service) UpdateMemo(ctx context.Context, id string, payload request.Mem
 	memo.Title = strings.TrimSpace(payload.Title)
 	memo.Content = payload.Content
 	memo.Images = blogmodel.NewJSON(payload.Images)
+	memo.Weather = strings.TrimSpace(payload.Weather)
+	memo.Mood = strings.TrimSpace(payload.Mood)
 	memo.Pinned = payload.Pinned
 	memo.Public = payload.Public
 	memo.PublicAt = syncPublicAt(payload.Public, memo.PublicAt)
@@ -174,7 +180,8 @@ func (s *Service) UpdateMemo(ctx context.Context, id string, payload request.Mem
 	memo.SortOrder = payload.SortOrder
 	memo.Version++
 	if err := db.Model(&blogmodel.Memo{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"title": memo.Title, "content": memo.Content, "images": memo.Images, "pinned": memo.Pinned,
+		"title": memo.Title, "content": memo.Content, "images": memo.Images,
+		"weather": memo.Weather, "mood": memo.Mood, "pinned": memo.Pinned,
 		"public": memo.Public, "public_at": memo.PublicAt, "tags": memo.Tags,
 		"sort_order": memo.SortOrder, "version": memo.Version,
 	}).Error; err != nil {
