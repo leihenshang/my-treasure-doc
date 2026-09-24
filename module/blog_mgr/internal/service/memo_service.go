@@ -102,6 +102,9 @@ func validateMemo(payload request.Memo) error {
 	if _, err := request.NormalizeIDs(payload.Images); err != nil {
 		return request.Field("images", "图片路径不合法")
 	}
+	if len(payload.Images) > 8 {
+		return request.Field("images", "图片最多 8 张")
+	}
 	return nil
 }
 
