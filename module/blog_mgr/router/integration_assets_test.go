@@ -180,7 +180,7 @@ func TestBlogMediaUploadContract(t *testing.T) {
 func TestProfileSettingValidation(t *testing.T) {
 	s := newTestServer(t)
 
-	valid := `{"name":"Treasure","avatar":"T","role":"全栈","location":"中国","motto":"m","bio":"b","links":[{"id":"github","label":"GitHub","value":"github.com","url":"https://github.com/"}],"skills":[{"name":"Go","level":80,"group":"后端"}]}`
+	valid := `{"name":"Treasure","avatar":"T","role":"全栈","location":"中国","motto":"m","bio":"b","links":[{"label":"GitHub","value":"github.com","url":"https://github.com/"}],"skills":[{"name":"Go","level":80,"group":"后端"}]}`
 	if status, env := s.do(http.MethodPut, "/api/blog-mgr/profile", valid); status != http.StatusOK || env.Code != 0 {
 		t.Fatalf("保存合法资料 = %d/%d %s", status, env.Code, env.Msg)
 	}
@@ -194,11 +194,10 @@ func TestProfileSettingValidation(t *testing.T) {
 	}
 
 	tests := map[string]string{
-		"名称为空":     `{"name":"  ","links":[],"skills":[]}`,
-		"联系方式缺ID":  `{"name":"T","links":[{"label":"GitHub","value":"v"}],"skills":[]}`,
-		"联系方式缺label": `{"name":"T","links":[{"id":"github","value":"v"}],"skills":[]}`,
-		"联系方式ID重复": `{"name":"T","links":[{"id":"a","label":"A","value":"v"},{"id":"a","label":"B","value":"v"}],"skills":[]}`,
-		"联系方式URL超长": `{"name":"T","links":[{"id":"a","label":"A","value":"v","url":"` + strings.Repeat("x", 501) + `"}],"skills":[]}`,
+		"名称为空":      `{"name":"  ","links":[],"skills":[]}`,
+		"联系方式缺label": `{"name":"T","links":[{"value":"v"}],"skills":[]}`,
+		"联系方式label重复": `{"name":"T","links":[{"label":"A","value":"v"},{"label":"A","value":"v"}],"skills":[]}`,
+		"联系方式URL超长": `{"name":"T","links":[{"label":"A","value":"v","url":"` + strings.Repeat("x", 501) + `"}],"skills":[]}`,
 	}
 	for name, body := range tests {
 		status, env := s.do(http.MethodPut, "/api/blog-mgr/profile", body)

@@ -2966,7 +2966,7 @@ paths:
         整份覆盖保存个人资料，返回保存后的对象。违反以下任一条校验即返回 400 / code 40001：
 
         - `name` 去空格后不能为空；
-        - 每条 `links` 的 `id` 与 `label` 不能为空，且 `id` 在同一份载荷内不能重复；单条 `url` 长度不超过 500 字符
+        - 每条 `links` 的 `label` 不能为空，且 `label` 在同一份载荷内不能重复；单条 `url` 长度不超过 500 字符
           （不限制协议，手机号 / 微信号等纯文本同样合法）；
         - 每条 `skills` 的 `name`、`group` 不能为空，`level` 必须在 0–100。
       security:
@@ -5251,13 +5251,10 @@ components:
       type: object
       description: 关于我页的联系方式
       required:
-        - id
         - label
         - value
         - icon
       properties:
-        id:
-          type: string
         label:
           type: string
           example: GitHub

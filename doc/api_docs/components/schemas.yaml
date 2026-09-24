@@ -411,10 +411,8 @@ PublicBookmark:
 PublicProfileLink:
   type: object
   description: 关于我页的联系方式
-  required: [id, label, value, icon]
+  required: [label, value, icon]
   properties:
-    id:
-      type: string
     label:
       type: string
       example: GitHub

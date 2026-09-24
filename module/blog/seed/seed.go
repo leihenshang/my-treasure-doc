@@ -190,7 +190,7 @@ func seedBookmarks(tx *gorm.DB, options Options, tags map[string]*model.Tag, res
 }
 
 func seedSettings(tx *gorm.DB, options Options, result *Result) error {
-	links, err := toJSON([]blogresponse.ProfileLink{{ID: "github", Label: "GitHub", Value: "github.com", URL: "https://github.com/", Icon: "🔗"}})
+	links, err := toJSON([]blogresponse.ProfileLink{{Label: "GitHub", Value: "github.com", URL: "https://github.com/", Icon: "🔗"}})
 	if err != nil {
 		return err
 	}

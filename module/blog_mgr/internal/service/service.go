@@ -1111,13 +1111,13 @@ func validateProfile(value blogresponse.Profile) error {
 	}
 	seen := map[string]struct{}{}
 	for _, link := range value.Links {
-		if strings.TrimSpace(link.ID) == "" || strings.TrimSpace(link.Label) == "" {
+		if strings.TrimSpace(link.Label) == "" {
 			return ErrInvalid
 		}
-		if _, ok := seen[link.ID]; ok {
+		if _, ok := seen[link.Label]; ok {
 			return ErrInvalid
 		}
-		seen[link.ID] = struct{}{}
+		seen[link.Label] = struct{}{}
 		// 联系方式不再限制协议：手机号、QQ 号、微信号等纯文本同样合法
 		if utf8.RuneCountInString(link.URL) > maxProfileContactLength {
 			return ErrInvalid

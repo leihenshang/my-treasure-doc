@@ -108,7 +108,6 @@ type Bookmark struct {
 }
 
 type ProfileLink struct {
-	ID    string `json:"id"`
 	Label string `json:"label"`
 	Value string `json:"value"`
 	URL   string `json:"url,omitempty"`
