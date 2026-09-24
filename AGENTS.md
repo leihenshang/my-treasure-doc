@@ -32,6 +32,30 @@ go run . -c config.toml
 - 重置密码是主程序的子命令（见 `module/user/main.go` 的 `runResetPwd`）：`cd module/user && go run . -c config.toml resetpwd <新密码>`，仅重置默认管理员账号，新密码须满足 8–16 位规则。`module/user/cli/reset-pwd/` 目录下只有 README，没有可执行代码。
 - 仓库没有 CI、Makefile 或 lint 配置。门禁检查（`go test ./...`、`gofmt` / `go fmt`）**仅在重要改动时执行**：新增大模块、大块业务逻辑调整、重构或大规模跨文件改动必须跑通；单文件小改（样式微调、文案/提示语、参数调整、单行 bug 修复）可直接提交。
 
+### 前后端服务启停（`bin/run.sh` + 前端 `pnpm stop`）
+
+当用户说「帮我测试 / 帮我验证服务 / 启动服务」时，先启动前后端服务；当用户说「帮我关闭/停止服务」时，用下面的指令关闭。两个服务是独立进程，分别启停。
+
+**后端服务**（Go，默认端口见 `module/user/config.toml` 的 `app.port`）——统一用 [bin/run.sh](bin/run.sh) 管理：
+
+```bash
+bin/run.sh start [config_path]   # 启动后端（默认 module/user/config.toml）
+bin/run.sh stop                  # 停止后端
+bin/run.sh restart [config_path] # 重启后端
+bin/run.sh status                # 查看后端状态
+bin/run.sh front-stop            # 停止前端 vite 服务
+```
+
+**前端服务**（Vite dev，端口 2024，代码在兄弟目录 `../my-treasure-doc-front`）——启动用 `pnpm dev`，停止用 pnpm 内置的 `stop` 命令（脚本见 [../my-treasure-doc-front/scripts/stop-front.mjs](../my-treasure-doc-front/scripts/stop-front.mjs)）：
+
+```bash
+# 在前端目录下执行
+pnpm dev          # 启动
+pnpm stop         # 停止（等价 npm stop / pnpm dev:stop）
+```
+
+注意：`pnpm dev stop` 这种写法无效（`stop` 会被当成 vite 参数被忽略），请用 `pnpm stop`。`bin/run.sh front-stop` 与前端 `pnpm stop` 都能停前端，二选一即可。
+
 ## 代码边界
 
 仓库含四个业务模块，共用同一 Gin Engine：`module/user`（进程入口、用户/鉴权/上传/备份、路由汇总与前端托管）、`module/blog`（公开只读博客 API）、`module/blog_mgr`（后台管理 CRUD）、`module/common`（统一响应）。

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# treasure-doc 后端服务管理脚本
+# treasure-doc 前后端服务管理脚本
 # 用法:
-#   ./treasure-doc.sh start [config_path]   启动后端（默认使用 module/user/config.toml）
-#   ./treasure-doc.sh stop                  停止后端
-#   ./treasure-doc.sh status                查看后端状态
-#   ./treasure-doc.sh restart [config_path] 重启后端
-#   ./treasure-doc.sh front-stop           停止前端 vite 服务（pnpm dev，端口 2024）
-#   ./treasure-doc.sh help                  帮助
+#   ./run.sh start [config_path]   启动后端（默认使用 module/user/config.toml）
+#   ./run.sh stop                  停止后端
+#   ./run.sh status                查看后端状态
+#   ./run.sh restart [config_path] 重启后端
+#   ./run.sh front-stop           停止前端 vite 服务（pnpm dev，端口 2024）
+#   ./run.sh help                  帮助
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
