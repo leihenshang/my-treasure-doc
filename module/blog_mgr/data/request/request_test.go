@@ -33,10 +33,18 @@ func TestValidation(t *testing.T) {
 	if ValidateTool(Tool{Slug: "mdn", Kind: "link", Name: "MDN", URL: "javascript:alert(1)", PublishStatus: "published"}) == nil {
 		t.Fatal("unsafe URL accepted")
 	}
-	// 缺失字段必须给出可定位的细分错误，而不是笼统的 ErrInvalid
-	if err := ValidateTool(Tool{Slug: "own", Kind: "own", Name: "自研", PublishStatus: "draft"}); !errors.Is(err, ErrToolStatusRequired) {
-		t.Fatalf("own tool without developmentStatus = %v, want ErrToolStatusRequired", err)
+	// 工具已移除开发状态/发布时间/正文：自研工具只要名称与发布状态
+	if err := ValidateTool(Tool{Slug: "own", Kind: "own", Name: "自研", PublishStatus: "draft"}); err != nil {
+		t.Fatalf("own tool = %v, want nil", err)
 	}
+	if err := ValidateTool(Tool{Slug: "own", Kind: "own", Name: "   ", PublishStatus: "draft"}); err == nil {
+		t.Fatal("own tool without name accepted")
+	}
+	// 发布状态保留且必须是合法枚举
+	if err := ValidateTool(Tool{Slug: "own", Kind: "own", Name: "自研", PublishStatus: "bogus"}); err == nil {
+		t.Fatal("tool with invalid publishStatus accepted")
+	}
+	// 缺失/非法地址仍给出可定位的细分错误，而不是笼统的 ErrInvalid
 	if err := ValidateTool(Tool{Slug: "ext", Kind: "link", Name: "外链", URL: "javascript:alert(1)", PublishStatus: "draft"}); !errors.Is(err, ErrToolURLRequired) {
 		t.Fatalf("link tool with unsafe scheme = %v, want ErrToolURLRequired", err)
 	}

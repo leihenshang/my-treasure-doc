@@ -17,13 +17,12 @@ import (
 
 // 管理端业务码，与前端约定保持一致。
 const (
-	codeInvalidRequest     = 40001
-	codeReferenceAbsent    = 40002
-	codeToolURLRequired    = 40003
-	codeToolStatusRequired = 40004
-	codeNotFound           = 40410
-	codeConflict           = 40900
-	codeInternal           = 50000
+	codeInvalidRequest  = 40001
+	codeReferenceAbsent = 40002
+	codeToolURLRequired = 40003
+	codeNotFound        = 40410
+	codeConflict        = 40900
+	codeInternal        = 50000
 )
 
 // Manager 是管理端业务入口，由 internal/service 实现，测试可注入替身。
@@ -447,8 +446,6 @@ func (h *Handler) write(c *gin.Context, data interface{}, err error, created boo
 		response.ErrorWithData(c, http.StatusBadRequest, codeReferenceAbsent, "关联的分类或标签不存在，请先创建", gin.H{"field": "categoryId 或 tagIds"})
 	case errors.Is(err, service.ErrToolURLRequired):
 		response.ErrorWithData(c, http.StatusBadRequest, codeToolURLRequired, "外链工具必须填写有效地址（支持 http/https 等协议，不支持 javascript: 这类地址）", gin.H{"field": "url"})
-	case errors.Is(err, service.ErrToolStatusRequired):
-		response.ErrorWithData(c, http.StatusBadRequest, codeToolStatusRequired, "自研工具必须填写开发状态", gin.H{"field": "developmentStatus"})
 	case errors.Is(err, service.ErrInvalid):
 		badRequest(c)
 	case errors.Is(err, service.ErrNotFound):

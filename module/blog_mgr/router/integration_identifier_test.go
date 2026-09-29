@@ -40,7 +40,7 @@ func TestIdentifierAutoGenerate(t *testing.T) {
 	}
 
 	// 工具省略 slug → 按名称自动生成
-	toolID := s.create("tools", `{"kind":"own","name":"我的工具","developmentStatus":"开发中","publishStatus":"published"}`)
+	toolID := s.create("tools", `{"kind":"own","name":"我的工具","publishStatus":"draft"}`)
 	_, env = s.do(http.MethodGet, "/api/blog-mgr/tools/"+toolID, "")
 	if got, _ := dataObject(t, env)["slug"].(string); got != "我的工具" {
 		t.Fatalf("工具自动生成 slug = %q", got)

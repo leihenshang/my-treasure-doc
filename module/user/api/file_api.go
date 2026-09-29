@@ -390,9 +390,9 @@ func PublishUploadMedias(c *gin.Context) {
 		}
 		upsertSavedMediaMeta(media)
 		list = append(list, gin.H{
-			"path": media.Path,
-			"name": media.Name,
-			"size": media.Size,
+			"path":    media.Path,
+			"name":    media.Name,
+			"size":    media.Size,
 			"existed": media.Existed,
 		})
 	}

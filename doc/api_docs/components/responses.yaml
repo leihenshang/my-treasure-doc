@@ -224,9 +224,9 @@ ManageBadRequest:
 ManageToolBadRequest:
   description: |
     请求参数错误（HTTP 400）。工具资源的 400 有三种业务码：
-    - `40001` 参数格式错误 / 字段级校验失败（data 为 `{"field": "<字段名>"}`）；
-    - `40003` 外链工具（`kind = link`）缺少有效地址，data.field = `url`；
-    - `40004` 自研工具（`kind = own`）缺少开发状态，data.field = `developmentStatus`。
+    - `40001` 参数格式错误 / 字段级校验失败（data 为 `{"field": "<字段名>"}`，例如 kind 非法、名称为空、发布状态非法）；
+    - `40003` 外链工具（`kind = link`）缺少有效地址，data.field = `url`。
+    工具已移除开发状态，原 `40004` 不再出现。
   content:
     application/json:
       schema:
@@ -254,13 +254,13 @@ ManageToolBadRequest:
             msg: '外链工具必须填写有效地址（支持 http/https 等协议，不支持 javascript 这类可执行协议的地址）'
             data:
               field: url
-        statusRequired:
-          summary: 自研工具缺少开发状态（40004）
+        invalidPublishStatus:
+          summary: 发布状态非法（40001）
           value:
-            code: 40004
-            msg: 自研工具必须填写开发状态
+            code: 40001
+            msg: 发布状态只能是 draft / published / archived
             data:
-              field: developmentStatus
+              field: publishStatus
 
 ManageToolURLRequired:
   description: 外链工具必须填写有效地址（HTTP 400，code 40003）；data.field = `url`
@@ -273,18 +273,6 @@ ManageToolURLRequired:
         msg: '外链工具必须填写有效地址（支持 http/https 等协议，不支持 javascript 这类可执行协议的地址）'
         data:
           field: url
-
-ManageToolStatusRequired:
-  description: 自研工具必须填写开发状态（HTTP 400，code 40004）；data.field = `developmentStatus`
-  content:
-    application/json:
-      schema:
-        $ref: './schemas.yaml#/Envelope'
-      example:
-        code: 40004
-        msg: 自研工具必须填写开发状态
-        data:
-          field: developmentStatus
 
 ManageNotFound:
   description: 资源不存在（HTTP 404，code 40410）

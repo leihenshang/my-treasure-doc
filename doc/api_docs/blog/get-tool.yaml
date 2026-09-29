@@ -4,10 +4,10 @@ operationId: getBlogTool
 tags: [public-blog]
 summary: 工具详情（路径参数为工具 slug，仅自研工具）
 description: |
-  按工具 slug 查询，且仅当该条目是自研工具（`kind = own`）且已发布时返回，
-  内容包含 Markdown 正文。外链工具（`kind = link`）没有详情页，同样返回 404。
+  按工具 slug 查询，且仅当该条目是自研工具（`kind = own`）且 `publishStatus = published` 时返回；
+  外链工具（`kind = link`）没有详情页，同样返回 404；草稿 / 归档工具对公众 404。
 
-  仅返回 `publishStatus = published` 且 `publishedAt <= 当前时间` 的工具。
+  工具没有发布时间（不做预约发布），也移除了正文：返回名称、描述与封面。
 security:
   - {}
 parameters:

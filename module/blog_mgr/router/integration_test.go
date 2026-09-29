@@ -514,7 +514,8 @@ func TestUpdateFieldsContract(t *testing.T) {
 		t.Fatalf("快捷改字段后 version 未自增：%v → %v", versionAfter, next)
 	}
 
-	toolID := s.create("tools", `{"slug":"fields-tool","kind":"own","name":"工具","developmentStatus":"可用","publishStatus":"draft"}`)
+	// 工具保留发布状态（发布时间/开发状态/正文已移除）：快捷白名单仍是 pinned 与 publishStatus
+	toolID := s.create("tools", `{"slug":"fields-tool","kind":"own","name":"工具","publishStatus":"draft"}`)
 	for name, test := range map[string]struct{ resource, id, body string }{
 		"非白名单字段":    {"posts", postID, `{"title":"改名"}`},
 		"非法发布状态":    {"posts", postID, `{"publishStatus":"bogus"}`},
@@ -611,7 +612,7 @@ func TestToolValidationCodes(t *testing.T) {
 	}{
 		"外链缺地址":   {`{"slug":"t-link","kind":"link","name":"外链","publishStatus":"draft"}`, 40003},
 		"外链不安全协议": {`{"slug":"t-js","kind":"link","name":"外链","url":"javascript:alert(1)","publishStatus":"draft"}`, 40003},
-		"自研缺开发状态": {`{"slug":"t-own","kind":"own","name":"自研","publishStatus":"draft"}`, 40004},
+		"非法发布状态":  {`{"slug":"t-status","kind":"own","name":"自研","publishStatus":"bogus"}`, 40001},
 		"非法 kind": {`{"slug":"t-bad","kind":"other","name":"X","publishStatus":"draft"}`, 40001},
 	}
 	for name, test := range tests {
@@ -619,6 +620,12 @@ func TestToolValidationCodes(t *testing.T) {
 		if status != http.StatusBadRequest || env.Code != test.code {
 			t.Fatalf("%s = %d/%d，想要 400/%d", name, status, env.Code, test.code)
 		}
+	}
+
+	// 自研工具已不再要求开发状态，只给名称 + 发布状态即可创建
+	status, env := s.do(http.MethodPost, "/api/blog-mgr/tools", `{"slug":"t-own","kind":"own","name":"自研","publishStatus":"draft"}`)
+	if status != http.StatusCreated {
+		t.Fatalf("自研工具创建 = %d/%d：%s", status, env.Code, env.Msg)
 	}
 
 	// 地址不限协议：http 与「没写协议」都要能创建，且落库时补全协议
@@ -645,6 +652,8 @@ func TestStatsContract(t *testing.T) {
 	s.create("diaries", `{"publicId":"stats-diary","title":"日记","publishStatus":"draft"}`)
 	s.create("categories", `{"scope":"post","slug":"stats-cat","name":"统计"}`)
 	s.create("tags", `{"name":"统计标签"}`)
+	// 工具保留发布状态（但没有发布时间）：同样按状态计数
+	s.create("tools", `{"slug":"stats-tool","kind":"own","name":"统计工具","publishStatus":"draft"}`)
 
 	status, env := s.do(http.MethodGet, "/api/blog-mgr/stats", "")
 	if status != http.StatusOK {
@@ -667,6 +676,14 @@ func TestStatsContract(t *testing.T) {
 	diaries, _ := stats["diaries"].(map[string]any)
 	if total, _ := diaries["total"].(float64); int(total) != 1 {
 		t.Fatalf("diaries.total = %v，想要 1", diaries["total"])
+	}
+	// 工具同样按发布状态拆分计数
+	tools, _ := stats["tools"].(map[string]any)
+	if total, _ := tools["total"].(float64); int(total) != 1 {
+		t.Fatalf("tools.total = %v，想要 1", tools["total"])
+	}
+	if draft, _ := tools["draft"].(float64); int(draft) != 1 {
+		t.Fatalf("tools.draft = %v，想要 1", tools["draft"])
 	}
 	// 显式创建 1 个分类 + 未指定分类的文章自动落到「默认分类」，故这里的分类总数应为 2
 	if categories, _ := stats["categories"].(float64); int(categories) != 2 {

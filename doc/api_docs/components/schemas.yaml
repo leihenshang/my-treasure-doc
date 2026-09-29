@@ -409,7 +409,7 @@ PublicPortfolioItem:
 
 PublicTool:
   type: object
-  description: 工具条目（列表不返回正文；详情仅对自研工具返回完整内容）
+  description: 工具条目（自研工具带封面与详情页，外链带 url；工具没有发布状态，也没有正文）
   required: [id, type, name, desc]
   properties:
     id:
@@ -429,12 +429,6 @@ PublicTool:
       description: 外链地址；自研工具通常为空
     cover:
       type: string
-    status:
-      type: string
-      description: 开发状态；外链工具为空
-    content:
-      type: string
-      description: Markdown 正文；仅自研工具详情返回
 
 PublicBookmark:
   type: object
@@ -888,11 +882,11 @@ ManagePortfolioItem:
           type: integer
 
 ManageTool:
-  description: 工具（管理端详情）
+  description: 工具（管理端详情；已移除开发状态、正文与发布时间，保留发布状态）
   allOf:
     - $ref: '#/BaseModel'
     - type: object
-      required: [slug, kind, name, description, url, cover, developmentStatus, content, publishStatus, publishedAt, sortOrder, version]
+      required: [slug, kind, name, description, url, cover, publishStatus, sortOrder, version]
       properties:
         slug:
           type: string
@@ -909,16 +903,8 @@ ManageTool:
           description: 外链工具必填
         cover:
           type: string
-        developmentStatus:
-          type: string
-          description: 开发状态；自研工具必填
-        content:
-          type: string
         publishStatus:
           $ref: '#/PublishStatus'
-        publishedAt:
-          type: string
-          format: date-time
         sortOrder:
           type: integer
         version:
@@ -1044,7 +1030,7 @@ ManageBookmarkPage:
 
 ManageStatusCounts:
   type: object
-  description: 单个资源的各状态计数
+  description: 单个资源的各状态计数（工具没有发布时间，不做预约发布，但同样按发布状态拆分）
   required: [total, draft, published, archived]
   properties:
     total:
@@ -1431,7 +1417,7 @@ ManagePortfolioItemInput:
 
 ManageToolInput:
   type: object
-  description: 工具写入载荷（新增与更新共用）
+  description: 工具写入载荷（新增与更新共用；保留发布状态，但没有发布时间，不做预约发布）
   required: [name, kind, publishStatus]
   properties:
     slug:
@@ -1450,17 +1436,8 @@ ManageToolInput:
       description: '外链地址；`kind = link` 时必填且需为合法地址（http / https / mailto 等协议均可，但会拒绝 javascript、data 这类可执行脚本协议），否则 400 / code 40003'
     cover:
       type: string
-    developmentStatus:
-      type: string
-      description: 开发状态；`kind = own` 时必填，否则 400 / code 40004
-    content:
-      type: string
     publishStatus:
       $ref: '#/PublishStatus'
-    publishedAt:
-      type: [string, 'null']
-      format: date-time
-      description: 发布时间（RFC3339）；留空时由 `publishedOn` 推导
     sortOrder:
       type: integer
       default: 0

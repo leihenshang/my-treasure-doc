@@ -4,13 +4,13 @@ package model
 type VisitorCategory string
 
 const (
-	VisitorCategoryPost        VisitorCategory = "post"
-	VisitorCategoryDiary       VisitorCategory = "diary"
-	VisitorCategoryPortfolio   VisitorCategory = "portfolio"
-	VisitorCategoryTool        VisitorCategory = "tool"
-	VisitorCategoryBookmark    VisitorCategory = "bookmark"
-	VisitorCategorySite        VisitorCategory = "site"
-	VisitorCategoryUnresolved  VisitorCategory = "other"
+	VisitorCategoryPost       VisitorCategory = "post"
+	VisitorCategoryDiary      VisitorCategory = "diary"
+	VisitorCategoryPortfolio  VisitorCategory = "portfolio"
+	VisitorCategoryTool       VisitorCategory = "tool"
+	VisitorCategoryBookmark   VisitorCategory = "bookmark"
+	VisitorCategorySite       VisitorCategory = "site"
+	VisitorCategoryUnresolved VisitorCategory = "other"
 )
 
 // VisitorLog 记录公开博客的一次访客访问（来源 IP + 目标路径 + 内容分类），

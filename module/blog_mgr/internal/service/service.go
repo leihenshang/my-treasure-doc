@@ -25,8 +25,7 @@ var (
 	// 与「字段格式非法」区分开，便于前端提示用户先创建对应分类/标签。
 	ErrReferenceNotFound = errors.New("referenced category or tag not found")
 	// 工具字段缺失的细分错误，避免统一落到「请求参数格式错误」这种无法定位的提示。
-	ErrToolURLRequired    = errors.New("tool url required")
-	ErrToolStatusRequired = errors.New("tool development status required")
+	ErrToolURLRequired = errors.New("tool url required")
 )
 
 type Service struct{}
@@ -915,17 +914,14 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		if err := request.ValidateTool(value); err != nil {
 			return nil, nil, "", mapToolValidationError(err)
 		}
-		_, at, _ := publishedTimes(value.PublishStatus, "", value.PublishedAt)
 		if value.Kind == "link" {
 			// 校验已通过，这里只做归一化（缺协议时补 https://）
 			value.URL, _ = request.NormalizeLinkURL(value.URL)
 			value.Cover = ""
-			value.DevelopmentStatus = ""
-			value.Content = ""
 		} else {
 			value.URL = ""
 		}
-		return &blogmodel.Tool{Slug: value.Slug, Kind: value.Kind, Name: value.Name, Description: value.Description, URL: value.URL, Cover: value.Cover, DevelopmentStatus: value.DevelopmentStatus, Content: value.Content, PublishStatus: value.PublishStatus, PublishedAt: at, SortOrder: value.SortOrder, Version: max(value.Version, 1)}, nil, "", nil
+		return &blogmodel.Tool{Slug: value.Slug, Kind: value.Kind, Name: value.Name, Description: value.Description, URL: value.URL, Cover: value.Cover, PublishStatus: value.PublishStatus, SortOrder: value.SortOrder, Version: max(value.Version, 1)}, nil, "", nil
 	case request.Bookmark:
 		if strings.TrimSpace(value.Title) == "" {
 			return nil, nil, "", request.Field("title", "标题不能为空")
@@ -960,7 +956,7 @@ func updateMap(item interface{}) map[string]interface{} {
 	case *blogmodel.PortfolioItem:
 		return map[string]interface{}{"slug": value.Slug, "title": value.Title, "summary": value.Summary, "category_id": value.CategoryID, "cover": value.Cover, "tech_stack": value.TechStack, "links": value.Links, "gallery": value.Gallery, "metrics": value.Metrics, "demo_url": value.DemoURL, "repo_url": value.RepoURL, "status": value.Status, "role": value.Role, "content": value.Content, "publish_status": value.PublishStatus, "published_on": value.PublishedOn, "published_at": value.PublishedAt}
 	case *blogmodel.Tool:
-		return map[string]interface{}{"slug": value.Slug, "kind": value.Kind, "name": value.Name, "description": value.Description, "url": value.URL, "cover": value.Cover, "development_status": value.DevelopmentStatus, "content": value.Content, "publish_status": value.PublishStatus, "published_at": value.PublishedAt, "sort_order": value.SortOrder}
+		return map[string]interface{}{"slug": value.Slug, "kind": value.Kind, "name": value.Name, "description": value.Description, "url": value.URL, "cover": value.Cover, "publish_status": value.PublishStatus, "sort_order": value.SortOrder}
 	case *blogmodel.Bookmark:
 		return map[string]interface{}{"title": value.Title, "url": value.URL, "description": value.Description, "category_id": value.CategoryID, "icon": value.Icon, "publish_status": value.PublishStatus, "published_at": value.PublishedAt, "sort_order": value.SortOrder, "open_in_new_tab": value.OpenInNewTab}
 	}
@@ -1089,11 +1085,8 @@ func validHexColor(value string) bool {
 // mapToolValidationError 把 request 层的工具校验失败细化为可提示的具体原因。
 // 字段级错误（*request.FieldError）原样上抛，由 API 层带出字段名与原因。
 func mapToolValidationError(err error) error {
-	switch {
-	case errors.Is(err, request.ErrToolURLRequired):
+	if errors.Is(err, request.ErrToolURLRequired) {
 		return ErrToolURLRequired
-	case errors.Is(err, request.ErrToolStatusRequired):
-		return ErrToolStatusRequired
 	}
 	var fieldErr *request.FieldError
 	if errors.As(err, &fieldErr) {

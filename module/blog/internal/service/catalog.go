@@ -91,7 +91,8 @@ func (s *Service) ListTools(ctx context.Context) ([]response.Tool, error) {
 		return nil, err
 	}
 	var records []model.Tool
-	if err := published(db.Model(&model.Tool{})).Order("sort_order ASC, slug ASC").Find(&records).Error; err != nil {
+	// 工具没有 published_at：可见性只看发布状态（publishedTool），不做预约发布
+	if err := publishedTool(db.Model(&model.Tool{})).Order("sort_order ASC, slug ASC").Find(&records).Error; err != nil {
 		return nil, err
 	}
 	items := make([]response.Tool, 0, len(records))
@@ -107,7 +108,7 @@ func (s *Service) GetTool(ctx context.Context, id string) (response.Tool, error)
 		return response.Tool{}, err
 	}
 	var record model.Tool
-	if err := published(db).Where("slug = ? AND kind = ?", id, "own").First(&record).Error; err != nil {
+	if err := publishedTool(db).Where("slug = ? AND kind = ?", id, "own").First(&record).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return response.Tool{}, ErrToolNotFound
 		}
@@ -122,8 +123,6 @@ func toolResponse(record model.Tool) response.Tool {
 		item.URL = record.URL
 	} else {
 		item.Cover = record.Cover
-		item.Status = record.DevelopmentStatus
-		item.Content = record.Content
 	}
 	return item
 }

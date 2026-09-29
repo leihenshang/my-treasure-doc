@@ -194,10 +194,10 @@ func TestProfileSettingValidation(t *testing.T) {
 	}
 
 	tests := map[string]string{
-		"名称为空":      `{"name":"  ","links":[],"skills":[]}`,
-		"联系方式缺label": `{"name":"T","links":[{"value":"v"}],"skills":[]}`,
+		"名称为空":        `{"name":"  ","links":[],"skills":[]}`,
+		"联系方式缺label":  `{"name":"T","links":[{"value":"v"}],"skills":[]}`,
 		"联系方式label重复": `{"name":"T","links":[{"label":"A","value":"v"},{"label":"A","value":"v"}],"skills":[]}`,
-		"联系方式URL超长": `{"name":"T","links":[{"label":"A","value":"v","url":"` + strings.Repeat("x", 501) + `"}],"skills":[]}`,
+		"联系方式URL超长":   `{"name":"T","links":[{"label":"A","value":"v","url":"` + strings.Repeat("x", 501) + `"}],"skills":[]}`,
 	}
 	for name, body := range tests {
 		status, env := s.do(http.MethodPut, "/api/blog-mgr/profile", body)

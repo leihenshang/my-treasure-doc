@@ -150,6 +150,16 @@ func migrateDbTable() error {
 		}
 	}
 
+	// 兼容旧库：工具去掉开发状态/正文/发布时间三个字段（发布状态保留）。
+	// 同样因为 AutoMigrate 不删列，残留的 NOT NULL 列会让新插入直接失败。
+	for _, column := range []string{"development_status", "content", "published_at"} {
+		if Db.Migrator().HasColumn(&blogmodel.Tool{}, column) {
+			if err := Db.Migrator().DropColumn(&blogmodel.Tool{}, column); err != nil {
+				return fmt.Errorf("failed to drop deprecated column td_blog_tool.%s: %v", column, err)
+			}
+		}
+	}
+
 	// 兼容旧库：模块「工具」曾命名为「利器」。seed 只增不改、服务端对非空 title 原样返回，
 	// 因此改 seed/默认值不会让既有站点自愈，这里对存量的 title 做一次性幂等回写。
 	if err := migrateSiteModuleTitle(); err != nil {

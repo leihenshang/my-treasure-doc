@@ -47,7 +47,8 @@ func (s *Service) Sitemap(ctx context.Context) ([]response.SitemapEntry, error) 
 	}
 
 	var tools []model.Tool
-	if err := published(db.Model(&model.Tool{})).Where("kind = ?", "own").Select("slug", "updated_at").Find(&tools).Error; err != nil {
+	// 工具可见性只看发布状态（没有 published_at，不做预约发布）
+	if err := publishedTool(db.Model(&model.Tool{})).Where("kind = ?", "own").Select("slug", "updated_at").Find(&tools).Error; err != nil {
 		return nil, err
 	}
 	for _, tool := range tools {

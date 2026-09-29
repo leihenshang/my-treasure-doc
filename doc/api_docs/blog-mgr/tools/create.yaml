@@ -7,8 +7,9 @@ description: |
   创建成功返回 HTTP 201（`code = 0`），`data` 为新建工具（`version` 从 1 开始）。
 
   类型相关校验：`kind = link` 时必须填写合法的 `url`，否则返回 400 / code 40003（`data.field = url`）；
-  `kind = own`（自研）时必须填写 `developmentStatus`，否则返回 400 / code 40004（`data.field = developmentStatus`）。
+  `publishStatus` 必填且只能是 draft / published / archived，非法返回 400 / code 40001（`data.field = publishStatus`）。
 
+  工具已移除分类、开发状态、正文与发布时间：没有正文，也不做预约发布，可见性只看发布状态。
   `slug` 全局唯一，重复返回 409 / code 40900。
 security:
   - XToken: []

@@ -4,8 +4,8 @@ operationId: updateManageToolsFields
 tags: [blog-manage]
 summary: 快捷修改工具字段
 description: |
-  列表快捷修改，白名单字段只有 `publishStatus`；提交 `pinned` 或其他白名单之外的字段返回 400 / code 40001
-  （`data.field` 为 `pinned` 或 `fields`）。
+  列表快捷修改，工具的白名单字段只有 `publishStatus`（`pinned` 或其他白名单之外的字段返回 400 / code 40001，
+  `data.field` 为 `pinned` 或 `fields`）。
 
   该接口**不要求** `version`，成功后服务端自行自增 `version`；回收站中的记录不允许快捷修改（返回 404）。
 security:

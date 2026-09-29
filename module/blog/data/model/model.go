@@ -147,18 +147,15 @@ func (*PortfolioItem) TableName() string { return "td_blog_portfolio_item" }
 
 type Tool struct {
 	BaseModel
-	Slug              string    `gorm:"column:slug;type:varchar(128);not null;uniqueIndex"`
-	Kind              string    `gorm:"column:kind;type:varchar(10);not null;index"`
-	Name              string    `gorm:"column:name;type:varchar(100);not null"`
-	Description       string    `gorm:"column:description;type:text;not null"`
-	URL               string    `gorm:"column:url;type:varchar(1000);not null;default:''"`
-	Cover             string    `gorm:"column:cover;type:varchar(500);not null;default:''"`
-	DevelopmentStatus string    `gorm:"column:development_status;type:varchar(30);not null;default:''"`
-	Content           string    `gorm:"column:content;type:text;not null;default:''"`
-	PublishStatus     string    `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index"`
-	PublishedAt       time.Time `gorm:"column:published_at;type:timestamp;not null;index"`
-	SortOrder         int       `gorm:"column:sort_order;not null;default:0;index"`
-	Version           int       `gorm:"column:version;not null;default:1"`
+	Slug          string `gorm:"column:slug;type:varchar(128);not null;uniqueIndex"`
+	Kind          string `gorm:"column:kind;type:varchar(10);not null;index"`
+	Name          string `gorm:"column:name;type:varchar(100);not null"`
+	Description   string `gorm:"column:description;type:text;not null"`
+	URL           string `gorm:"column:url;type:varchar(1000);not null;default:''"`
+	Cover         string `gorm:"column:cover;type:varchar(500);not null;default:''"`
+	PublishStatus string `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index"`
+	SortOrder     int    `gorm:"column:sort_order;not null;default:0;index"`
+	Version       int    `gorm:"column:version;not null;default:1"`
 }
 
 func (*Tool) TableName() string { return "td_blog_tool" }

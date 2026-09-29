@@ -4,9 +4,10 @@ operationId: listBlogTools
 tags: [public-blog]
 summary: 工具列表
 description: |
-  返回全部已发布工具，按 `sortOrder` 升序（同序按 slug 升序）。整表返回、无分页。
-  列表不返回正文：自研工具（`type = own`）只给 `cover` 与 `status`，
-  外链工具（`type = link`）只给 `url`。
+  返回全部已发布工具（`publishStatus = published`；工具没有发布时间，不做预约发布），
+  按 `sortOrder` 升序（同序按 slug 升序）。整表返回、无分页。
+  自研工具（`type = own`）返回 `cover`，外链工具（`type = link`）返回 `url`；
+  两者都只有名称与描述，没有正文（原 `status` / `content` 已移除）。
 security:
   - {}
 responses:

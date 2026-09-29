@@ -149,12 +149,13 @@ func seedPortfolio(tx *gorm.DB, options Options, result *Result) error {
 
 func seedTools(tx *gorm.DB, options Options, result *Result) error {
 	for index := 1; index <= 8; index++ {
-		status, at := otherState(index)
-		kind, url, cover, devStatus, content := "own", "", "🧰", "开发中", "# Mock 工具"
+		// 工具保留发布状态（发布时间/开发状态/正文已移除）：只有外链与自研两类差异
+		status, _ := otherState(index)
+		kind, url, cover := "own", "", "🧰"
 		if index%2 == 0 {
-			kind, url, cover, devStatus, content = "link", "https://developer.mozilla.org/zh-CN/", "", "", ""
+			kind, url, cover = "link", "https://developer.mozilla.org/zh-CN/", ""
 		}
-		item := model.Tool{Slug: fmt.Sprintf("mock-tool-%02d", index), Kind: kind, Name: fmt.Sprintf("Mock 工具 %02d", index), Description: "固定工具说明", URL: url, Cover: cover, DevelopmentStatus: devStatus, Content: content, PublishStatus: status, PublishedAt: at, SortOrder: index, Version: 1}
+		item := model.Tool{Slug: fmt.Sprintf("mock-tool-%02d", index), Kind: kind, Name: fmt.Sprintf("Mock 工具 %02d", index), Description: "固定工具说明", URL: url, Cover: cover, PublishStatus: status, SortOrder: index, Version: 1}
 		created, err := ensureCreated(tx, "slug = ?", []interface{}{item.Slug}, &item, options, result)
 		if err != nil {
 			return err

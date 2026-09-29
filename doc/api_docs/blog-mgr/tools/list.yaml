@@ -7,7 +7,7 @@ description: |
   默认按 `created_at` 倒序，`sort=asc` 时正序；`keyword` 模糊匹配工具名称 `name`（大小写不敏感）。
 
   `deleted` 控制回收站可见性：`exclude` 排除已删除（默认）、`only` 仅已删除、`all` 全部。
-  后台列表返回全部发布状态（含草稿、归档与软删除行），与公开 API 的可见性规则无关。
+  后台列表返回全部发布状态（含草稿与归档），与公开 API 的可见性规则无关。
 security:
   - XToken: []
 parameters:

@@ -86,14 +86,12 @@ type PortfolioItem struct {
 }
 
 type Tool struct {
-	ID      string `json:"id"`
-	Type    string `json:"type"`
-	Name    string `json:"name"`
-	Desc    string `json:"desc"`
-	URL     string `json:"url,omitempty"`
-	Cover   string `json:"cover,omitempty"`
-	Status  string `json:"status,omitempty"`
-	Content string `json:"content,omitempty"`
+	ID    string `json:"id"`
+	Type  string `json:"type"`
+	Name  string `json:"name"`
+	Desc  string `json:"desc"`
+	URL   string `json:"url,omitempty"`
+	Cover string `json:"cover,omitempty"`
 }
 
 type Bookmark struct {

@@ -80,7 +80,7 @@ PUT /api/blog-mgr/site
 ## 校验规则
 
 - 公开 URL 仅允许 `https://`；Profile 联系方式（`links[].url`）不限制格式，可填手机号、QQ 号等任意文本，仅限制 500 字符。
-- 工具 `kind` 仅允许 `own` 或 `link`。外链工具（`link`）必须提供 HTTPS URL，缺失返回 `40003`；自研工具（`own`）必须提供 `developmentStatus`，缺失返回 `40004`。（`40001` 仅表示其它字段格式错误）
+- 工具 `kind` 仅允许 `own` 或 `link`。外链工具（`link`）必须提供合法 URL，缺失返回 `40003`；`publishStatus` 必填且限定 `draft` / `published` / `archived`。工具已移除分类、开发状态、正文与发布时间，自研工具不再要求开发状态，原 `40004` 不再存在（`40001` 仅表示其它字段格式错误）。
 - 分类 scope 仅允许 `post`、`portfolio`、`bookmark`，创建后不可修改。
 - Profile 技能 level 必须在 0 至 100。
 - Site 模块必须是 `blog`、`diary`、`portfolio`、`tools`、`bookmark`、`about` 六个固定模块，各出现一次，且路径与固定映射一致；只有 `icon`、`name`、`desc`、`visible` 可修改。PUT 会返回标准化后的完整 Site 对象。

@@ -40,6 +40,12 @@ func published(db *gorm.DB) *gorm.DB {
 	return db.Where("publish_status = ? AND published_at <= ?", model.StatusPublished, time.Now())
 }
 
+// publishedTool 过滤工具的公开可见性：工具保留发布状态但没有 published_at（不做预约发布），
+// 因此只按发布状态过滤；软删除仍由 GORM 默认作用域排除。
+func publishedTool(db *gorm.DB) *gorm.DB {
+	return db.Where("publish_status = ?", model.StatusPublished)
+}
+
 // bumpViews 记录一次浏览；计数失败不影响详情返回。
 func bumpViews(db *gorm.DB, table, id string) {
 	_ = db.Table(table).Where("id = ?", id).UpdateColumn("view_count", gorm.Expr("view_count + 1")).Error

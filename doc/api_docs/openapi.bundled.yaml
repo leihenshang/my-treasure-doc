@@ -506,9 +506,10 @@ paths:
         - public-blog
       summary: 工具列表
       description: |
-        返回全部已发布工具，按 `sortOrder` 升序（同序按 slug 升序）。整表返回、无分页。
-        列表不返回正文：自研工具（`type = own`）只给 `cover` 与 `status`，
-        外链工具（`type = link`）只给 `url`。
+        返回全部已发布工具（`publishStatus = published`；工具没有发布时间，不做预约发布），
+        按 `sortOrder` 升序（同序按 slug 升序）。整表返回、无分页。
+        自研工具（`type = own`）返回 `cover`，外链工具（`type = link`）返回 `url`；
+        两者都只有名称与描述，没有正文（原 `status` / `content` 已移除）。
       security:
         - {}
       responses:
@@ -534,10 +535,10 @@ paths:
         - public-blog
       summary: 工具详情（路径参数为工具 slug，仅自研工具）
       description: |
-        按工具 slug 查询，且仅当该条目是自研工具（`kind = own`）且已发布时返回，
-        内容包含 Markdown 正文。外链工具（`kind = link`）没有详情页，同样返回 404。
+        按工具 slug 查询，且仅当该条目是自研工具（`kind = own`）且 `publishStatus = published` 时返回；
+        外链工具（`kind = link`）没有详情页，同样返回 404；草稿 / 归档工具对公众 404。
 
-        仅返回 `publishStatus = published` 且 `publishedAt <= 当前时间` 的工具。
+        工具没有发布时间（不做预约发布），也移除了正文：返回名称、描述与封面。
       security:
         - {}
       parameters:
@@ -2284,7 +2285,7 @@ paths:
         默认按 `created_at` 倒序，`sort=asc` 时正序；`keyword` 模糊匹配工具名称 `name`（大小写不敏感）。
 
         `deleted` 控制回收站可见性：`exclude` 排除已删除（默认）、`only` 仅已删除、`all` 全部。
-        后台列表返回全部发布状态（含草稿、归档与软删除行），与公开 API 的可见性规则无关。
+        后台列表返回全部发布状态（含草稿与归档），与公开 API 的可见性规则无关。
       security:
         - XToken: []
       parameters:
@@ -2323,8 +2324,9 @@ paths:
         创建成功返回 HTTP 201（`code = 0`），`data` 为新建工具（`version` 从 1 开始）。
 
         类型相关校验：`kind = link` 时必须填写合法的 `url`，否则返回 400 / code 40003（`data.field = url`）；
-        `kind = own`（自研）时必须填写 `developmentStatus`，否则返回 400 / code 40004（`data.field = developmentStatus`）。
+        `publishStatus` 必填且只能是 draft / published / archived，非法返回 400 / code 40001（`data.field = publishStatus`）。
 
+        工具已移除分类、开发状态、正文与发布时间：没有正文，也不做预约发布，可见性只看发布状态。
         `slug` 全局唯一，重复返回 409 / code 40900。
       security:
         - XToken: []
@@ -2401,7 +2403,7 @@ paths:
         - blog-manage
       summary: 工具详情
       description: |
-        返回工具完整详情（含 Markdown 正文）。回收站中的记录同样可查，`deletedAt` 不为空。
+        返回工具详情（工具没有正文字段）。回收站中的记录同样可查，`deletedAt` 不为空。
         响应中的 `version` 是后续更新必须回传的乐观锁版本。
       security:
         - XToken: []
@@ -2439,8 +2441,9 @@ paths:
         缺失或版本过期返回 409 / code 40900；更新成功后须重新拉取详情以刷新 `version`。
 
         类型相关校验：`kind = link` 时必须填写合法的 `url`，否则返回 400 / code 40003（`data.field = url`）；
-        `kind = own`（自研）时必须填写 `developmentStatus`，否则返回 400 / code 40004（`data.field = developmentStatus`）；
+        `publishStatus` 必填且只能是 draft / published / archived，非法返回 400 / code 40001（`data.field = publishStatus`）；
         `slug` 冲突返回 409。
+        工具已移除开发状态/正文/发布时间（原 40004 不再存在），载荷里的这些字段会被忽略。
       security:
         - XToken: []
       parameters:
@@ -2516,8 +2519,8 @@ paths:
         - blog-manage
       summary: 快捷修改工具字段
       description: |
-        列表快捷修改，白名单字段只有 `publishStatus`；提交 `pinned` 或其他白名单之外的字段返回 400 / code 40001
-        （`data.field` 为 `pinned` 或 `fields`）。
+        列表快捷修改，工具的白名单字段只有 `publishStatus`（`pinned` 或其他白名单之外的字段返回 400 / code 40001，
+        `data.field` 为 `pinned` 或 `fields`）。
 
         该接口**不要求** `version`，成功后服务端自行自增 `version`；回收站中的记录不允许快捷修改（返回 404）。
       security:
@@ -4226,8 +4229,7 @@ paths:
 
         **只支持新建，不支持覆盖**（请求体没有 `overwrite` 字段语义）；重复提交会新建一条记录。
 
-        条件必填：`kind = link` 必须填写合法 `url`，否则返回 400 / code 40003；
-        `kind = own` 必须填写 `developmentStatus`，否则返回 400 / code 40004。
+        条件必填：`kind = link` 必须填写合法 `url`，否则返回 400 / code 40003。
       security:
         - XPublishToken: []
       requestBody:
@@ -5461,7 +5463,7 @@ components:
               description: Markdown 正文
     PublicTool:
       type: object
-      description: 工具条目（列表不返回正文；详情仅对自研工具返回完整内容）
+      description: 工具条目（自研工具带封面与详情页，外链带 url；工具没有发布状态，也没有正文）
       required:
         - id
         - type
@@ -5485,12 +5487,6 @@ components:
           description: 外链地址；自研工具通常为空
         cover:
           type: string
-        status:
-          type: string
-          description: 开发状态；外链工具为空
-        content:
-          type: string
-          description: Markdown 正文；仅自研工具详情返回
     PublicBookmark:
       type: object
       description: 收藏集条目
@@ -6477,7 +6473,7 @@ components:
           type: integer
           description: 乐观锁版本；更新时必填
     ManageTool:
-      description: 工具（管理端详情）
+      description: 工具（管理端详情；已移除开发状态、正文与发布时间，保留发布状态）
       allOf:
         - $ref: '#/components/schemas/BaseModel'
         - type: object
@@ -6488,10 +6484,7 @@ components:
             - description
             - url
             - cover
-            - developmentStatus
-            - content
             - publishStatus
-            - publishedAt
             - sortOrder
             - version
           properties:
@@ -6512,16 +6505,8 @@ components:
               description: 外链工具必填
             cover:
               type: string
-            developmentStatus:
-              type: string
-              description: 开发状态；自研工具必填
-            content:
-              type: string
             publishStatus:
               $ref: '#/components/schemas/PublishStatus'
-            publishedAt:
-              type: string
-              format: date-time
             sortOrder:
               type: integer
             version:
@@ -6541,7 +6526,7 @@ components:
           $ref: '#/components/schemas/Pagination'
     ManageToolInput:
       type: object
-      description: 工具写入载荷（新增与更新共用）
+      description: 工具写入载荷（新增与更新共用；保留发布状态，但没有发布时间，不做预约发布）
       required:
         - name
         - kind
@@ -6565,19 +6550,8 @@ components:
           description: 外链地址；`kind = link` 时必填且需为合法地址（http / https / mailto 等协议均可，但会拒绝 javascript、data 这类可执行脚本协议），否则 400 / code 40003
         cover:
           type: string
-        developmentStatus:
-          type: string
-          description: 开发状态；`kind = own` 时必填，否则 400 / code 40004
-        content:
-          type: string
         publishStatus:
           $ref: '#/components/schemas/PublishStatus'
-        publishedAt:
-          type:
-            - string
-            - 'null'
-          format: date-time
-          description: 发布时间（RFC3339）；留空时由 `publishedOn` 推导
         sortOrder:
           type: integer
           default: 0
@@ -6684,7 +6658,7 @@ components:
             type: string
     ManageStatusCounts:
       type: object
-      description: 单个资源的各状态计数
+      description: 单个资源的各状态计数（工具没有发布时间，不做预约发布，但同样按发布状态拆分）
       required:
         - total
         - draft
@@ -7518,9 +7492,9 @@ components:
     ManageToolBadRequest:
       description: |
         请求参数错误（HTTP 400）。工具资源的 400 有三种业务码：
-        - `40001` 参数格式错误 / 字段级校验失败（data 为 `{"field": "<字段名>"}`）；
-        - `40003` 外链工具（`kind = link`）缺少有效地址，data.field = `url`；
-        - `40004` 自研工具（`kind = own`）缺少开发状态，data.field = `developmentStatus`。
+        - `40001` 参数格式错误 / 字段级校验失败（data 为 `{"field": "<字段名>"}`，例如 kind 非法、名称为空、发布状态非法）；
+        - `40003` 外链工具（`kind = link`）缺少有效地址，data.field = `url`。
+        工具已移除开发状态，原 `40004` 不再出现。
       content:
         application/json:
           schema:
@@ -7550,13 +7524,13 @@ components:
                 msg: 外链工具必须填写有效地址（支持 http/https 等协议，不支持 javascript 这类可执行协议的地址）
                 data:
                   field: url
-            statusRequired:
-              summary: 自研工具缺少开发状态（40004）
+            invalidPublishStatus:
+              summary: 发布状态非法（40001）
               value:
-                code: 40004
-                msg: 自研工具必须填写开发状态
+                code: 40001
+                msg: 发布状态只能是 draft / published / archived
                 data:
-                  field: developmentStatus
+                  field: publishStatus
     RateLimited:
       description: |
         触发限流（HTTP 429）。仅作用于 `/api/user/login`（0.1/s，容量 5）、

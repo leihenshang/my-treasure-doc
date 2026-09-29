@@ -334,8 +334,10 @@ func TestPublicCatalogVisibility(t *testing.T) {
 	s.create("diaries", fmt.Sprintf(`{"publicId":%q,"title":"公开日记","publishStatus":"published","publishedOn":%q,"publishedAt":%q,"tagIds":[%q]}`, diary, pastDate, pastTime, tagID))
 	s.create("diaries", `{"publicId":"d2","title":"草稿日记","publishStatus":"draft"}`)
 	s.create("portfolio-items", fmt.Sprintf(`{"slug":%q,"title":"作品一","publishStatus":"published","publishedOn":%q,"publishedAt":%q,"categoryId":"web","techStack":["Go"],"gallery":["/files/blog/a.png"]}`, work, pastDate, pastTime))
-	s.create("tools", fmt.Sprintf(`{"slug":%q,"kind":"own","name":"自研工具","developmentStatus":"可用","publishStatus":"published","publishedAt":%q}`, ownTool, pastTime))
-	s.create("tools", fmt.Sprintf(`{"slug":%q,"kind":"link","name":"外部工具","url":"https://example.com","publishStatus":"published","publishedAt":%q}`, linkTool, pastTime))
+	s.create("tools", fmt.Sprintf(`{"slug":%q,"kind":"own","name":"自研工具","publishStatus":"published"}`, ownTool))
+	s.create("tools", fmt.Sprintf(`{"slug":%q,"kind":"link","name":"外部工具","url":"https://example.com","publishStatus":"published"}`, linkTool))
+	// 草稿工具对公众不可见（工具保留发布状态，但没有发布时间，不做预约发布）
+	s.create("tools", `{"slug":"draft-tool","kind":"own","name":"草稿工具","publishStatus":"draft"}`)
 	s.create("bookmarks", fmt.Sprintf(`{"title":%q,"url":"https://example.com","publishStatus":"published","publishedAt":%q,"tagIds":[%q],"categoryId":"tools"}`, bookmarkTitle, pastTime, tagID))
 
 	// 日记：只出现公开的那条
@@ -363,7 +365,7 @@ func TestPublicCatalogVisibility(t *testing.T) {
 		}
 	}
 
-	// 工具：自研走详情、外链带 url
+	// 工具：自研走详情、外链带 url；草稿工具（draft-tool）必须被过滤掉
 	_, env = s.do(http.MethodGet, "/api/blog/tools", "")
 	tools := list(t, env)
 	if len(tools) != 2 {
@@ -381,6 +383,11 @@ func TestPublicCatalogVisibility(t *testing.T) {
 	status, _ = s.do(http.MethodGet, "/api/blog/tools/"+linkTool, "")
 	if status != http.StatusNotFound {
 		t.Fatalf("外链工具详情 = %d，想要 404", status)
+	}
+	// 草稿工具详情同样 404（可见性只看发布状态）
+	status, _ = s.do(http.MethodGet, "/api/blog/tools/draft-tool", "")
+	if status != http.StatusNotFound {
+		t.Fatalf("草稿工具详情 = %d，想要 404", status)
 	}
 	foundLink := false
 	for _, tool := range tools {

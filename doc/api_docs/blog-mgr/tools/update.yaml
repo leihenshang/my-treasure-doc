@@ -8,8 +8,9 @@ description: |
   缺失或版本过期返回 409 / code 40900；更新成功后须重新拉取详情以刷新 `version`。
 
   类型相关校验：`kind = link` 时必须填写合法的 `url`，否则返回 400 / code 40003（`data.field = url`）；
-  `kind = own`（自研）时必须填写 `developmentStatus`，否则返回 400 / code 40004（`data.field = developmentStatus`）；
+  `publishStatus` 必填且只能是 draft / published / archived，非法返回 400 / code 40001（`data.field = publishStatus`）；
   `slug` 冲突返回 409。
+  工具已移除开发状态/正文/发布时间（原 40004 不再存在），载荷里的这些字段会被忽略。
 security:
   - XToken: []
 parameters:

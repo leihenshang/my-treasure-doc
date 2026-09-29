@@ -4,7 +4,7 @@ operationId: getManageTools
 tags: [blog-manage]
 summary: 工具详情
 description: |
-  返回工具完整详情（含 Markdown 正文）。回收站中的记录同样可查，`deletedAt` 不为空。
+  返回工具详情（工具没有正文字段）。回收站中的记录同样可查，`deletedAt` 不为空。
   响应中的 `version` 是后续更新必须回传的乐观锁版本。
 security:
   - XToken: []

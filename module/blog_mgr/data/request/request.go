@@ -14,10 +14,7 @@ import (
 var ErrInvalid = errors.New("invalid request")
 
 // 工具校验的细分原因：让管理端能直接提示「缺哪个字段」，而不是笼统的参数格式错误。
-var (
-	ErrToolURLRequired    = errors.New("link tool requires a valid url")
-	ErrToolStatusRequired = errors.New("own tool requires development status")
-)
+var ErrToolURLRequired = errors.New("link tool requires a valid url")
 
 // FieldError 指向具体字段的校验失败。
 //
@@ -152,18 +149,15 @@ type Portfolio struct {
 	Version       int                          `json:"version"`
 }
 type Tool struct {
-	Slug              string     `json:"slug"`
-	Kind              string     `json:"kind"`
-	Name              string     `json:"name"`
-	Description       string     `json:"description"`
-	URL               string     `json:"url"`
-	Cover             string     `json:"cover"`
-	DevelopmentStatus string     `json:"developmentStatus"`
-	Content           string     `json:"content"`
-	PublishStatus     string     `json:"publishStatus"`
-	PublishedAt       *time.Time `json:"publishedAt"`
-	SortOrder         int        `json:"sortOrder"`
-	Version           int        `json:"version"`
+	Slug          string `json:"slug"`
+	Kind          string `json:"kind"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	URL           string `json:"url"`
+	Cover         string `json:"cover"`
+	PublishStatus string `json:"publishStatus"`
+	SortOrder     int    `json:"sortOrder"`
+	Version       int    `json:"version"`
 }
 type Bookmark struct {
 	Title         string     `json:"title"`
@@ -280,6 +274,8 @@ func NormalizeIDs(values []string) ([]string, error) {
 	return result, nil
 }
 
+// ValidateTool 校验工具入参。工具已移除开发状态/正文/发布时间，保留发布状态：
+// 标识与名称必填，发布状态限定枚举，外链必须带可用地址（kind=link），自研工具（kind=own）不需要地址。
 func ValidateTool(value Tool) error {
 	if value.Slug != "" && !ValidID(value.Slug) {
 		return Field("slug", "Slug 长度不能超过 128")
@@ -297,9 +293,6 @@ func ValidateTool(value Tool) error {
 		}
 		return nil
 	case "own":
-		if strings.TrimSpace(value.DevelopmentStatus) == "" {
-			return ErrToolStatusRequired
-		}
 		return nil
 	default:
 		return Field("kind", "类型只能是「自研工具」或「外部链接」")
