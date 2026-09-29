@@ -4,7 +4,7 @@ operationId: getManageBookmarks
 tags: [blog-manage]
 summary: 收藏集条目详情
 description: |
-  返回条目完整详情（含 `tagIds`）。回收站中的记录同样可查，`deletedAt` 不为空。
+  返回条目完整详情。回收站中的记录同样可查，`deletedAt` 不为空。
   响应中的 `version` 是后续更新必须回传的乐观锁版本。
 security:
   - XToken: []

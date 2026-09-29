@@ -595,10 +595,10 @@ paths:
         - public-blog
       summary: 收藏集/书签列表
       description: |
-        仅返回 `publishStatus = published` 且 `publishedAt <= 当前时间` 的书签，
+        仅返回 `publishStatus = published` 的书签（收藏集没有发布时间，不做预约发布），
         按 `sortOrder` 升序（同序按标题升序）。整表返回、无分页。
 
-        `keyword` 匹配标题、描述、地址与标签名。响应 `tags` 数组保证为空数组而非 null。
+        `keyword` 匹配标题、描述与地址（标签已移除，不再按标签名匹配）。
       security:
         - {}
       parameters:
@@ -2638,10 +2638,10 @@ paths:
       description: |
         创建成功返回 HTTP 201（`code = 0`），`data` 为新建条目（`version` 从 1 开始）。
 
-        关联校验：非空 `categoryId` 必须是 `scope = bookmark` 下已存在的分类，`tagIds` 必须全部存在，
-        不满足时返回 400 / code 40002（`data.field` 为 `categoryId 或 tagIds`）。
+        关联校验：非空 `categoryId` 必须是 `scope = bookmark` 下已存在的分类，
+        不满足时返回 400 / code 40002（`data.field` 为 `categoryId`）。
 
-        `url` 必须为合法地址；`publishStatus = published` 而未给 `publishedAt` 时，服务端以当前时间补齐。
+        `url` 必须为合法地址。收藏集不设发布时间与标签：`publishStatus` 即公开可见性的唯一开关。
       security:
         - XToken: []
       requestBody:
@@ -2717,7 +2717,7 @@ paths:
         - blog-manage
       summary: 收藏集条目详情
       description: |
-        返回条目完整详情（含 `tagIds`）。回收站中的记录同样可查，`deletedAt` 不为空。
+        返回条目完整详情。回收站中的记录同样可查，`deletedAt` 不为空。
         响应中的 `version` 是后续更新必须回传的乐观锁版本。
       security:
         - XToken: []
@@ -2754,8 +2754,8 @@ paths:
         乐观锁：请求体必须携带当前 `version`（取自详情响应），服务端按 `version` 匹配更新并自增，
         缺失或版本过期返回 409 / code 40900；更新成功后须重新拉取详情以刷新 `version`。
 
-        关联校验：非空 `categoryId` 必须是 `scope = bookmark` 下已存在的分类，`tagIds` 必须全部存在，
-        不满足时返回 400 / code 40002（`data.field` 为 `categoryId 或 tagIds`）。
+        关联校验：非空 `categoryId` 必须是 `scope = bookmark` 下已存在的分类，
+        不满足时返回 400 / code 40002（`data.field` 为 `categoryId`）。
       security:
         - XToken: []
       parameters:
@@ -4273,8 +4273,8 @@ paths:
 
         **只支持新建，不支持覆盖**（请求体没有 `overwrite` 字段语义）；重复提交会新建一条记录。
 
-        关联校验：`categoryId` 必须是 `scope = bookmark` 下已存在的分类，`tagIds` 必须全部已存在，
-        不满足时返回 400 / code 40002。
+        关联校验：`categoryId` 必须是 `scope = bookmark` 下已存在的分类，
+        不满足时返回 400 / code 40002。收藏集不设发布时间与标签，`publishStatus` 由服务端强制为 `published`。
       security:
         - XPublishToken: []
       requestBody:
@@ -5496,7 +5496,6 @@ components:
         - url
         - desc
         - category
-        - tags
         - icon
         - openInNewTab
       properties:
@@ -5511,11 +5510,6 @@ components:
         category:
           type: string
           description: 分类 slug；未分类时为空串
-        tags:
-          type: array
-          description: 标签 slug 数组；无标签时为空数组
-          items:
-            type: string
         icon:
           type: string
           description: 图标；可能是 `/files/blog/...` 上传图或遗留 emoji 文字占位
@@ -6570,7 +6564,6 @@ components:
             - categoryID
             - icon
             - publishStatus
-            - publishedAt
             - sortOrder
             - openInNewTab
             - version
@@ -6588,19 +6581,12 @@ components:
               type: string
             publishStatus:
               $ref: '#/components/schemas/PublishStatus'
-            publishedAt:
-              type: string
-              format: date-time
             sortOrder:
               type: integer
             openInNewTab:
               type: boolean
             version:
               type: integer
-            tagIds:
-              type: array
-              items:
-                type: string
     ManageBookmarkPage:
       type: object
       description: 收藏集分页结果
@@ -6637,12 +6623,6 @@ components:
           type: string
         publishStatus:
           $ref: '#/components/schemas/PublishStatus'
-        publishedAt:
-          type:
-            - string
-            - 'null'
-          format: date-time
-          description: 发布时间（RFC3339）；留空时由 `publishedOn` 推导
         sortOrder:
           type: integer
           default: 0
@@ -6652,10 +6632,6 @@ components:
         version:
           type: integer
           description: 乐观锁版本；更新时必填
-        tagIds:
-          type: array
-          items:
-            type: string
     ManageStatusCounts:
       type: object
       description: 单个资源的各状态计数（工具没有发布时间，不做预约发布，但同样按发布状态拆分）

@@ -4,10 +4,10 @@ operationId: listBlogBookmarks
 tags: [public-blog]
 summary: 收藏集/书签列表
 description: |
-  仅返回 `publishStatus = published` 且 `publishedAt <= 当前时间` 的书签，
+  仅返回 `publishStatus = published` 的书签（收藏集没有发布时间，不做预约发布），
   按 `sortOrder` 升序（同序按标题升序）。整表返回、无分页。
 
-  `keyword` 匹配标题、描述、地址与标签名。响应 `tags` 数组保证为空数组而非 null。
+  `keyword` 匹配标题、描述与地址（标签已移除，不再按标签名匹配）。
 security:
   - {}
 parameters:

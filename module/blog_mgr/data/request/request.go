@@ -160,17 +160,15 @@ type Tool struct {
 	Version       int    `json:"version"`
 }
 type Bookmark struct {
-	Title         string     `json:"title"`
-	URL           string     `json:"url"`
-	Description   string     `json:"description"`
-	CategoryID    string     `json:"categoryId"`
-	Icon          string     `json:"icon"`
-	PublishStatus string     `json:"publishStatus"`
-	PublishedAt   *time.Time `json:"publishedAt"`
-	SortOrder     int        `json:"sortOrder"`
-	OpenInNewTab  bool       `json:"openInNewTab"`
-	Version       int        `json:"version"`
-	TagIDs        []string   `json:"tagIds"`
+	Title         string `json:"title"`
+	URL           string `json:"url"`
+	Description   string `json:"description"`
+	CategoryID    string `json:"categoryId"`
+	Icon          string `json:"icon"`
+	PublishStatus string `json:"publishStatus"`
+	SortOrder     int    `json:"sortOrder"`
+	OpenInNewTab  bool   `json:"openInNewTab"`
+	Version       int    `json:"version"`
 }
 type Profile = blogresponse.Profile
 type Site = blogresponse.Site

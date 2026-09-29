@@ -162,27 +162,18 @@ func (*Tool) TableName() string { return "td_blog_tool" }
 
 type Bookmark struct {
 	BaseModel
-	Title         string    `gorm:"column:title;type:varchar(200);not null"`
-	URL           string    `gorm:"column:url;type:varchar(1000);not null"`
-	Description   string    `gorm:"column:description;type:text;not null"`
-	CategoryID    string    `gorm:"column:category_id;type:varchar(128);not null;index"`
-	Icon          string    `gorm:"column:icon;type:varchar(500);not null"`
-	PublishStatus string    `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index"`
-	PublishedAt   time.Time `gorm:"column:published_at;type:timestamp;not null;index"`
-	SortOrder     int       `gorm:"column:sort_order;not null;default:0;index"`
-	OpenInNewTab  bool      `gorm:"column:open_in_new_tab;not null;default:true"`
-	Version       int       `gorm:"column:version;not null;default:1"`
+	Title         string `gorm:"column:title;type:varchar(200);not null"`
+	URL           string `gorm:"column:url;type:varchar(1000);not null"`
+	Description   string `gorm:"column:description;type:text;not null"`
+	CategoryID    string `gorm:"column:category_id;type:varchar(128);not null;index"`
+	Icon          string `gorm:"column:icon;type:varchar(500);not null"`
+	PublishStatus string `gorm:"column:publish_status;type:varchar(16);not null;default:'draft';index"`
+	SortOrder     int    `gorm:"column:sort_order;not null;default:0;index"`
+	OpenInNewTab  bool   `gorm:"column:open_in_new_tab;not null;default:true"`
+	Version       int    `gorm:"column:version;not null;default:1"`
 }
 
 func (*Bookmark) TableName() string { return "td_blog_bookmark" }
-
-type BookmarkTag struct {
-	BookmarkID string    `gorm:"column:bookmark_id;type:varchar(100);primaryKey"`
-	TagID      string    `gorm:"column:tag_id;type:varchar(100);primaryKey;index"`
-	CreatedAt  time.Time `gorm:"column:created_at;type:timestamp;not null"`
-}
-
-func (*BookmarkTag) TableName() string { return "td_blog_bookmark_tag" }
 
 type Profile struct {
 	BaseModel
@@ -264,7 +255,7 @@ func (*EditHistory) TableName() string { return "td_edit_history" }
 func Tables() []interface{} {
 	return []interface{}{
 		&Category{}, &Tag{}, &Post{}, &PostTag{}, &Diary{}, &DiaryTag{},
-		&PortfolioItem{}, &Tool{}, &Bookmark{}, &BookmarkTag{}, &Profile{}, &Site{},
+		&PortfolioItem{}, &Tool{}, &Bookmark{}, &Profile{}, &Site{},
 		&Memo{}, &MemoTag{}, &Media{}, &VisitorLog{}, &EditHistory{},
 	}
 }

@@ -95,14 +95,13 @@ type Tool struct {
 }
 
 type Bookmark struct {
-	ID           string   `json:"id"`
-	Title        string   `json:"title"`
-	URL          string   `json:"url"`
-	Desc         string   `json:"desc"`
-	Category     string   `json:"category"`
-	Tags         []string `json:"tags"`
-	Icon         string   `json:"icon"`
-	OpenInNewTab bool     `json:"openInNewTab"`
+	ID           string `json:"id"`
+	Title        string `json:"title"`
+	URL          string `json:"url"`
+	Desc         string `json:"desc"`
+	Category     string `json:"category"`
+	Icon         string `json:"icon"`
+	OpenInNewTab bool   `json:"openInNewTab"`
 }
 
 type ProfileLink struct {

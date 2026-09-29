@@ -91,8 +91,8 @@ func (s *Service) ListTools(ctx context.Context) ([]response.Tool, error) {
 		return nil, err
 	}
 	var records []model.Tool
-	// 工具没有 published_at：可见性只看发布状态（publishedTool），不做预约发布
-	if err := publishedTool(db.Model(&model.Tool{})).Order("sort_order ASC, slug ASC").Find(&records).Error; err != nil {
+	// 工具没有 published_at：可见性只看发布状态（publishedByStatus），不做预约发布
+	if err := publishedByStatus(db.Model(&model.Tool{})).Order("sort_order ASC, slug ASC").Find(&records).Error; err != nil {
 		return nil, err
 	}
 	items := make([]response.Tool, 0, len(records))
@@ -108,7 +108,7 @@ func (s *Service) GetTool(ctx context.Context, id string) (response.Tool, error)
 		return response.Tool{}, err
 	}
 	var record model.Tool
-	if err := publishedTool(db).Where("slug = ? AND kind = ?", id, "own").First(&record).Error; err != nil {
+	if err := publishedByStatus(db).Where("slug = ? AND kind = ?", id, "own").First(&record).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return response.Tool{}, ErrToolNotFound
 		}
@@ -132,13 +132,13 @@ func (s *Service) ListBookmarks(ctx context.Context, query request.BookmarkQuery
 	if err != nil {
 		return nil, err
 	}
-	q := published(db.Model(&model.Bookmark{}))
+	q := publishedByStatus(db.Model(&model.Bookmark{}))
 	if query.CategoryID != "" {
 		q = q.Where("category_id = ?", query.CategoryID)
 	}
 	if query.Keyword != "" {
 		pattern := likePattern(query.Keyword)
-		q = q.Where("LOWER(title) LIKE ? ESCAPE '\\' OR LOWER(description) LIKE ? ESCAPE '\\' OR LOWER(url) LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM td_blog_bookmark_tag bt JOIN td_blog_tag t ON t.id = bt.tag_id WHERE bt.bookmark_id = td_blog_bookmark.id AND LOWER(t.name) LIKE ? ESCAPE '\\' AND t.deleted_at IS NULL)", pattern, pattern, pattern, pattern)
+		q = q.Where("LOWER(title) LIKE ? ESCAPE '\\' OR LOWER(description) LIKE ? ESCAPE '\\' OR LOWER(url) LIKE ? ESCAPE '\\'", pattern, pattern, pattern)
 	}
 	var records []model.Bookmark
 	if err := q.Order("sort_order ASC, title ASC").Find(&records).Error; err != nil {
@@ -146,11 +146,7 @@ func (s *Service) ListBookmarks(ctx context.Context, query request.BookmarkQuery
 	}
 	items := make([]response.Bookmark, 0, len(records))
 	for _, record := range records {
-		tags, err := s.tagsFor(ctx, "td_blog_bookmark_tag", "bookmark_id", record.ID)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, response.Bookmark{ID: record.ID, Title: record.Title, URL: record.URL, Desc: record.Description, Category: record.CategoryID, Tags: tags, Icon: record.Icon, OpenInNewTab: record.OpenInNewTab})
+		items = append(items, response.Bookmark{ID: record.ID, Title: record.Title, URL: record.URL, Desc: record.Description, Category: record.CategoryID, Icon: record.Icon, OpenInNewTab: record.OpenInNewTab})
 	}
 	return items, nil
 }

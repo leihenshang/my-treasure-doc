@@ -42,7 +42,7 @@ func Seed(db *gorm.DB, options Options) (Result, error) {
 		if err = seedTools(tx, options, &result); err != nil {
 			return err
 		}
-		if err = seedBookmarks(tx, options, tags, &result); err != nil {
+		if err = seedBookmarks(tx, options, &result); err != nil {
 			return err
 		}
 		_ = categories
@@ -169,16 +169,14 @@ func seedTools(tx *gorm.DB, options Options, result *Result) error {
 	return nil
 }
 
-func seedBookmarks(tx *gorm.DB, options Options, tags map[string]*model.Tag, result *Result) error {
+func seedBookmarks(tx *gorm.DB, options Options, result *Result) error {
 	for index := 1; index <= 8; index++ {
-		status, at := otherState(index)
+		// 收藏集没有发布时间（发布状态控制可见性），也已不使用标签
+		status, _ := otherState(index)
 		// 收藏集直接以固定 ID 幂等播种（公开列表只展示外链，不再需要 public_id 标识）
-		item := model.Bookmark{BaseModel: model.BaseModel{ID: fmt.Sprintf("mock-bookmark-%02d", index)}, Title: fmt.Sprintf("Mock 书签 %02d", index), URL: fmt.Sprintf("https://example.com/mock/%02d", index), Description: "固定书签描述", CategoryID: []string{"dev", "design"}[(index-1)%2], Icon: "🔖", PublishStatus: status, PublishedAt: at, SortOrder: index, Version: 1}
+		item := model.Bookmark{BaseModel: model.BaseModel{ID: fmt.Sprintf("mock-bookmark-%02d", index)}, Title: fmt.Sprintf("Mock 书签 %02d", index), URL: fmt.Sprintf("https://example.com/mock/%02d", index), Description: "固定书签描述", CategoryID: []string{"dev", "design"}[(index-1)%2], Icon: "🔖", PublishStatus: status, SortOrder: index, Version: 1}
 		created, err := ensureCreated(tx, "id = ?", []interface{}{item.ID}, &item, options, result)
 		if err != nil {
-			return err
-		}
-		if err = bookmarkRelations(tx, item.ID, []string{"开源"}, tags); err != nil {
 			return err
 		}
 		if created && index == 8 {
@@ -297,14 +295,6 @@ func postRelations(tx *gorm.DB, id string, names []string, tags map[string]*mode
 func diaryRelations(tx *gorm.DB, id string, names []string, tags map[string]*model.Tag) error {
 	for _, tagID := range tagIDs(names, tags) {
 		if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&model.DiaryTag{DiaryID: id, TagID: tagID, CreatedAt: time.Now()}).Error; err != nil {
-			return err
-		}
-	}
-	return nil
-}
-func bookmarkRelations(tx *gorm.DB, id string, names []string, tags map[string]*model.Tag) error {
-	for _, tagID := range tagIDs(names, tags) {
-		if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&model.BookmarkTag{BookmarkID: id, TagID: tagID, CreatedAt: time.Now()}).Error; err != nil {
 			return err
 		}
 	}

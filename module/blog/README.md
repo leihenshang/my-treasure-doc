@@ -39,7 +39,7 @@ Seed 使用单一事务并按 slug/publicId/default key 幂等查找。已有记
 - `td_blog_diary`、`td_blog_diary_tag`
 - `td_blog_portfolio_item`
 - `td_blog_tool`
-- `td_blog_bookmark`、`td_blog_bookmark_tag`
+- `td_blog_bookmark`
 - `td_blog_profile`、`td_blog_site`
 
 标签和分类使用关系表，作品链接、技术栈、Profile 和 Site 的有序集合使用跨方言 JSON 字段（PostgreSQL 下为 jsonb，SQLite 下为 json/text）。

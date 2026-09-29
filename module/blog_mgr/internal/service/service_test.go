@@ -40,7 +40,6 @@ func TestTaggedManagementResponsesUseTagIDs(t *testing.T) {
 	values := []interface{}{
 		PostWithTags{Post: blogmodel.Post{BaseModel: blogmodel.BaseModel{ID: "post-1"}}, TagIDs: []string{}},
 		DiaryWithTags{Diary: blogmodel.Diary{BaseModel: blogmodel.BaseModel{ID: "diary-1"}}, TagIDs: []string{"tag-1"}},
-		BookmarkWithTags{Bookmark: blogmodel.Bookmark{BaseModel: blogmodel.BaseModel{ID: "bookmark-1"}}, TagIDs: []string{}},
 	}
 	for _, value := range values {
 		data, err := json.Marshal(value)

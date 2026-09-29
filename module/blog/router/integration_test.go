@@ -338,7 +338,7 @@ func TestPublicCatalogVisibility(t *testing.T) {
 	s.create("tools", fmt.Sprintf(`{"slug":%q,"kind":"link","name":"外部工具","url":"https://example.com","publishStatus":"published"}`, linkTool))
 	// 草稿工具对公众不可见（工具保留发布状态，但没有发布时间，不做预约发布）
 	s.create("tools", `{"slug":"draft-tool","kind":"own","name":"草稿工具","publishStatus":"draft"}`)
-	s.create("bookmarks", fmt.Sprintf(`{"title":%q,"url":"https://example.com","publishStatus":"published","publishedAt":%q,"tagIds":[%q],"categoryId":"tools"}`, bookmarkTitle, pastTime, tagID))
+	s.create("bookmarks", fmt.Sprintf(`{"title":%q,"url":"https://example.com","publishStatus":"published","categoryId":"tools"}`, bookmarkTitle))
 
 	// 日记：只出现公开的那条
 	_, env := s.do(http.MethodGet, "/api/blog/diaries", "")
@@ -402,11 +402,14 @@ func TestPublicCatalogVisibility(t *testing.T) {
 		t.Fatalf("列表里没有外链工具：%v", tools)
 	}
 
-	// 收藏集（纯外链，公开 ID 已移除，校验标题即可）
+	// 收藏集（纯外链，公开 ID 与标签、发布时间均已移除，校验标题即可）
 	_, env = s.do(http.MethodGet, "/api/blog/bookmarks", "")
 	bookmarks := list(t, env)
 	if len(bookmarks) != 1 || bookmarks[0]["title"] != bookmarkTitle {
 		t.Fatalf("公开收藏集 = %v", bookmarks)
+	}
+	if _, ok := bookmarks[0]["tags"]; ok {
+		t.Fatalf("收藏集已移除标签，响应不应再含 tags：%v", bookmarks[0])
 	}
 
 	// 分类/标签：只返回「已发布内容」用到的（草稿独占的分类/标签必须隐藏）

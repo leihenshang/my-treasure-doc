@@ -6,10 +6,10 @@ summary: 新增收藏集条目
 description: |
   创建成功返回 HTTP 201（`code = 0`），`data` 为新建条目（`version` 从 1 开始）。
 
-  关联校验：非空 `categoryId` 必须是 `scope = bookmark` 下已存在的分类，`tagIds` 必须全部存在，
-  不满足时返回 400 / code 40002（`data.field` 为 `categoryId 或 tagIds`）。
+  关联校验：非空 `categoryId` 必须是 `scope = bookmark` 下已存在的分类，
+  不满足时返回 400 / code 40002（`data.field` 为 `categoryId`）。
 
-  `url` 必须为合法地址；`publishStatus = published` 而未给 `publishedAt` 时，服务端以当前时间补齐。
+  `url` 必须为合法地址。收藏集不设发布时间与标签：`publishStatus` 即公开可见性的唯一开关。
 security:
   - XToken: []
 requestBody:

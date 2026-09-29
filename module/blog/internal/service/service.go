@@ -40,9 +40,9 @@ func published(db *gorm.DB) *gorm.DB {
 	return db.Where("publish_status = ? AND published_at <= ?", model.StatusPublished, time.Now())
 }
 
-// publishedTool 过滤工具的公开可见性：工具保留发布状态但没有 published_at（不做预约发布），
-// 因此只按发布状态过滤；软删除仍由 GORM 默认作用域排除。
-func publishedTool(db *gorm.DB) *gorm.DB {
+// publishedByStatus 过滤没有 published_at 列的内容（工具、收藏集）的公开可见性：
+// 保留发布状态但不做预约发布，因此只按发布状态过滤；软删除仍由 GORM 默认作用域排除。
+func publishedByStatus(db *gorm.DB) *gorm.DB {
 	return db.Where("publish_status = ?", model.StatusPublished)
 }
 
@@ -76,7 +76,7 @@ func (s *Service) Categories(ctx context.Context, scope string) ([]response.Cate
 	case model.CategoryPortfolio:
 		query = query.Where("EXISTS (?)", published(db.Model(&model.PortfolioItem{})).Select("1").Where("category_id = td_blog_category.slug"))
 	case model.CategoryBookmark:
-		query = query.Where("EXISTS (?)", published(db.Model(&model.Bookmark{})).Select("1").Where("category_id = td_blog_category.slug"))
+		query = query.Where("EXISTS (?)", publishedByStatus(db.Model(&model.Bookmark{})).Select("1").Where("category_id = td_blog_category.slug"))
 	}
 	if err := query.Order("sort_order ASC, slug ASC").Find(&categories).Error; err != nil {
 		return nil, err

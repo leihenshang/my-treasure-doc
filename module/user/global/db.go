@@ -150,6 +150,21 @@ func migrateDbTable() error {
 		}
 	}
 
+	// 兼容旧库：收藏集去掉发布时间（published_at，发布状态保留），
+	// 与工具同理：模型删字段后残留的 NOT NULL 列会让新插入直接失败。
+	if Db.Migrator().HasColumn(&blogmodel.Bookmark{}, "published_at") {
+		if err := Db.Migrator().DropColumn(&blogmodel.Bookmark{}, "published_at"); err != nil {
+			return fmt.Errorf("failed to drop deprecated column td_blog_bookmark.published_at: %v", err)
+		}
+	}
+
+	// 兼容旧库：收藏集不再使用标签，删除书签-标签关联表（模型已移除，AutoMigrate 不会自动删表）。
+	if Db.Migrator().HasTable("td_blog_bookmark_tag") {
+		if err := Db.Migrator().DropTable("td_blog_bookmark_tag"); err != nil {
+			return fmt.Errorf("failed to drop deprecated table td_blog_bookmark_tag: %v", err)
+		}
+	}
+
 	// 兼容旧库：工具去掉开发状态/正文/发布时间三个字段（发布状态保留）。
 	// 同样因为 AutoMigrate 不删列，残留的 NOT NULL 列会让新插入直接失败。
 	for _, column := range []string{"development_status", "content", "published_at"} {

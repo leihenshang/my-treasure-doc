@@ -51,11 +51,6 @@ type DiaryWithTags struct {
 	TagIDs []string `json:"tagIds"`
 }
 
-type BookmarkWithTags struct {
-	blogmodel.Bookmark
-	TagIDs []string `json:"tagIds"`
-}
-
 func New() *Service { return &Service{} }
 func (s *Service) database(ctx context.Context) (*gorm.DB, error) {
 	if global.Db == nil {
@@ -394,20 +389,6 @@ func enrichListWithTags(db *gorm.DB, resource string, list interface{}) (interfa
 			result = append(result, DiaryWithTags{Diary: value, TagIDs: tags[value.ID]})
 		}
 		return result, nil
-	case *[]blogmodel.Bookmark:
-		ids := make([]string, 0, len(*values))
-		for _, value := range *values {
-			ids = append(ids, value.ID)
-		}
-		tags, err := loadTagIDs(db, "td_blog_bookmark_tag", "bookmark_id", ids)
-		if err != nil {
-			return nil, err
-		}
-		result := make([]BookmarkWithTags, 0, len(*values))
-		for _, value := range *values {
-			result = append(result, BookmarkWithTags{Bookmark: value, TagIDs: tags[value.ID]})
-		}
-		return result, nil
 	default:
 		return list, nil
 	}
@@ -421,9 +402,6 @@ func enrichItemWithTags(db *gorm.DB, resource string, item interface{}) (interfa
 	case *blogmodel.Diary:
 		tags, err := loadTagIDs(db, "td_blog_diary_tag", "diary_id", []string{value.ID})
 		return &DiaryWithTags{Diary: *value, TagIDs: tags[value.ID]}, err
-	case *blogmodel.Bookmark:
-		tags, err := loadTagIDs(db, "td_blog_bookmark_tag", "bookmark_id", []string{value.ID})
-		return &BookmarkWithTags{Bookmark: *value, TagIDs: tags[value.ID]}, err
 	default:
 		return item, nil
 	}
@@ -604,15 +582,13 @@ func requestedVersion(payload interface{}) int {
 }
 
 func replaceTags(tx *gorm.DB, relation, ownerID string, tagIDs []string) error {
-	ownerColumn := map[string]string{"td_blog_post_tag": "post_id", "td_blog_diary_tag": "diary_id", "td_blog_bookmark_tag": "bookmark_id"}[relation]
+	ownerColumn := map[string]string{"td_blog_post_tag": "post_id", "td_blog_diary_tag": "diary_id"}[relation]
 	var relationModel interface{}
 	switch relation {
 	case "td_blog_post_tag":
 		relationModel = &blogmodel.PostTag{}
 	case "td_blog_diary_tag":
 		relationModel = &blogmodel.DiaryTag{}
-	case "td_blog_bookmark_tag":
-		relationModel = &blogmodel.BookmarkTag{}
 	default:
 		return ErrInvalid
 	}
@@ -934,12 +910,8 @@ func buildModel(resource string, payload interface{}) (interface{}, []string, st
 		if !request.ValidStatus(value.PublishStatus) {
 			return nil, nil, "", request.Field("publishStatus", "发布状态只能是 draft / published / archived")
 		}
-		_, at, _ := publishedTimes(value.PublishStatus, "", value.PublishedAt)
-		ids, err := request.NormalizeIDs(value.TagIDs)
-		if err != nil {
-			return nil, nil, "", request.Field("tagIds", "标签 ID 不合法")
-		}
-		return &blogmodel.Bookmark{Title: value.Title, URL: value.URL, Description: value.Description, CategoryID: value.CategoryID, Icon: value.Icon, PublishStatus: value.PublishStatus, PublishedAt: at, SortOrder: value.SortOrder, OpenInNewTab: value.OpenInNewTab, Version: max(value.Version, 1)}, ids, "td_blog_bookmark_tag", nil
+		// 收藏集不设发布时间与标签：发布状态即可控制公开可见性（与工具一致）
+		return &blogmodel.Bookmark{Title: value.Title, URL: value.URL, Description: value.Description, CategoryID: value.CategoryID, Icon: value.Icon, PublishStatus: value.PublishStatus, SortOrder: value.SortOrder, OpenInNewTab: value.OpenInNewTab, Version: max(value.Version, 1)}, nil, "", nil
 	default:
 		return nil, nil, "", fmt.Errorf("%w: %s", ErrInvalid, resource)
 	}
@@ -958,7 +930,7 @@ func updateMap(item interface{}) map[string]interface{} {
 	case *blogmodel.Tool:
 		return map[string]interface{}{"slug": value.Slug, "kind": value.Kind, "name": value.Name, "description": value.Description, "url": value.URL, "cover": value.Cover, "publish_status": value.PublishStatus, "sort_order": value.SortOrder}
 	case *blogmodel.Bookmark:
-		return map[string]interface{}{"title": value.Title, "url": value.URL, "description": value.Description, "category_id": value.CategoryID, "icon": value.Icon, "publish_status": value.PublishStatus, "published_at": value.PublishedAt, "sort_order": value.SortOrder, "open_in_new_tab": value.OpenInNewTab}
+		return map[string]interface{}{"title": value.Title, "url": value.URL, "description": value.Description, "category_id": value.CategoryID, "icon": value.Icon, "publish_status": value.PublishStatus, "sort_order": value.SortOrder, "open_in_new_tab": value.OpenInNewTab}
 	}
 	return map[string]interface{}{}
 }

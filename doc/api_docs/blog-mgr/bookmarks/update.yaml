@@ -7,8 +7,8 @@ description: |
   乐观锁：请求体必须携带当前 `version`（取自详情响应），服务端按 `version` 匹配更新并自增，
   缺失或版本过期返回 409 / code 40900；更新成功后须重新拉取详情以刷新 `version`。
 
-  关联校验：非空 `categoryId` 必须是 `scope = bookmark` 下已存在的分类，`tagIds` 必须全部存在，
-  不满足时返回 400 / code 40002（`data.field` 为 `categoryId 或 tagIds`）。
+  关联校验：非空 `categoryId` 必须是 `scope = bookmark` 下已存在的分类，
+  不满足时返回 400 / code 40002（`data.field` 为 `categoryId`）。
 security:
   - XToken: []
 parameters:

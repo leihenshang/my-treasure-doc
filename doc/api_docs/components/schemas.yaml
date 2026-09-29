@@ -433,7 +433,7 @@ PublicTool:
 PublicBookmark:
   type: object
   description: 收藏集条目
-  required: [id, title, url, desc, category, tags, icon, openInNewTab]
+  required: [id, title, url, desc, category, icon, openInNewTab]
   properties:
     id:
       type: string
@@ -446,11 +446,6 @@ PublicBookmark:
     category:
       type: string
       description: 分类 slug；未分类时为空串
-    tags:
-      type: array
-      description: 标签 slug 数组；无标签时为空数组
-      items:
-        type: string
     icon:
       type: string
       description: 图标；可能是 `/files/blog/...` 上传图或遗留 emoji 文字占位
@@ -915,7 +910,7 @@ ManageBookmark:
   allOf:
     - $ref: '#/BaseModel'
     - type: object
-      required: [title, url, description, categoryID, icon, publishStatus, publishedAt, sortOrder, openInNewTab, version]
+      required: [title, url, description, categoryID, icon, publishStatus, sortOrder, openInNewTab, version]
       properties:
         title:
           type: string
@@ -930,19 +925,12 @@ ManageBookmark:
           type: string
         publishStatus:
           $ref: '#/PublishStatus'
-        publishedAt:
-          type: string
-          format: date-time
         sortOrder:
           type: integer
         openInNewTab:
           type: boolean
         version:
           type: integer
-        tagIds:
-          type: array
-          items:
-            type: string
 
 ManageCategoryPage:
   type: object
@@ -1465,10 +1453,6 @@ ManageBookmarkInput:
       type: string
     publishStatus:
       $ref: '#/PublishStatus'
-    publishedAt:
-      type: [string, 'null']
-      format: date-time
-      description: 发布时间（RFC3339）；留空时由 `publishedOn` 推导
     sortOrder:
       type: integer
       default: 0
@@ -1478,10 +1462,6 @@ ManageBookmarkInput:
     version:
       type: integer
       description: 乐观锁版本；更新时必填
-    tagIds:
-      type: array
-      items:
-        type: string
 
 ManageProfileInput:
   $ref: '#/PublicProfile'
